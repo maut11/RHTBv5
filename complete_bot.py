@@ -806,6 +806,46 @@ class RobustAlertQueueManager:
         self.processing = False
         self.logger.info("Alert processor stopped")
 
+# --- Delayed Stop Loss Manager ---
+class DelayedStopLossManager:
+    def __init__(self):
+        self.pending_stops = {}  # trade_id -> stop_loss_data
+        
+    def schedule_stop_loss(self, trade_id: str, stop_data: dict, delay_seconds: int = 900):
+        """Schedule a stop loss to be placed after delay"""
+        def place_stop_after_delay():
+            time.sleep(delay_seconds)
+            print(f"⏰ Placing delayed stop loss for trade {trade_id}")
+            
+            trader = stop_data['trader']
+            try:
+                response = trader.place_option_stop_loss_order(
+                    stop_data['symbol'],
+                    stop_data['strike'],
+                    stop_data['expiration'],
+                    stop_data['opt_type'],
+                    stop_data['quantity'],
+                    stop_data['stop_price']
+                )
+                print(f"✅ Delayed stop loss placed for {stop_data['symbol']}: {response}")
+            except Exception as e:
+                print(f"❌ Failed to place delayed stop loss: {e}")
+            finally:
+                # Remove from pending
+                if trade_id in self.pending_stops:
+                    del self.pending_stops[trade_id]
+        
+        # Store pending stop
+        self.pending_stops[trade_id] = stop_data
+        
+        # Start thread for delayed placement
+        thread = threading.Thread(target=place_stop_after_delay, daemon=True)
+        thread.start()
+        print(f"⏱️ Stop loss scheduled for {delay_seconds/60:.1f} minutes from now")
+
+# Global delayed stop loss manager
+stop_loss_manager = DelayedStopLossManager()
+
 # --- Global State & Initializations ---
 SIM_MODE = False  # Always start in LIVE mode
 TESTING_MODE = False  # Always start listening to LIVE channels
@@ -879,14 +919,13 @@ def normalize_keys(data: dict) -> dict:
     
     if 'ticker' in cleaned_data and isinstance(cleaned_data['ticker'], str):
         cleaned_data['ticker'] = cleaned_data['ticker'].replace('$', '').upper()
-
     
     return cleaned_data
 
 def monitor_order_fill_efficiently(trader, order_id, max_wait_time=600):
-    """Monitor order fill with exponential backoff"""
+    """Monitor order fill with exponential backoff - ENHANCED VERSION"""
     start_time = time.time()
-    check_intervals = [5, 10, 15, 20, 30, 30, 60, 60, 60, 60]
+    check_intervals = [5, 10, 15, 20, 30, 30, 60, 60, 60, 60, 70, 80, 100]
     total_elapsed = 0
     
     for interval in check_intervals:
@@ -901,11 +940,17 @@ def monitor_order_fill_efficiently(trader, order_id, max_wait_time=600):
             
             if order_info and order_info.get('state') == 'filled':
                 elapsed_time = time.time() - start_time
+                print(f"✅ Order {order_id} filled after {elapsed_time:.1f} seconds")
                 return True, elapsed_time
+                
             elif order_info and order_info.get('state') in ['cancelled', 'rejected', 'failed']:
                 elapsed_time = time.time() - start_time
+                print(f"❌ Order {order_id} {order_info.get('state')} after {elapsed_time:.1f} seconds")
                 return False, elapsed_time
                 
+            elapsed_time = time.time() - start_time
+            print(f"⏳ Order {order_id} still pending after {elapsed_time:.1f} seconds...")
+            
         except Exception as e:
             comprehensive_logger.log_error(f"Order monitoring error: {e}", e)
             continue
@@ -918,6 +963,7 @@ def monitor_order_fill_efficiently(trader, order_id, max_wait_time=600):
         pass
     
     elapsed_time = time.time() - start_time
+    print(f"⏰ Order {order_id} monitoring timeout after {elapsed_time:.1f} seconds")
     return False, elapsed_time
 
 def execute_buy_order(trader, trade_obj, config, log_func):
@@ -1182,6 +1228,32 @@ def _blocking_handle_trade(loop, handler, message_meta, raw_msg, is_sim_mode_on,
                         trade_id = f"trade_{int(datetime.now().timestamp() * 1000)}"
                         trade_obj['trade_id'] = trade_id
                         
+                        # Calculate stop loss price
+                        price = trade_obj.get('price', 0)
+                        if price > 0:
+                            stop_price = round_to_tick(price * (1 - config.get("initial_stop_loss", 0.50)), 
+                                                     trader.get_instrument_tick_size(symbol) or 0.05)
+                            
+                            # Schedule delayed stop loss (15 minutes by default)
+                            enhanced_log(f"⏱️ Scheduling stop loss for {STOP_LOSS_DELAY_SECONDS/60:.0f} minutes @ ${stop_price:.2f}")
+                            
+                            stop_data = {
+                                'trader': trader,
+                                'symbol': symbol,
+                                'strike': strike,
+                                'expiration': expiration,
+                                'opt_type': opt_type,
+                                'quantity': trade_obj.get('quantity', 1),
+                                'stop_price': stop_price
+                            }
+                            
+                            # Schedule delayed stop loss
+                            stop_loss_manager.schedule_stop_loss(trade_id, stop_data, STOP_LOSS_DELAY_SECONDS)
+                            
+                            # Add stop loss info to trade object
+                            trade_obj['stop_loss_price'] = stop_price
+                            trade_obj['stop_loss_scheduled'] = True
+                        
                         # Record entry in performance tracker
                         performance_tracker.record_entry(trade_obj)
                         position_manager.add_position(trade_obj['channel_id'], trade_obj)
@@ -1215,6 +1287,49 @@ def _blocking_handle_trade(loop, handler, message_meta, raw_msg, is_sim_mode_on,
                                 'price': trade_obj.get('price', 0),
                                 'ticker': trade_obj.get('ticker')
                             })
+                            
+                            # Enhanced trailing stop logic for remaining position
+                            if active_position:
+                                all_positions = trader.get_open_option_positions() if not is_sim_mode_on else []
+                                remaining_position = trader.find_open_option_position(all_positions, symbol, strike, expiration, opt_type)
+                                
+                                if remaining_position:
+                                    remaining_qty = int(float(remaining_position.get('quantity', 0)))
+                                    purchase_price = float(active_position.get("purchase_price", 0.0))
+                                    
+                                    # Get current market price for trailing stop calculation
+                                    market_data = trader.get_option_market_data(symbol, expiration, strike, opt_type)
+                                    current_market_price = purchase_price
+                                    
+                                    if market_data and len(market_data) > 0 and isinstance(market_data[0], dict):
+                                        rec = market_data[0]
+                                        mark_price = rec.get('mark_price')
+                                        if mark_price:
+                                            current_market_price = float(mark_price)
+                                        else:
+                                            bid = float(rec.get('bid_price', 0) or 0)
+                                            ask = float(rec.get('ask_price', 0) or 0)
+                                            if bid and ask:
+                                                current_market_price = (bid + ask) / 2
+                                    
+                                    # Calculate trailing stop
+                                    trailing_stop_pct = config.get("trailing_stop_loss_pct", 0.20)
+                                    trailing_stop_candidate = current_market_price * (1 - trailing_stop_pct)
+                                    new_stop_price = max(trailing_stop_candidate, purchase_price)
+                                    
+                                    tick_size = trader.get_instrument_tick_size(symbol) or 0.05
+                                    new_stop_price_rounded = round_to_tick(new_stop_price, tick_size)
+                                    
+                                    enhanced_log(f"📊 Placing trailing stop for remaining {remaining_qty} contracts @ ${new_stop_price_rounded:.2f}")
+                                    
+                                    try:
+                                        new_stop_response = trader.place_option_stop_loss_order(
+                                            symbol, strike, expiration, opt_type, remaining_qty, new_stop_price_rounded
+                                        )
+                                        enhanced_log(f"✅ Trailing stop placed: {new_stop_response}")
+                                    except Exception as e:
+                                        enhanced_log(f"❌ Failed to place trailing stop: {e}")
+                            
                         else:  # exit or stop
                             trade_record = performance_tracker.record_exit(trade_id, {
                                 'price': trade_obj.get('price', 0),
@@ -1409,6 +1524,16 @@ class EnhancedMyClient(discord.Client):
 **Robust Alert Queue:** ✅
 **Heartbeat System:** ✅
 **Error Recovery:** ✅
+                    """,
+                    "inline": True
+                },
+                {
+                    "name": "🛡️ Risk Management",
+                    "value": f"""
+**Delayed Stop Loss:** {STOP_LOSS_DELAY_SECONDS/60:.0f} minutes
+**Initial Stop:** 50% loss protection
+**Trailing Stops:** 20% trailing on trims
+**Auto Risk Management:** ✅ ENABLED
                     """,
                     "inline": True
                 }
@@ -1793,6 +1918,13 @@ class EnhancedMyClient(discord.Client):
 • 🔄 Enhanced performance tracking
 • 📡 Robust alert queue with retries
 • 🛡️ Automatic error recovery
+
+**🛡️ Automatic Risk Management:**
+• ⏱️ 15-minute delayed stop loss placement
+• 📉 50% initial stop loss protection
+• 📈 20% trailing stops on partial exits
+• 🎯 Always uses market price for exits
+• ⚡ Exponential order fill monitoring
                     """,
                     "color": 0x3498db
                 }
@@ -1948,6 +2080,13 @@ if __name__ == "__main__":
         print("   ✅ Better error handling and recovery")
         print("   ✅ File-based logging for all Python output")
         print("   ✅ All-in-one consolidated bot")
+        print("")
+        print("🛡️ Automatic Risk Management Active:")
+        print(f"   ⏱️ Delayed stop loss: {STOP_LOSS_DELAY_SECONDS/60:.0f} minutes after buy")
+        print("   📉 Initial stop loss: 50% protection")
+        print("   📈 Trailing stops: 20% on partial exits")
+        print("   🎯 Market-based exit pricing")
+        print("   ⚡ Exponential order monitoring with auto-cancel")
         print("")
         
         # Log all settings
