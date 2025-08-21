@@ -1,7 +1,7 @@
 # config.py - RHTB v4 Configuration with Per-Channel Padding
 MAX_PCT_PORTFOLIO = 0.05
 MAX_DOLLAR_AMOUNT = 20000
-MIN_TRADE_QUANTITY = 2
+MIN_TRADE_QUANTITY = 3
 
 # Default paddings (can be overridden per channel)
 DEFAULT_BUY_PRICE_PADDING = 0.02
@@ -19,7 +19,7 @@ CHANNELS_CONFIG = {
         "test_id": 1396011198343811102, # <-- REPLACE WITH YOUR RYAN SIMULATION CHANNEL ID
         "parser": "RyanParser",
         "multiplier": 1.0,
-        "initial_stop_loss": 0.30,  # 50% stop loss
+        "initial_stop_loss": 0.35,  # 50% stop loss
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.05,  # 2% padding for buys
         "sell_padding": 0.025,  # 1% padding for sells
@@ -43,7 +43,7 @@ CHANNELS_CONFIG = {
         "test_id": 1398211580470235176, # <-- REPLACE WITH YOUR SEAN SIMULATION CHANNEL ID
         "parser": "SeanParser",
         "multiplier": 1.0,
-        "initial_stop_loss": 0.30,
+        "initial_stop_loss": 0.50,
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2% padding
         "sell_padding": 0.025,  # 1% padding
@@ -67,7 +67,7 @@ CHANNELS_CONFIG = {
         "test_id": 1402850612995031090, # <-- REPLACE WITH YOUR FIFI SIMULATION CHANNEL ID
         "parser": "FiFiParser",
         "multiplier": 1.0,
-        "initial_stop_loss": 0.30,
+        "initial_stop_loss": 0.50,
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2% padding
         "sell_padding": 0.025,  # 1% padding

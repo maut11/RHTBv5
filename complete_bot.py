@@ -286,6 +286,7 @@ class EnhancedPerformanceTracker:
                 conn.commit()
             
             conn.close()
+    
     def record_entry(self, trade_data: Dict) -> str:
         """Record a new trade entry"""
         with self.lock:
@@ -313,9 +314,7 @@ class EnhancedPerformanceTracker:
                     datetime.now(timezone.utc).isoformat(),
                     trade_data.get('price', 0),
                     quantity,
-                    quantity,  # quantity_remaining
-                    trade_data.get('size', 'full')
-                    # Removed the hardcoded 'open' - it's in the SQL
+                    quantity
                 ))
                 
                 conn.commit()
@@ -323,14 +322,10 @@ class EnhancedPerformanceTracker:
                 
             except sqlite3.IntegrityError:
                 self.logger.warning(f"Trade {trade_id} already exists")
-            except Exception as e:
-                self.logger.error(f"Database error in record_entry: {e}")
-                print(f"❌ Database error: {e}")
             finally:
                 conn.close()
             
             return trade_id
-        
     
     def find_open_trade_by_ticker(self, ticker: str, channel: str = None) -> Optional[str]:
         """Find most recent open trade ID by ticker"""
@@ -881,7 +876,7 @@ def normalize_keys(data: dict) -> dict:
         cleaned_data['price'] = cleaned_data.pop('entry_price')
     
     if 'ticker' in cleaned_data and isinstance(cleaned_data['ticker'], str):
-        cleaned_data['ticker'] = cleaned_data['ticker'].replace('$', '').upper()
+        cleaned_data['ticker'] = cleaned_data['ticker'].replace('
     
     return cleaned_data
 
@@ -1139,7 +1134,7 @@ def _blocking_handle_trade(loop, handler, message_meta, raw_msg, is_sim_mode_on,
                 # Enhanced contract resolution
                 trade_obj['channel'] = handler.name
                 trade_obj['channel_id'] = handler.channel_id
-                trade_obj['trade_id'] = f"trade_{uuid.uuid4()}"  # ADD THIS LINE
+                
                 # Try to find active position for trim/exit actions
                 active_position = None
                 if action in ("trim", "exit", "stop"):
@@ -1307,6 +1302,67 @@ class EnhancedMyClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.alert_processor_task = None
+        self.heartbeat_task_handle = None
+        self.start_time = datetime.now(timezone.utc)
+
+    async def heartbeat_task(self):
+        """Send periodic heartbeat to confirm bot is alive"""
+        while True:
+            try:
+                await asyncio.sleep(1800)  # Every 30 minutes
+                
+                uptime = datetime.now(timezone.utc) - self.start_time
+                uptime_str = str(uptime).split('.')[0]  # Remove microseconds
+                
+                # Get current metrics
+                queue_metrics = await alert_queue.get_metrics()
+                recent_trades = performance_tracker.get_recent_trades(5)
+                
+                heartbeat_embed = {
+                    "title": "💓 RHTB v4 Heartbeat",
+                    "description": "Bot is alive and running normally",
+                    "color": 0x00ff00,
+                    "fields": [
+                        {
+                            "name": "🕐 System Status",
+                            "value": f"""
+**Uptime:** {uptime_str}
+**Started:** {self.start_time.strftime('%H:%M UTC')}
+**Current Time:** {datetime.now(timezone.utc).strftime('%H:%M UTC')}
+                            """,
+                            "inline": True
+                        },
+                        {
+                            "name": "⚙️ Configuration",
+                            "value": f"""
+**Simulation:** {'ON' if SIM_MODE else 'OFF'}
+**Testing Mode:** {'ON' if TESTING_MODE else 'OFF'}
+**Active Channels:** {len(CHANNEL_HANDLERS)}
+                            """,
+                            "inline": True
+                        },
+                        {
+                            "name": "📊 Activity",
+                            "value": f"""
+**Alert Queue:** {queue_metrics['queue_size_current']} pending
+**Success Rate:** {queue_metrics['success_rate']:.1f}%
+**Recent Trades:** {len(recent_trades)}
+                            """,
+                            "inline": True
+                        }
+                    ],
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "footer": {"text": "Automatic heartbeat every 30 minutes"}
+                }
+                
+                await alert_queue.add_alert(ALL_NOTIFICATION_WEBHOOK, 
+                                          {"embeds": [heartbeat_embed]}, 
+                                          "heartbeat")
+                
+                comprehensive_logger.log_main("💓 Heartbeat sent successfully")
+                
+            except Exception as e:
+                comprehensive_logger.log_error(f"Heartbeat error: {e}", e)
 
     async def on_ready(self):
         comprehensive_logger.log_main(f"✅ Discord client ready: {self.user}")
@@ -1315,6 +1371,11 @@ class EnhancedMyClient(discord.Client):
         if not self.alert_processor_task:
             self.alert_processor_task = asyncio.create_task(alert_queue.process_alerts())
             comprehensive_logger.log_main("✅ Enhanced alert processor started")
+        
+        # Start heartbeat task
+        if not self.heartbeat_task_handle:
+            self.heartbeat_task_handle = asyncio.create_task(self.heartbeat_task())
+            comprehensive_logger.log_main("💓 Heartbeat task started (30min intervals)")
         
         update_channel_handlers()
         
@@ -1339,7 +1400,7 @@ class EnhancedMyClient(discord.Client):
 **Comprehensive Logging:** ✅
 **Enhanced Performance Tracking:** ✅
 **Robust Alert Queue:** ✅
-**File Logging:** ✅
+**Heartbeat System:** ✅
 **Error Recovery:** ✅
                     """,
                     "inline": True
@@ -1607,6 +1668,98 @@ class EnhancedMyClient(discord.Client):
                 await self._handle_get_price(query)
                 return
             
+            # Heartbeat command
+            elif command == "!heartbeat":
+                uptime = datetime.now(timezone.utc) - self.start_time
+                uptime_str = str(uptime).split('.')[0]  # Remove microseconds
+                
+                # Get detailed system metrics
+                queue_metrics = await alert_queue.get_metrics()
+                recent_trades = performance_tracker.get_recent_trades(5)
+                
+                # Get memory/system info if possible
+                try:
+                    import psutil
+                    process = psutil.Process()
+                    memory_mb = process.memory_info().rss / 1024 / 1024
+                    cpu_percent = process.cpu_percent()
+                    system_info = f"**Memory:** {memory_mb:.1f} MB\n**CPU:** {cpu_percent:.1f}%"
+                except:
+                    system_info = "**System info:** Not available"
+                
+                heartbeat_embed = {
+                    "title": "💓 RHTB v4 Manual Heartbeat",
+                    "description": "Detailed bot health status",
+                    "color": 0x00ff00,
+                    "fields": [
+                        {
+                            "name": "🕐 Uptime & Timing",
+                            "value": f"""
+**Current Uptime:** {uptime_str}
+**Started At:** {self.start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}
+**Current Time:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
+**Last Heartbeat:** {'Active' if self.heartbeat_task_handle and not self.heartbeat_task_handle.done() else 'Inactive'}
+                            """,
+                            "inline": False
+                        },
+                        {
+                            "name": "⚙️ Configuration Status",
+                            "value": f"""
+**Simulation Mode:** {'🟢 ON' if SIM_MODE else '🔴 OFF (LIVE TRADING)'}
+**Testing Mode:** {'🟡 ON (Test Channels)' if TESTING_MODE else '🟢 OFF (Live Channels)'}
+**Debug Mode:** {'🟢 ON' if DEBUG_MODE else '🔴 OFF'}
+**Active Channels:** {len(CHANNEL_HANDLERS)}
+                            """,
+                            "inline": True
+                        },
+                        {
+                            "name": "📊 Performance Metrics",
+                            "value": f"""
+**Alert Queue Size:** {queue_metrics['queue_size_current']}
+**Total Alerts Sent:** {queue_metrics['total_alerts']}
+**Alert Success Rate:** {queue_metrics['success_rate']:.1f}%
+**Recent Trades:** {len(recent_trades)} completed
+**Processing Status:** {'🟢 Active' if queue_metrics['is_processing'] else '🔴 Stopped'}
+                            """,
+                            "inline": True
+                        },
+                        {
+                            "name": "🖥️ System Resources",
+                            "value": system_info,
+                            "inline": False
+                        },
+                        {
+                            "name": "📝 Recent Activity",
+                            "value": f"""
+**Logging:** {comprehensive_logger.metrics['total_messages_processed']} messages processed
+**Parse Success:** {comprehensive_logger.metrics['successful_parses']}/{comprehensive_logger.metrics['total_messages_processed']} 
+**Errors:** {comprehensive_logger.metrics['errors_encountered']} total
+**Active Since:** {comprehensive_logger.metrics['session_start'][:16]}
+                            """ if hasattr(comprehensive_logger, 'metrics') else "**Logging:** Active\n**Status:** All systems operational",
+                            "inline": False
+                        }
+                    ],
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "footer": {"text": f"Manual heartbeat requested • Next auto heartbeat in ~{30 - (uptime.total_seconds() % 1800) // 60:.0f} min"}
+                }
+                
+                # Add recent trades info if available
+                if recent_trades:
+                    trades_text = ""
+                    for trade in recent_trades[:3]:
+                        pnl_emoji = "🟢" if trade.get('pnl_percent', 0) > 0 else "🔴"
+                        pnl = trade.get('pnl_percent', 0)
+                        trades_text += f"{pnl_emoji} {trade['ticker']}: {pnl:+.1f}%\n"
+                    
+                    heartbeat_embed["fields"].append({
+                        "name": "💹 Recent Trades",
+                        "value": trades_text,
+                        "inline": True
+                    })
+                
+                await alert_queue.add_alert(COMMANDS_WEBHOOK, {"embeds": [heartbeat_embed]}, "manual_heartbeat")
+                comprehensive_logger.log_main("💓 Manual heartbeat command executed")
+            
             # Help command
             elif command == "!help":
                 help_embed = {
@@ -1614,6 +1767,7 @@ class EnhancedMyClient(discord.Client):
                     "description": """
 **Status & Monitoring:**
 `!status` - System status and metrics
+`!heartbeat` - Detailed health check & uptime
 `!queue` - Alert queue health
 `!trades` - Recent trade performance
 
@@ -1627,10 +1781,11 @@ class EnhancedMyClient(discord.Client):
 `!portfolio` - Show portfolio value
 
 **Enhanced Features:**
-• Comprehensive file logging
-• Enhanced performance tracking
-• Robust alert queue with retries
-• Automatic error recovery
+• 💓 Automatic heartbeat every 30 minutes
+• 📊 Comprehensive file logging
+• 🔄 Enhanced performance tracking
+• 📡 Robust alert queue with retries
+• 🛡️ Automatic error recovery
                     """,
                     "color": 0x3498db
                 }
@@ -1760,6 +1915,13 @@ class EnhancedMyClient(discord.Client):
     async def on_disconnect(self):
         """Clean shutdown"""
         comprehensive_logger.log_main("🔌 Discord client disconnecting...")
+        
+        # Stop heartbeat task
+        if self.heartbeat_task_handle:
+            self.heartbeat_task_handle.cancel()
+            comprehensive_logger.log_main("💓 Heartbeat task stopped")
+        
+        # Stop alert processor
         if self.alert_processor_task:
             alert_queue.stop()
             try:
@@ -1791,7 +1953,9 @@ if __name__ == "__main__":
     except Exception as e:
         comprehensive_logger.log_error(f"Critical startup error: {e}", e)
         print(f"❌ Critical error during startup: {e}")
-        raise 
+        raise, '').upper()
+    
+    return cleaned_data
 
 def monitor_order_fill_efficiently(trader, order_id, max_wait_time=600):
     """Monitor order fill with exponential backoff"""
@@ -2047,8 +2211,7 @@ def _blocking_handle_trade(loop, handler, message_meta, raw_msg, is_sim_mode_on,
                 # Enhanced contract resolution
                 trade_obj['channel'] = handler.name
                 trade_obj['channel_id'] = handler.channel_id
-                trade_obj['trade_id'] = f"trade_{uuid.uuid4()}"  # ADD THIS LINE
-
+                
                 # Try to find active position for trim/exit actions
                 active_position = None
                 if action in ("trim", "exit", "stop"):
@@ -2235,9 +2398,9 @@ class EnhancedMyClient(discord.Client):
                 {
                     "name": "🔧 Configuration",
                     "value": f"""
-**Simulation:** {'ON' if SIM_MODE else 'OFF'}
-**Testing Mode:** {'ON' if TESTING_MODE else 'OFF'}
-**Debug Mode:** {'ON' if DEBUG_MODE else 'OFF'}
+**Simulation:** {'OFF' if SIM_MODE else 'ON'}
+**Testing Mode:** {'OFF' if TESTING_MODE else 'ON'}
+**Debug Mode:** {'OFF' if DEBUG_MODE else 'ON'}
 **Channels:** {len(CHANNEL_HANDLERS)} active
                     """,
                     "inline": True
