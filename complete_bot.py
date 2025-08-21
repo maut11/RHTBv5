@@ -805,8 +805,8 @@ class RobustAlertQueueManager:
         self.logger.info("Alert processor stopped")
 
 # --- Global State & Initializations ---
-SIM_MODE = True
-TESTING_MODE = True
+SIM_MODE = False  # Always start in LIVE mode
+TESTING_MODE = False  # Always start listening to LIVE channels
 DEBUG_MODE = True
 
 # Initialize systems
@@ -876,7 +876,7 @@ def normalize_keys(data: dict) -> dict:
         cleaned_data['price'] = cleaned_data.pop('entry_price')
     
     if 'ticker' in cleaned_data and isinstance(cleaned_data['ticker'], str):
-        cleaned_data['ticker'] = cleaned_data['ticker'].replace('
+        cleaned_data['ticker'] = cleaned_data['ticker'].replace('$', '').upper()
     
     return cleaned_data
 
@@ -1387,9 +1387,9 @@ class EnhancedMyClient(discord.Client):
                 {
                     "name": "🔧 Configuration",
                     "value": f"""
-**Simulation:** {'ON' if SIM_MODE else 'OFF'}
-**Testing Mode:** {'ON' if TESTING_MODE else 'OFF'}
-**Debug Mode:** {'ON' if DEBUG_MODE else 'OFF'}
+**Simulation:** {'OFF' if SIM_MODE else 'ON'}
+**Testing Mode:** {'OFF' if TESTING_MODE else 'ON'}
+**Debug Mode:** {'OFF' if DEBUG_MODE else 'ON'}
 **Channels:** {len(CHANNEL_HANDLERS)} active
                     """,
                     "inline": True
@@ -1953,9 +1953,7 @@ if __name__ == "__main__":
     except Exception as e:
         comprehensive_logger.log_error(f"Critical startup error: {e}", e)
         print(f"❌ Critical error during startup: {e}")
-        raise, '').upper()
-    
-    return cleaned_data
+        raise
 
 def monitor_order_fill_efficiently(trader, order_id, max_wait_time=600):
     """Monitor order fill with exponential backoff"""
