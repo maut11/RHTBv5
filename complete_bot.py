@@ -49,6 +49,84 @@ from channels.ryan import RyanParser
 from channels.fifi import FiFiParser
 from channels.price_parser import PriceParser
 
+# --- Simple Feedback Logger for Parse History ---
+import csv
+import os
+import json
+from threading import Lock
+
+class FeedbackLogger:
+    def __init__(self, filename="parsing_feedback.csv"):
+        self.filename = filename
+        self.lock = Lock()
+        self._initialize_file()
+
+    def _initialize_file(self):
+        """Creates the CSV file with headers if it doesn't exist."""
+        if not os.path.exists(self.filename):
+            with self.lock:
+                if not os.path.exists(self.filename):
+                    with open(self.filename, 'w', newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerow([
+                            "Channel Name",
+                            "Original Message", 
+                            "Parsed Message",
+                            "Latency (ms)",
+                            "Is_Correct (Y/N)",
+                            "Notes"
+                        ])
+
+    def log(self, channel_name, original_message, parsed_message_json, latency=0):
+        """Appends a new row to the feedback CSV file in a thread-safe manner."""
+        with self.lock:
+            try:
+                with open(self.filename, 'a', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
+                    writer.writerow([
+                        channel_name,
+                        original_message,
+                        json.dumps(parsed_message_json),
+                        f"{latency:.2f}"
+                    ])
+            except Exception as e:
+                print(f"❌ Failed to write to feedback log: {e}")
+    
+    def get_recent_successful_parse(self, channel_name, ticker):
+        """Get the most recent successful parse for a ticker from a channel"""
+        try:
+            with self.lock:
+                if not os.path.exists(self.filename):
+                    return None
+                    
+                with open(self.filename, 'r', newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    next(reader)  # Skip header
+                    
+                    recent_parses = []
+                    for row in reader:
+                        if len(row) >= 3:
+                            channel, message, parsed_json = row[0], row[1], row[2]
+                            if channel == channel_name:
+                                try:
+                                    parsed_data = json.loads(parsed_json)
+                                    if (isinstance(parsed_data, dict) and 
+                                        parsed_data.get('ticker') == ticker and
+                                        parsed_data.get('strike') and 
+                                        parsed_data.get('expiration') and 
+                                        parsed_data.get('type')):
+                                        recent_parses.append(parsed_data)
+                                except:
+                                    continue
+                    
+                    return recent_parses[-1] if recent_parses else None
+        except Exception as e:
+            print(f"❌ Error reading feedback log: {e}")
+            return None
+
+# Create global feedback logger
+feedback_logger = FeedbackLogger()
+
 # --- Comprehensive Logging System ---
 class ComprehensiveLogger:
     """All-in-one logging system"""
@@ -918,8 +996,7 @@ def normalize_keys(data: dict) -> dict:
         cleaned_data['price'] = cleaned_data.pop('entry_price')
     
     if 'ticker' in cleaned_data and isinstance(cleaned_data['ticker'], str):
-        cleaned_data['ticker'] = cleaned_data['ticker'].replace('$', '').upper()
-    
+        cleaned_data['ticker'] = cleaned_data['ticker'].replace('$', '').upper()    
     return cleaned_data
 
 def monitor_order_fill_efficiently(trader, order_id, max_wait_time=600):
@@ -1151,6 +1228,11 @@ def _blocking_handle_trade(loop, handler, message_meta, raw_msg, is_sim_mode_on,
             parsed_results, latency_ms = handler.parse_message(message_meta, received_ts, enhanced_log)
             comprehensive_logger.log_parse_attempt(handler.name, raw_msg, bool(parsed_results))
             
+            # Log to feedback system for incomplete parse recovery
+            if parsed_results:
+                for parsed_obj in parsed_results:
+                    feedback_logger.log(handler.name, raw_msg, parsed_obj, latency_ms)
+            
             if not parsed_results:
                 enhanced_log(f"⚠️ No parsed results from {handler.name}")
                 return
@@ -1197,11 +1279,21 @@ def _blocking_handle_trade(loop, handler, message_meta, raw_msg, is_sim_mode_on,
                             enhanced_log(f"🔍 Found open trade by ticker: {trade_id}")
                             active_position = {'trade_id': trade_id}
 
-                # Fill in missing contract details
+                # Fill in missing contract details using feedback history
                 symbol = trade_obj.get("ticker") or active_position.get("symbol")
                 strike = trade_obj.get("strike") or active_position.get("strike")
                 expiration = trade_obj.get("expiration") or active_position.get("expiration")
                 opt_type = trade_obj.get("type") or active_position.get("type")
+                
+                # If we have a ticker but missing other details, try feedback history
+                if symbol and (not strike or not expiration or not opt_type):
+                    enhanced_log(f"🔍 Incomplete contract info for {symbol}, checking feedback history...")
+                    recent_parse = feedback_logger.get_recent_successful_parse(handler.name, symbol)
+                    if recent_parse:
+                        strike = strike or recent_parse.get('strike')
+                        expiration = expiration or recent_parse.get('expiration') 
+                        opt_type = opt_type or recent_parse.get('type')
+                        enhanced_log(f"✅ Found previous parse: {symbol} ${strike}{opt_type} {expiration}")
                 
                 trade_obj.update({
                     'ticker': symbol, 
