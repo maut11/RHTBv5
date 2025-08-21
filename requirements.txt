@@ -1,0 +1,6 @@
+# requirements.txt
+discord.py-self
+openai
+python-dotenv
+aiohttp
+robin-stocks
