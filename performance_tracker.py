@@ -34,18 +34,22 @@ class EnhancedPerformanceTracker:
     def __init__(self, db_file: str = "performance_tracking.db"):
         self.db_file = db_file
         self.lock = Lock()
-        self._initialize_database()
         
         # Setup logging
         self.logger = logging.getLogger('performance_tracker')
         self.logger.setLevel(logging.DEBUG)
         
         if not self.logger.handlers:
+            # Create logs directory if it doesn't exist
+            import os
+            if not os.path.exists('logs'):
+                os.makedirs('logs')
             handler = logging.FileHandler("logs/performance_tracker.log")
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
             
+        self._initialize_database()
         print("✅ Enhanced Performance Tracker initialized with channel isolation")
     
     def _initialize_database(self):
@@ -87,14 +91,16 @@ class EnhancedPerformanceTracker:
             cursor.execute("PRAGMA table_info(trades)")
             columns = [column[1] for column in cursor.fetchall()]
             
+            # --- FIX: Removed DEFAULT CURRENT_TIMESTAMP from updated_at ---
             new_columns = [
                 ('channel_id', 'INTEGER'),
                 ('quantity_remaining', 'INTEGER DEFAULT 0'),
                 ('stop_loss_price', 'REAL'),
                 ('trailing_stop_active', 'BOOLEAN DEFAULT 0'),
                 ('notes', 'TEXT'),
-                ('updated_at', 'TEXT DEFAULT CURRENT_TIMESTAMP')
+                ('updated_at', 'TEXT') # Default is handled by CREATE TABLE, cannot be in ALTER
             ]
+            # --- END FIX ---
             
             for col_name, col_type in new_columns:
                 if col_name not in columns:

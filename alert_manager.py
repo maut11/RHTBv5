@@ -32,7 +32,8 @@ class AlertCircuitBreaker:
                 return False
                 
         try:
-            result = await alert_func(*args)
+            # --- FIX: Call alert_func without arguments ---
+            result = await alert_func()
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0

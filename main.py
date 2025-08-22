@@ -10,7 +10,8 @@ from alert_manager import ResilientAlertManager
 from trade_executor import TradeExecutor
 from performance_tracker import EnhancedPerformanceTracker
 from position_manager import EnhancedPositionManager
-from trader import EnhancedRobinhoodTrader, SimulatedTrader
+# --- FIX: Correct the import to use the alias ---
+from trader import RobinhoodTrader, SimulatedTrader
 
 # Import all channel parsers
 from channels.sean import SeanParser
