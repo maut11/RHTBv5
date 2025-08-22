@@ -1,4 +1,4 @@
-# trade_executor.py - Channel-Aware Trade Execution Logic
+# trade_executor.py - Fixed Channel-Aware Trade Execution Logic with Proper Async Support
 import asyncio
 import time
 import threading
@@ -125,7 +125,7 @@ class DelayedStopLossManager:
         print(f"⏱️ Stop loss scheduled for {delay_seconds/60:.1f} minutes from now")
 
 class TradeExecutor:
-    """Channel-aware trade execution with enhanced error handling"""
+    """Channel-aware trade execution with enhanced error handling and proper async support"""
     
     def __init__(self, live_trader, sim_trader, performance_tracker, position_manager, alert_manager):
         self.live_trader = live_trader
@@ -140,22 +140,41 @@ class TradeExecutor:
         
         print("✅ Trade Executor initialized with channel isolation")
     
-    async def process_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id=None, is_edit=False):
-        """Main trade processing entry point"""
+    async def process_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id=None, is_edit=False, event_loop=None):
+        """Main trade processing entry point with proper async support"""
+        
+        # Store the event loop reference
+        if event_loop:
+            self.event_loop = event_loop
+        else:
+            self.event_loop = asyncio.get_running_loop()
+        
         def enhanced_log(msg, level="INFO"):
+            print(f"ℹ️ {msg}")
+            
+            # Use asyncio.run_coroutine_threadsafe to safely call async functions from sync context
             if level == "ERROR":
-                print(f"❌ {msg}")
-                asyncio.create_task(self.alert_manager.send_error_alert(msg))
+                future = asyncio.run_coroutine_threadsafe(
+                    self.alert_manager.send_error_alert(msg), 
+                    self.event_loop
+                )
             else:
-                print(f"ℹ️ {msg}")
-                asyncio.create_task(self.alert_manager.add_alert(
-                    ALL_NOTIFICATION_WEBHOOK, {"content": msg}, 
-                    f"{level.lower()}_notification"
-                ))
+                future = asyncio.run_coroutine_threadsafe(
+                    self.alert_manager.add_alert(
+                        ALL_NOTIFICATION_WEBHOOK, {"content": msg}, 
+                        f"{level.lower()}_notification"
+                    ), 
+                    self.event_loop
+                )
+            
+            # Don't block on the result, just schedule it
+            try:
+                future.result(timeout=0.1)  # Quick timeout to avoid blocking
+            except:
+                pass  # Don't block if alert system is slow
         
         # Run trade processing in thread pool to avoid blocking
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
+        await self.event_loop.run_in_executor(
             None, 
             self._blocking_handle_trade,
             handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id, is_edit, enhanced_log
@@ -223,10 +242,10 @@ class TradeExecutor:
                                 active_position = {'trade_id': trade_id}
 
                     # Fill in missing contract details with CHANNEL-SPECIFIC fallback
-                    symbol = trade_obj.get("ticker") or active_position.get("symbol")
-                    strike = trade_obj.get("strike") or active_position.get("strike")
-                    expiration = trade_obj.get("expiration") or active_position.get("expiration")
-                    opt_type = trade_obj.get("type") or active_position.get("type")
+                    symbol = trade_obj.get("ticker") or (active_position.get("symbol") if active_position else None)
+                    strike = trade_obj.get("strike") or (active_position.get("strike") if active_position else None)
+                    expiration = trade_obj.get("expiration") or (active_position.get("expiration") if active_position else None)
+                    opt_type = trade_obj.get("type") or (active_position.get("type") if active_position else None)
                     
                     # CHANNEL-ISOLATED feedback lookup
                     if symbol and (not strike or not expiration or not opt_type):
@@ -290,11 +309,14 @@ class TradeExecutor:
                             self.performance_tracker.record_entry(trade_obj)
                             self.position_manager.add_position(trade_obj['channel_id'], trade_obj)
                             
-                            # Send alert
-                            asyncio.create_task(self._send_trade_alert(
-                                trade_obj, 'buy', trade_obj.get('quantity', 1), 
-                                trade_obj.get('price', 0), is_sim_mode
-                            ))
+                            # Send alert using asyncio.run_coroutine_threadsafe
+                            future = asyncio.run_coroutine_threadsafe(
+                                self._send_trade_alert(
+                                    trade_obj, 'buy', trade_obj.get('quantity', 1), 
+                                    trade_obj.get('price', 0), is_sim_mode
+                                ), 
+                                self.event_loop
+                            )
 
                     elif action in ("trim", "exit", "stop"):
                         trade_id = active_position.get('trade_id') if active_position else None
@@ -312,7 +334,8 @@ class TradeExecutor:
                                 trade_record = self.performance_tracker.record_trim(trade_id, {
                                     'quantity': trade_obj.get('quantity', 1),
                                     'price': trade_obj.get('price', 0),
-                                    'ticker': trade_obj.get('ticker')
+                                    'ticker': trade_obj.get('ticker'),
+                                    'channel': handler.name
                                 })
                                 
                                 # Enhanced trailing stop logic
@@ -325,18 +348,22 @@ class TradeExecutor:
                                     'price': trade_obj.get('price', 0),
                                     'action': action,
                                     'is_stop_loss': action == 'stop',
-                                    'ticker': trade_obj.get('ticker')
+                                    'ticker': trade_obj.get('ticker'),
+                                    'channel': handler.name
                                 })
                                 
                                 if trade_record:
                                     self.position_manager.clear_position(trade_obj['channel_id'], trade_id)
                             
-                            # Send alert with P&L data
+                            # Send alert with P&L data using asyncio.run_coroutine_threadsafe
                             if 'trade_record' in locals():
-                                asyncio.create_task(self._send_trade_alert(
-                                    trade_obj, action, trade_obj.get('quantity', 1), 
-                                    trade_obj.get('price', 0), is_sim_mode, locals().get('trade_record')
-                                ))
+                                future = asyncio.run_coroutine_threadsafe(
+                                    self._send_trade_alert(
+                                        trade_obj, action, trade_obj.get('quantity', 1), 
+                                        trade_obj.get('price', 0), is_sim_mode, locals().get('trade_record')
+                                    ), 
+                                    self.event_loop
+                                )
 
                     log_func(f"📊 Trade Summary: {result_summary}")
 
@@ -458,7 +485,8 @@ class TradeExecutor:
             # Place order
             buy_response = trader.place_option_buy_order(symbol, strike, expiration, opt_type, contracts, padded_price)
             
-            if isinstance(trader.__class__.__name__, 'SimulatedTrader') or hasattr(trader, 'simulated_orders'):
+            # Check if this is a simulated trader
+            if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
                 return True, f"Simulated buy: {contracts}x {symbol}"
             
             order_id = buy_response.get('id')
@@ -490,7 +518,7 @@ class TradeExecutor:
             action = trade_obj.get('action', 'exit')
             
             # Get position quantity
-            if isinstance(trader.__class__.__name__, 'SimulatedTrader') or hasattr(trader, 'simulated_orders'):
+            if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
                 total_quantity = 10
             else:
                 all_positions = trader.get_open_option_positions()
@@ -545,8 +573,13 @@ class TradeExecutor:
             if not market_price or market_price <= 0:
                 specified_price = trade_obj.get('price', 0)
                 if specified_price and specified_price > 0:
-                    market_price = specified_price * 0.9
-                    log_func(f"⚠️ Using discounted specified price: ${market_price:.2f}")
+                    if specified_price == 'BE':
+                        # For breakeven, use entry price from active position
+                        market_price = active_position.get('purchase_price', 0.50) if active_position else 0.50
+                        log_func(f"⚠️ Using breakeven price: ${market_price:.2f}")
+                    else:
+                        market_price = float(specified_price) * 0.9
+                        log_func(f"⚠️ Using discounted specified price: ${market_price:.2f}")
                 else:
                     market_price = 0.05
                     log_func(f"🚨 Using emergency minimum price: ${market_price:.2f}")
@@ -566,7 +599,7 @@ class TradeExecutor:
                 limit_price=final_price, sell_padding=sell_padding
             )
             
-            if isinstance(trader.__class__.__name__, 'SimulatedTrader') or hasattr(trader, 'simulated_orders'):
+            if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
                 return True, f"Simulated {action}: {sell_quantity}x {symbol}"
             
             if sell_response and not sell_response.get('error'):
@@ -591,7 +624,7 @@ class TradeExecutor:
             expiration = trade_obj['expiration']
             opt_type = trade_obj['type']
             
-            if is_sim_mode:
+            if is_sim_mode or hasattr(trader, 'simulated_orders'):
                 log_func(f"📊 [SIMULATED] Would place trailing stop for remaining position")
                 return
             
@@ -665,7 +698,8 @@ class TradeExecutor:
             'buy': 0x00C851,
             'sell': 0xFF4444,
             'trim': 0xFF8800,
-            'exit': 0xFF4444
+            'exit': 0xFF4444,
+            'stop': 0xFF0000
         }
         
         # Determine emoji
@@ -673,7 +707,8 @@ class TradeExecutor:
             'buy': '🟢',
             'sell': '🔴', 
             'trim': '🟡',
-            'exit': '🔴'
+            'exit': '🔴',
+            'stop': '🛑'
         }
         
         embed = {
@@ -699,10 +734,10 @@ class TradeExecutor:
         })
         
         # Execution details
-        position_value = price * quantity * 100
+        position_value = price * quantity * 100 if isinstance(price, (int, float)) else 0
         execution_info = f"""
 **Quantity:** {quantity} contracts
-**Price:** ${price:.2f}
+**Price:** ${price if isinstance(price, str) else f'{price:.2f}'}
 **Total Value:** ${position_value:,.2f}
         """.strip()
         
