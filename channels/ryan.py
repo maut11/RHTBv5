@@ -1,9 +1,6 @@
-# channels/ryan.py
+# channels/ryan.py - Fixed Ryan Parser for Better Trim/Exit Handling
 from datetime import datetime, timezone
 from .base_parser import BaseParser
-
-# --- Channel-specific Parser ---
-CHANNEL_ID = 1072559822366576780
 
 class RyanParser(BaseParser):
     def __init__(self, openai_client, channel_id, config):
@@ -16,7 +13,6 @@ class RyanParser(BaseParser):
 
         title, description = self._current_message_meta if isinstance(self._current_message_meta, tuple) else ("UNKNOWN", self._current_message_meta)
 
-        # FIX: Changed "Eva" to "Ryan" in the prompt's first line.
         return f"""
 You are a highly accurate data extraction assistant for option trading signals from a trader named Ryan.
 Your ONLY job is to extract the specified fields and return a single JSON object based on a strict set of rules.
@@ -36,17 +32,19 @@ You will receive:
 - A **title** indicating the type of action
 - A **description** containing the trade message
 
-Return a valid JSON object only if the title is ENTRY, TRIM, or EXIT.
-Return `null` if the message is COMMENT or not a trade instruction.
---- RULES ---
-1. ENTRY: Represents a new trade. Must include Ticker, Strike, Option Type, and Entry Price.
-2. TRIM: Represents a partial take-profit. You MUST include the 'price' if it is mentioned in the alert.
-3. EXIT: Represents a full close of the position. You MUST include the 'price' if it is mentioned in the alert.
-4. COMMENT: Not a trade instruction. Return null.
-5. If the title is TRIM or EXIT you will return a Json, even if there is no additional information that you scrape, this is because the trades can be sequential and our discord bot will automically fill in the information, however if there is additional information include it in the JSON object
+--- ENHANCED ACTION RULES ---
+1. **ENTRY**: Represents a new trade. Must include Ticker, Strike, Option Type, and Entry Price.
+2. **TRIM**: Represents a partial take-profit. EXTRACT ANY AVAILABLE INFO and let the system fill in missing details.
+3. **EXIT**: Represents a full close of the position. EXTRACT ANY AVAILABLE INFO and let the system fill in missing details.
+4. **COMMENT**: Not a trade instruction. Return {{"action": "null"}}.
 
---- CRITICAL LOGIC FOR EXPIRATION ---
-1.  **If and ONLY IF an explicit expiration date (e.g., "10/17", "Oct 17", "2024-10-17") is present in the message, you MUST extract it.**
+--- CRITICAL ENHANCEMENT FOR TRIM/EXIT ---
+For TRIM and EXIT actions, you should EXTRACT WHATEVER INFORMATION IS AVAILABLE, even if incomplete:
+- If only a ticker and price are mentioned → extract those
+- If only a price is mentioned → extract that
+- If percentage gain is mentioned but no price → still return the action
+
+The trading system will automatically fill in missing contract details from recent positions.
 
 --- DATE RULES ---
 1.  The current year is {current_year}.
@@ -54,31 +52,27 @@ Return `null` if the message is COMMENT or not a trade instruction.
 3.  If no expiration is mentioned at all, it is a 0DTE trade. You MUST use today's date: {today_str}.
 4.  The final `expiration` field in the JSON output must always be in YYYY-MM-DD format.
 
-Each message falls into one of these categories:
-1. ENTRY
-- Represents a new trade.
-- Must include: Ticker, Strike price, Option type, and Entry price.
-- Optional: Size, Averaging flag, Expiration (if not present, it's a 0DTE trade for today).
+--- ENHANCED EXAMPLES ---
+**ENTRY Example:**
+Title: "ENTRY"
+Description: "$SPX 6405c @ 2.8 small"
+→ {{"action": "buy", "ticker": "SPX", "strike": 6405, "type": "call", "price": 2.8, "size": "small", "expiration": "{today_str}"}}
 
-2. TRIM
-- Represents a partial take-profit.
-- Must include a price if one is specified in the message.
-- Often Trim messages do not mention the strike price or the expiration date, they will often the sale price which the option contract is sold at, in this case only return the ticker and price
+**TRIM Example (FIXED):**
+Title: "TRIM"  
+Description: "$SPX 3.3! +18%"
+→ {{"action": "trim", "ticker": "SPX", "price": 3.3}}
 
-3. EXIT
-- Represents a full close of the position.
-- Must include a price if one is specified in the message.
-- Often Exit messages do not mention the strike price or the expiration date, they will often the sale price which the option contract is sold at, in this case only return the ticker and price
+**EXIT Example (FIXED):**
+Title: "EXIT"
+Description: "SL BE, nice scalp +32% Done til afternoon"
+→ {{"action": "exit", "price": "BE"}}
 
-4. COMMENT
-- Commentary, not a trade instruction. Return null.
+--- CRITICAL INSTRUCTION ---
+DO NOT return {{"action": "null"}} for TRIM or EXIT actions just because some contract details are missing. 
+The trading system is designed to handle incomplete information by looking up recent positions.
 
 Return only the valid JSON object. Do not include explanations or markdown formatting.
-
---- Additional Rules  ---
--  **Stop Loss** If the message mentions "Stop Loss" or "SL" this is a stop loss indicator and not a Ticker, Do not assume a SL is a ticker, return null for the ticker and the trading boths fallback logic will fill it in  
-- **Missing Info**: Avoid inferring trades from general commentary. If critical info for an action is missing, it is better to return a "null" action.
-
 
 Now parse the following:
 
@@ -90,22 +84,24 @@ Description: "{description.strip()}"
         title, description = self._current_message_meta if isinstance(self._current_message_meta, tuple) else ("UNKNOWN", self._current_message_meta)
         title_upper = title.strip().upper()
 
+        # Map title to action
         if title_upper == "ENTRY":
             entry["action"] = "buy"
         elif title_upper == "TRIM":
             entry["action"] = "trim"
         elif title_upper == "EXIT":
             entry["action"] = "exit"
+        elif title_upper == "COMMENT":
+            entry["action"] = "null"
 
+        # Check for averaging indicators
         if "avg" in description.lower() or "average" in description.lower() or "adding" in description.lower():
             entry["averaging"] = True
 
-        # --- CORRECTED 0DTE LOGIC ---
-        # This logic now correctly handles the `null` from the AI.
-        # If the AI returns `null` for expiration (or omits the key), `entry.get("expiration")` will be falsy.
-        if not entry.get("expiration"):
-            # The key is missing or null, so we set it to today's date for a 0DTE trade.
+        # Enhanced 0DTE logic - only add expiration for BUY actions if missing
+        if entry.get("action") == "buy" and not entry.get("expiration"):
             entry["expiration"] = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-            print(f"[{self.name}] No expiration found, defaulting to 0DTE: {entry['expiration']}")
+            print(f"[{self.name}] No expiration found for BUY, defaulting to 0DTE: {entry['expiration']}")
 
+        # For TRIM/EXIT, don't add missing fields - let the system fill them in
         return entry
