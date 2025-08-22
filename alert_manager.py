@@ -1,9 +1,10 @@
-# alert_manager.py - Resilient Alert System with Auto-Recovery
+# alert_manager.py - Fixed Resilient Alert System with Auto-Recovery
 import asyncio
 import aiohttp
 import json
 import time
 import os
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -11,7 +12,7 @@ from typing import Dict, List, Optional, Any
 from config import *
 
 class AlertCircuitBreaker:
-    """Circuit breaker pattern for alert failures"""
+    """Circuit breaker pattern for alert failures with enhanced recovery"""
     
     def __init__(self):
         self.failure_count = 0
@@ -19,25 +20,34 @@ class AlertCircuitBreaker:
         self.failure_threshold = 5
         self.recovery_timeout = 300  # 5 minutes
         self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.consecutive_successes = 0
         
-    async def call_with_circuit_breaker(self, alert_func, *args):
+    async def call_with_circuit_breaker(self, alert_func):
         """Execute alert with circuit breaker protection"""
         if self.state == "OPEN":
             if time.time() - self.last_failure_time > self.recovery_timeout:
                 self.state = "HALF_OPEN"
+                self.consecutive_successes = 0
                 print("🔄 Circuit breaker moving to HALF_OPEN state")
             else:
                 print("⚡ Circuit breaker OPEN - using fallback")
-                await self.fallback_alert(*args)
+                await self._fallback_alert("Circuit breaker open")
                 return False
                 
         try:
-            # --- FIX: Call alert_func without arguments ---
+            # Call the alert function
             result = await alert_func()
+            
             if self.state == "HALF_OPEN":
-                self.state = "CLOSED"
-                self.failure_count = 0
-                print("✅ Circuit breaker CLOSED - normal operation restored")
+                self.consecutive_successes += 1
+                if self.consecutive_successes >= 3:  # Require 3 successes to close
+                    self.state = "CLOSED"
+                    self.failure_count = 0
+                    print("✅ Circuit breaker CLOSED - normal operation restored")
+            elif self.state == "CLOSED":
+                # Reset failure count on success
+                self.failure_count = max(0, self.failure_count - 1)
+                
             return result
             
         except Exception as e:
@@ -48,19 +58,19 @@ class AlertCircuitBreaker:
                 self.state = "OPEN"
                 print(f"🚨 Circuit breaker OPEN after {self.failure_count} failures")
             
-            await self.fallback_alert(*args)
+            await self._fallback_alert(f"Alert failed: {str(e)}")
             return False
     
-    async def fallback_alert(self, webhook_url, payload, alert_type):
+    async def _fallback_alert(self, message: str):
         """Fallback alert method"""
         try:
             # Log to file as backup
             timestamp = datetime.now(timezone.utc).isoformat()
             with open("emergency_alerts.log", "a") as f:
-                f.write(f"{timestamp} | {alert_type} | {json.dumps(payload)}\n")
-            print(f"📝 Alert logged to emergency file: {alert_type}")
+                f.write(f"{timestamp} | EMERGENCY | {message}\n")
+            print(f"📝 Alert logged to emergency file: {message}")
         except:
-            print(f"🚨🚨🚨 CRITICAL: Could not save emergency alert: {alert_type}")
+            print(f"🚨🚨🚨 CRITICAL: Could not save emergency alert: {message}")
 
 class PersistentAlertQueue:
     """Queue with disk persistence for critical alerts"""
@@ -69,10 +79,12 @@ class PersistentAlertQueue:
         self.memory_queue = asyncio.Queue()
         self.backup_file = "alert_queue_backup.json"
         self.lock = asyncio.Lock()
+        self.total_added = 0
         
     async def put(self, alert_data):
         """Add alert with optional disk backup"""
         await self.memory_queue.put(alert_data)
+        self.total_added += 1
         
         # Backup critical alerts to disk
         if alert_data.get('priority', 0) >= 2:
@@ -128,55 +140,71 @@ class AlertHealthMonitor:
             'failed_alerts': 0,
             'processor_restarts': 0,
             'last_successful_alert': time.time(),
-            'circuit_breaker_trips': 0
+            'circuit_breaker_trips': 0,
+            'queue_high_water_mark': 0
         }
+        self.metrics_lock = asyncio.Lock()
         
-    def record_success(self):
+    async def record_success(self):
         """Record successful alert"""
-        self.metrics['total_alerts_sent'] += 1
-        self.metrics['successful_alerts'] += 1
-        self.metrics['last_successful_alert'] = time.time()
+        async with self.metrics_lock:
+            self.metrics['total_alerts_sent'] += 1
+            self.metrics['successful_alerts'] += 1
+            self.metrics['last_successful_alert'] = time.time()
         
-    def record_failure(self):
+    async def record_failure(self):
         """Record failed alert"""
-        self.metrics['total_alerts_sent'] += 1
-        self.metrics['failed_alerts'] += 1
+        async with self.metrics_lock:
+            self.metrics['total_alerts_sent'] += 1
+            self.metrics['failed_alerts'] += 1
         
-    def record_restart(self):
+    async def record_restart(self):
         """Record processor restart"""
-        self.metrics['processor_restarts'] += 1
-        
-    def get_health_status(self):
-        """Get comprehensive health status"""
-        now = time.time()
-        last_alert_age = now - self.metrics['last_successful_alert']
-        success_rate = (self.metrics['successful_alerts'] / max(1, self.metrics['total_alerts_sent'])) * 100
-        
-        # Determine health status
-        if last_alert_age > 3600:  # No alerts for 1 hour
-            status = 'CRITICAL'
-            issue = f'No alerts sent in {last_alert_age/60:.0f} minutes'
-        elif success_rate < 80:
-            status = 'WARNING'
-            issue = f'Low success rate: {success_rate:.1f}%'
-        elif self.metrics['failed_alerts'] > 10:
-            status = 'WARNING'
-            issue = f'High failure count: {self.metrics["failed_alerts"]}'
-        else:
-            status = 'HEALTHY'
-            issue = None
+        async with self.metrics_lock:
+            self.metrics['processor_restarts'] += 1
             
-        return {
-            'status': status,
-            'issue': issue,
-            'success_rate': success_rate,
-            'last_alert_age': int(last_alert_age),
-            'total_alerts': self.metrics['total_alerts_sent'],
-            'restarts': self.metrics['processor_restarts']
-        }
+    async def update_queue_size(self, size: int):
+        """Update queue high water mark"""
+        async with self.metrics_lock:
+            if size > self.metrics['queue_high_water_mark']:
+                self.metrics['queue_high_water_mark'] = size
+        
+    async def get_health_status(self):
+        """Get comprehensive health status"""
+        async with self.metrics_lock:
+            now = time.time()
+            last_alert_age = now - self.metrics['last_successful_alert']
+            success_rate = (self.metrics['successful_alerts'] / max(1, self.metrics['total_alerts_sent'])) * 100
+            
+            # Determine health status
+            if last_alert_age > 3600:  # No alerts for 1 hour
+                status = 'CRITICAL'
+                issue = f'No alerts sent in {last_alert_age/60:.0f} minutes'
+            elif success_rate < 80:
+                status = 'WARNING'
+                issue = f'Low success rate: {success_rate:.1f}%'
+            elif self.metrics['failed_alerts'] > 10:
+                status = 'WARNING'
+                issue = f'High failure count: {self.metrics["failed_alerts"]}'
+            else:
+                status = 'HEALTHY'
+                issue = None
+                
+            return {
+                'status': status,
+                'issue': issue,
+                'success_rate': success_rate,
+                'last_alert_age': int(last_alert_age),
+                'total_alerts': self.metrics['total_alerts_sent'],
+                'successful_alerts': self.metrics['successful_alerts'],
+                'failed_alerts': self.metrics['failed_alerts'],
+                'restarts': self.metrics['processor_restarts'],
+                'queue_high_water_mark': self.metrics['queue_high_water_mark'],
+                'session_duration': now - self.metrics['session_start']
+            }
 
 class ResilientAlertManager:
-    """Main alert manager with resilience features"""
+    """Main alert manager with resilience features and proper async integration"""
     
     def __init__(self):
         self.queue = PersistentAlertQueue()
@@ -188,13 +216,34 @@ class ResilientAlertManager:
         self.backup_processor = None
         self.watchdog_task = None
         self.is_running = False
+        self._shutdown_event = asyncio.Event()
         
         # Configuration
         self.min_delay = 0.5
         self.max_retries = 3
         self.watchdog_interval = 30  # Check every 30 seconds
         
+        # Setup logging
+        self.logger = self._setup_logging()
+        
         print("✅ Resilient Alert Manager initialized")
+    
+    def _setup_logging(self):
+        """Setup dedicated alert system logging"""
+        logger = logging.getLogger('alert_manager')
+        logger.setLevel(logging.DEBUG)
+        
+        # Create logs directory if it doesn't exist
+        log_dir = Path("logs")
+        log_dir.mkdir(exist_ok=True)
+        
+        if not logger.handlers:
+            handler = logging.FileHandler(log_dir / "alert_manager.log")
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+        
+        return logger
     
     async def start(self):
         """Start the alert system with all components"""
@@ -202,6 +251,7 @@ class ResilientAlertManager:
             return
             
         self.is_running = True
+        self._shutdown_event.clear()
         
         # Restore any backed up alerts
         await self.queue.restore_from_backup()
@@ -212,66 +262,84 @@ class ResilientAlertManager:
         # Start watchdog
         self.watchdog_task = asyncio.create_task(self._watchdog_monitor())
         
+        self.logger.info("Alert system started with dual processors and watchdog")
         print("✅ Alert system started with dual processors and watchdog")
     
     async def stop(self):
         """Clean shutdown of alert system"""
         self.is_running = False
+        self._shutdown_event.set()
         
         # Cancel tasks
+        tasks_to_cancel = []
         if self.primary_processor:
-            self.primary_processor.cancel()
+            tasks_to_cancel.append(self.primary_processor)
         if self.backup_processor:
-            self.backup_processor.cancel()
+            tasks_to_cancel.append(self.backup_processor)
         if self.watchdog_task:
-            self.watchdog_task.cancel()
+            tasks_to_cancel.append(self.watchdog_task)
+        
+        for task in tasks_to_cancel:
+            task.cancel()
             
         # Wait for graceful shutdown
-        await asyncio.sleep(1)
+        if tasks_to_cancel:
+            await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+            
+        self.logger.info("Alert system stopped")
         print("✅ Alert system stopped")
     
     async def _start_processors(self):
         """Start primary and backup processors"""
         self.primary_processor = asyncio.create_task(self._process_alerts("PRIMARY"))
-        await asyncio.sleep(2)  # Stagger startup
+        await asyncio.sleep(1)  # Stagger startup
         self.backup_processor = asyncio.create_task(self._process_alerts("BACKUP"))
         
     async def _process_alerts(self, processor_name):
         """Alert processor with automatic restart capability"""
         consecutive_failures = 0
         
-        while self.is_running:
+        self.logger.info(f"{processor_name} processor started")
+        
+        while self.is_running and not self._shutdown_event.is_set():
             try:
-                # Get next alert from queue
+                # Get next alert from queue with timeout
                 try:
-                    alert_item = await asyncio.wait_for(self.queue.get(), timeout=5.0)
+                    alert_item = await asyncio.wait_for(
+                        self.queue.get(), timeout=5.0
+                    )
                 except asyncio.TimeoutError:
                     continue
+                
+                # Update queue metrics
+                await self.health_monitor.update_queue_size(self.queue.qsize())
                 
                 # Process the alert
                 success = await self._send_alert_with_retry(alert_item, processor_name)
                 
                 if success:
-                    self.health_monitor.record_success()
+                    await self.health_monitor.record_success()
                     consecutive_failures = 0
+                    self.logger.debug(f"{processor_name} alert sent successfully")
                 else:
-                    self.health_monitor.record_failure()
+                    await self.health_monitor.record_failure()
                     consecutive_failures += 1
+                    self.logger.warning(f"{processor_name} alert failed")
                 
                 # Back off on repeated failures
                 if consecutive_failures >= 3:
-                    print(f"⚠️ {processor_name} backing off after {consecutive_failures} failures")
+                    self.logger.warning(f"{processor_name} backing off after {consecutive_failures} failures")
                     await asyncio.sleep(30)
                     consecutive_failures = 0
                 else:
                     await asyncio.sleep(self.min_delay)
                 
             except asyncio.CancelledError:
-                print(f"🔌 {processor_name} processor cancelled")
+                self.logger.info(f"{processor_name} processor cancelled")
                 break
             except Exception as e:
                 consecutive_failures += 1
-                print(f"❌ {processor_name} processor error: {e}")
+                self.logger.error(f"{processor_name} processor error: {e}")
                 await asyncio.sleep(5)
     
     async def _send_alert_with_retry(self, alert_item: Dict, processor_name: str) -> bool:
@@ -285,14 +353,12 @@ class ResilientAlertManager:
         async def send_alert():
             return await self._direct_send_alert(webhook_url, payload, alert_id)
         
-        success = await self.circuit_breaker.call_with_circuit_breaker(
-            send_alert, webhook_url, payload, alert_type
-        )
+        success = await self.circuit_breaker.call_with_circuit_breaker(send_alert)
         
         if success:
-            print(f"✅ [{processor_name}] Alert sent: {alert_id}")
+            self.logger.debug(f"[{processor_name}] Alert sent: {alert_id}")
         else:
-            print(f"❌ [{processor_name}] Alert failed: {alert_id}")
+            self.logger.error(f"[{processor_name}] Alert failed: {alert_id}")
         
         return success
     
@@ -309,15 +375,18 @@ class ResilientAlertManager:
                     async with session.post(webhook_url, json=payload, timeout=timeout) as resp:
                         if resp.status in (200, 204):
                             if attempt > 0:
-                                print(f"✅ Alert {alert_id} succeeded on retry {attempt}")
+                                self.logger.info(f"Alert {alert_id} succeeded on retry {attempt}")
                             return True
                         else:
-                            print(f"⚠️ Alert {alert_id} HTTP {resp.status} on attempt {attempt + 1}")
+                            error_text = await resp.text()
+                            self.logger.warning(f"Alert {alert_id} HTTP {resp.status} on attempt {attempt + 1}: {error_text[:200]}")
                             
             except asyncio.TimeoutError:
-                print(f"⏰ Alert {alert_id} timeout on attempt {attempt + 1}")
+                self.logger.warning(f"Alert {alert_id} timeout on attempt {attempt + 1}")
+            except aiohttp.ClientError as e:
+                self.logger.warning(f"Alert {alert_id} client error on attempt {attempt + 1}: {e}")
             except Exception as e:
-                print(f"❌ Alert {alert_id} error on attempt {attempt + 1}: {e}")
+                self.logger.warning(f"Alert {alert_id} error on attempt {attempt + 1}: {e}")
             
             # Exponential backoff between retries
             if attempt < self.max_retries:
@@ -328,7 +397,9 @@ class ResilientAlertManager:
     
     async def _watchdog_monitor(self):
         """Watchdog to monitor processor health"""
-        while self.is_running:
+        self.logger.info("Watchdog started")
+        
+        while self.is_running and not self._shutdown_event.is_set():
             try:
                 await asyncio.sleep(self.watchdog_interval)
                 
@@ -337,25 +408,28 @@ class ResilientAlertManager:
                 backup_alive = self.backup_processor and not self.backup_processor.done()
                 
                 # Restart dead processors
-                if not primary_alive:
+                if not primary_alive and self.is_running:
+                    self.logger.warning("Primary processor dead - restarting")
                     print("🚨 Primary processor dead - restarting")
                     self.primary_processor = asyncio.create_task(self._process_alerts("PRIMARY"))
-                    self.health_monitor.record_restart()
+                    await self.health_monitor.record_restart()
                 
-                if not backup_alive:
+                if not backup_alive and self.is_running:
+                    self.logger.warning("Backup processor dead - restarting")  
                     print("🚨 Backup processor dead - restarting")
                     self.backup_processor = asyncio.create_task(self._process_alerts("BACKUP"))
-                    self.health_monitor.record_restart()
+                    await self.health_monitor.record_restart()
                 
                 # Check overall health
-                health_status = self.health_monitor.get_health_status()
+                health_status = await self.health_monitor.get_health_status()
                 if health_status['status'] == 'CRITICAL':
-                    await self._send_emergency_alert(f"Alert system critical: {health_status['issue']}")
+                    await self._send_emergency_alert(f"Alert system critical: {health_status.get('issue', 'Unknown issue')}")
                 
             except asyncio.CancelledError:
+                self.logger.info("Watchdog cancelled")
                 break
             except Exception as e:
-                print(f"❌ Watchdog error: {e}")
+                self.logger.error(f"Watchdog error: {e}")
     
     async def _send_emergency_alert(self, message: str):
         """Send emergency alert through fallback methods"""
@@ -370,19 +444,21 @@ class ResilientAlertManager:
                 timeout = aiohttp.ClientTimeout(total=10)
                 async with session.post(ALL_NOTIFICATION_WEBHOOK, json=emergency_payload, timeout=timeout) as resp:
                     if resp.status in (200, 204):
+                        self.logger.info(f"Emergency alert sent: {message}")
                         print(f"🚨 Emergency alert sent: {message}")
                         return
-        except:
-            pass
+        except Exception as e:
+            self.logger.error(f"Failed to send emergency alert via webhook: {e}")
         
         # Fallback to file logging
         try:
             timestamp = datetime.now(timezone.utc).isoformat()
             with open("emergency_alerts.log", "a") as f:
                 f.write(f"{timestamp} | EMERGENCY: {message}\n")
+            self.logger.info(f"Emergency logged to file: {message}")
             print(f"📝 Emergency logged to file: {message}")
-        except:
-            pass
+        except Exception as e:
+            self.logger.error(f"Failed to log emergency to file: {e}")
         
         # Last resort - console
         print(f"🚨🚨🚨 EMERGENCY ALERT: {message}")
@@ -391,7 +467,7 @@ class ResilientAlertManager:
     async def add_alert(self, webhook_url: str, payload: Dict, alert_type: str = "general", priority: int = 0):
         """Add alert to queue"""
         alert_item = {
-            'id': f"alert_{int(time.time() * 1000)}_{self.health_monitor.metrics['total_alerts_sent']}",
+            'id': f"alert_{int(time.time() * 1000)}_{self.queue.total_added}",
             'webhook_url': webhook_url,
             'payload': payload,
             'alert_type': alert_type,
@@ -400,32 +476,46 @@ class ResilientAlertManager:
         }
         
         await self.queue.put(alert_item)
+        self.logger.debug(f"Alert added: {alert_type} (Queue: {self.queue.qsize()})")
         
     async def send_error_alert(self, error_message: str, context: Dict = None):
         """Send error alert with context"""
-        error_embed = {
-            "title": "❌ RHTB Error Alert",
-            "description": f"```{error_message}```",
-            "color": 0xFF0000,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        
-        if context:
-            context_text = []
-            for key, value in context.items():
-                context_text.append(f"**{key.title()}:** {value}")
+        try:
+            error_embed = {
+                "title": "❌ RHTB Error Alert",
+                "description": f"```{error_message[:1900]}```",  # Limit length for Discord
+                "color": 0xFF0000,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "fields": []
+            }
             
-            error_embed["fields"] = [{
-                "name": "ℹ️ Context",
-                "value": "\n".join(context_text),
-                "inline": False
-            }]
-        
-        await self.add_alert(ALL_NOTIFICATION_WEBHOOK, {"embeds": [error_embed]}, "error_alert", priority=2)
+            if context:
+                context_text = []
+                for key, value in list(context.items())[:5]:  # Limit to 5 context items
+                    context_text.append(f"**{key.title()}:** {str(value)[:100]}")
+                
+                if context_text:
+                    error_embed["fields"].append({
+                        "name": "ℹ️ Context",
+                        "value": "\n".join(context_text),
+                        "inline": False
+                    })
+            
+            await self.add_alert(ALL_NOTIFICATION_WEBHOOK, {"embeds": [error_embed]}, "error_alert", priority=2)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send error alert: {e}")
+            # Fallback to simple text alert
+            try:
+                await self.add_alert(ALL_NOTIFICATION_WEBHOOK, {
+                    "content": f"❌ Error: {error_message[:1900]}"
+                }, "error_alert", priority=2)
+            except:
+                pass  # Give up gracefully
     
     async def get_metrics(self) -> Dict[str, Any]:
         """Get comprehensive system metrics"""
-        health_status = self.health_monitor.get_health_status()
+        health_status = await self.health_monitor.get_health_status()
         
         return {
             **health_status,
@@ -443,21 +533,11 @@ class ResilientAlertManager:
     
     async def get_health_status(self) -> Dict[str, Any]:
         """Get detailed health status"""
-        metrics = await self.get_metrics()
-        
-        return {
-            'status': metrics['health_status'],
-            'primary_alive': metrics['primary_alive'],
-            'backup_alive': metrics['backup_alive'],
-            'circuit_state': metrics['circuit_state'],
-            'successful_alerts': self.health_monitor.metrics['successful_alerts'],
-            'failed_alerts': self.health_monitor.metrics['failed_alerts'],
-            'restarts': self.health_monitor.metrics['processor_restarts'],
-            'last_alert_age': metrics['last_alert_age']
-        }
+        return await self.health_monitor.get_health_status()
     
     async def emergency_restart(self):
         """Emergency restart of all processors"""
+        self.logger.warning("Emergency restart initiated")
         print("🚨 Emergency restart initiated")
         
         # Cancel existing processors
@@ -472,5 +552,32 @@ class ResilientAlertManager:
         # Restart processors
         await self._start_processors()
         
-        self.health_monitor.record_restart()
+        await self.health_monitor.record_restart()
+        self.logger.info("Emergency restart completed")
         print("✅ Emergency restart completed")
+        
+    async def test_alert(self, test_message: str = "Test alert from RHTB v4"):
+        """Send a test alert to verify system functionality"""
+        test_embed = {
+            "title": "🧪 Alert System Test",
+            "description": test_message,
+            "color": 0x3498db,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "fields": [
+                {
+                    "name": "Test Details",
+                    "value": f"""
+**Timestamp:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
+**Queue Size:** {self.queue.qsize()}
+**Circuit State:** {self.circuit_breaker.state}
+**System Status:** {'Running' if self.is_running else 'Stopped'}
+                    """,
+                    "inline": False
+                }
+            ],
+            "footer": {"text": "Alert system test"}
+        }
+        
+        await self.add_alert(ALL_NOTIFICATION_WEBHOOK, {"embeds": [test_embed]}, "test_alert", priority=1)
+        self.logger.info("Test alert sent")
+        print("🧪 Test alert sent")
