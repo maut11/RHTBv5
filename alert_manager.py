@@ -245,9 +245,23 @@ class ResilientAlertManager:
         
         return logger
     
+    # Update the start method in ResilientAlertManager class
     async def start(self):
         """Start the alert system with all components"""
         if self.is_running:
+            # If already running, just verify processors are alive
+            primary_alive = self.primary_processor and not self.primary_processor.done()
+            backup_alive = self.backup_processor and not self.backup_processor.done()
+            watchdog_alive = self.watchdog_task and not self.watchdog_task.done()
+            
+            if not primary_alive or not backup_alive:
+                print("⚠️ Dead processors detected - restarting them...")
+                await self._start_processors()
+            
+            if not watchdog_alive:
+                print("⚠️ Dead watchdog detected - restarting it...")
+                self.watchdog_task = asyncio.create_task(self._watchdog_monitor())
+            
             return
             
         self.is_running = True
