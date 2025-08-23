@@ -19,11 +19,12 @@ STOP_LOSS_DELAY_SECONDS = 900  # 15 minutes
 DEFAULT_INITIAL_STOP_LOSS = 0.50  # 50% loss protection
 DEFAULT_TRAILING_STOP_PCT = 0.20  # 20% trailing stop
 
-# Webhook URLs
+# Webhook URLs - Updated with dedicated heartbeat channel
 PLAYS_WEBHOOK = "https://discord.com/api/webhooks/1397759819590537366/WQu-ryRbotOx0Zyz2zH17ls9TGuxeDIZ4T9I3uOlpfwnCswGZrAs5VfHTwHxNWkqXwFw"
 ALL_NOTIFICATION_WEBHOOK = "https://discord.com/api/webhooks/1400001289374662787/QsFEWAMTGkKPXZbJXMBPUCRfD1K8x4-_OrT4iY3WqELCzrBdL1DnROT540RsS_4nk8UQ"
 LIVE_FEED_WEBHOOK = "https://discord.com/api/webhooks/1404682958564233226/lFCIL_VhoWpdn88fuCyWD4dQ9duTEi_W-0MzIvSrfETy3f9yj-O1Yxgzk1YHOunHLGP5"
 COMMANDS_WEBHOOK = "https://discord.com/api/webhooks/1402044700378267800/C2ooBVpV-lyj1COQM2OUH2u8gjNr0QhODrC0qR1leZJAMCQvnxnqrzE7xHUbIDmL8RQ9"
+HEARTBEAT_WEBHOOK = "https://discord.com/api/webhooks/1408908444794224880/ABAosRa_i5P_gdID3cV4kkbOGaYo-O1tWEkiskl2HXjtZn9qH7FuRsGsFbTLkDGYLVp0"
 
 # Enhanced Channel Configuration with Strict Isolation
 CHANNELS_CONFIG = {
