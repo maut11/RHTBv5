@@ -6,6 +6,16 @@ from dotenv import load_dotenv
 from config import DEFAULT_SELL_PRICE_PADDING, ORDER_MANAGEMENT_CONFIG
 import time
 from datetime import datetime, timezone
+import logging
+
+# Setup logging for trader module
+logger = logging.getLogger('trader')
+logger.setLevel(logging.DEBUG)
+if not logger.handlers:
+    handler = logging.FileHandler('logs/trader.log')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 load_dotenv()
 ROBINHOOD_USER = os.getenv("ROBINHOOD_USER")
@@ -20,12 +30,28 @@ class EnhancedRobinhoodTrader:
         self.last_heartbeat = None
         self.connection_errors = 0
         self.max_connection_errors = 3
+        self._login_attempts = 0
+        self._max_login_attempts = 3
         self.login()
 
     def login(self):
-        """Enhanced login with better error handling"""
+        """Enhanced login with better error handling and retry logic"""
+        self._login_attempts += 1
+        
+        if self._login_attempts > self._max_login_attempts:
+            logger.error(f"Max login attempts ({self._max_login_attempts}) exceeded")
+            print(f"❌ Max login attempts exceeded. Please check credentials.")
+            return False
+            
         try:
-            print("🔐 Attempting Robinhood login...")
+            print(f"🔐 Attempting Robinhood login (attempt {self._login_attempts}/{self._max_login_attempts})...")
+            logger.info(f"Login attempt {self._login_attempts}")
+            
+            # Clear any existing session first
+            try:
+                r.logout()
+            except:
+                pass
             
             login_result = r.login(
                 username=ROBINHOOD_USER, 
@@ -38,40 +64,63 @@ class EnhancedRobinhoodTrader:
                 self.logged_in = True
                 self.session_start_time = datetime.now(timezone.utc)
                 self.connection_errors = 0
+                self._login_attempts = 0  # Reset on success
                 print("✅ Robinhood login successful.")
+                logger.info("Login successful")
                 
                 # Enhanced verification
                 try:
                     account_info = r.load_account_profile()
                     if account_info:
                         account_number = account_info.get('account_number', 'N/A')
-                        print(f"📊 Account verified: {account_number}")
+                        print(f"📊 Account verified: {account_number[:4]}****")
+                        logger.info(f"Account verified: {account_number[:4]}****")
                         
                         # Check trading permissions
                         positions = r.get_open_option_positions()
                         print(f"✅ Options trading verified: {len(positions)} open positions")
+                        logger.info(f"Options trading verified with {len(positions)} positions")
+                        return True
                     else:
                         print("⚠️ Login successful but couldn't verify account access")
+                        logger.warning("Could not verify account access")
                 except Exception as e:
                     print(f"⚠️ Login successful but verification failed: {e}")
+                    logger.warning(f"Verification failed: {e}")
                 
+                return True
             else:
-                print("❌ Robinhood login failed - check credentials")
+                print(f"❌ Robinhood login failed - attempt {self._login_attempts}")
+                logger.error(f"Login failed - attempt {self._login_attempts}")
                 self.logged_in = False
+                
+                # Retry with delay
+                if self._login_attempts < self._max_login_attempts:
+                    wait_time = 2 ** self._login_attempts
+                    print(f"⏳ Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                    return self.login()
+                    
+                return False
             
         except Exception as e:
             error_msg = str(e).lower()
             if any(keyword in error_msg for keyword in ["challenge", "mfa", "two", "verification"]):
                 print("❌ 2FA/Challenge required but not supported in this version")
-                print("💡 Please disable 2FA on your Robinhood account")
+                print("💡 Please disable 2FA on your Robinhood account or use app-specific password")
+                logger.error("2FA required but not supported")
             else:
-                print(f"❌ Robinhood login failed: {e}")
+                print(f"❌ Robinhood login failed with error: {e}")
+                logger.error(f"Login exception: {e}")
+            
             self.logged_in = False
+            return False
 
     def check_connection(self):
         """Enhanced connection check with automatic recovery"""
         try:
             if not self.logged_in:
+                logger.warning("Not logged in during connection check")
                 return False
                 
             # Quick connection test
@@ -82,15 +131,18 @@ class EnhancedRobinhoodTrader:
                 return True
             else:
                 self.connection_errors += 1
+                logger.warning(f"Connection check failed - error count: {self.connection_errors}")
                 return False
                 
         except Exception as e:
             self.connection_errors += 1
             print(f"⚠️ Connection check failed: {e}")
+            logger.error(f"Connection check exception: {e}")
             
             # Auto-reconnect if too many errors
             if self.connection_errors >= self.max_connection_errors:
                 print("🔄 Too many connection errors, attempting reconnect...")
+                logger.info("Auto-reconnect triggered")
                 self.reconnect()
             
             return False
@@ -98,32 +150,43 @@ class EnhancedRobinhoodTrader:
     def reconnect(self):
         """Enhanced reconnection with exponential backoff"""
         print("⚙️ Attempting to reconnect to Robinhood...")
+        logger.info("Reconnection attempt started")
+        
         try:
             # Clear session and wait
-            r.logout()
+            try:
+                r.logout()
+            except:
+                pass
             time.sleep(2)
+            
+            # Reset login attempts counter for reconnect
+            self._login_attempts = 0
             
             # Attempt fresh login with backoff
             max_attempts = 3
             for attempt in range(max_attempts):
                 try:
-                    self.login()
-                    if self.logged_in:
+                    if self.login():
                         print(f"✅ Reconnection successful on attempt {attempt + 1}")
+                        logger.info(f"Reconnection successful on attempt {attempt + 1}")
                         return True
                 except Exception as e:
                     wait_time = 2 ** attempt  # Exponential backoff
                     print(f"❌ Reconnection attempt {attempt + 1} failed: {e}")
+                    logger.error(f"Reconnection attempt {attempt + 1} failed: {e}")
                     if attempt < max_attempts - 1:
                         print(f"⏳ Waiting {wait_time} seconds before retry...")
                         time.sleep(wait_time)
             
             print("❌ All reconnection attempts failed")
+            logger.error("All reconnection attempts failed")
             self.logged_in = False
             return False
             
         except Exception as e:
             print(f"❌ Failed to reconnect to Robinhood: {e}")
+            logger.error(f"Reconnection exception: {e}")
             self.logged_in = False
             return False
 
@@ -131,10 +194,12 @@ class EnhancedRobinhoodTrader:
         """Ensure we have a valid connection before trading operations"""
         if not self.logged_in:
             print("❌ Not logged in to Robinhood")
+            logger.warning("ensure_connection called but not logged in")
             return False
             
         if not self.check_connection():
             print("⚠️ Connection lost, attempting reconnect...")
+            logger.info("Connection lost, triggering reconnect")
             return self.reconnect()
         
         return True
@@ -144,19 +209,23 @@ class EnhancedRobinhoodTrader:
         try:
             if not self.ensure_connection():
                 print("❌ Cannot get portfolio value - connection failed")
+                logger.error("Portfolio value fetch failed - no connection")
                 return 0.0
             
             profile = r.load_portfolio_profile()
             if profile and 'equity' in profile:
                 equity = float(profile['equity'])
                 print(f"💰 Current portfolio value: ${equity:,.2f}")
+                logger.debug(f"Portfolio value: ${equity:,.2f}")
                 return equity
             else:
                 print("❌ Could not fetch portfolio value - invalid response")
+                logger.error("Invalid portfolio response")
                 return 0.0
                 
         except Exception as e:
             print(f"❌ Error fetching portfolio value: {e}")
+            logger.error(f"Portfolio value exception: {e}")
             self.connection_errors += 1
             return 0.0
 
@@ -170,10 +239,12 @@ class EnhancedRobinhoodTrader:
             if account:
                 buying_power = float(account.get('buying_power', 0))
                 print(f"💵 Available buying power: ${buying_power:,.2f}")
+                logger.debug(f"Buying power: ${buying_power:,.2f}")
                 return buying_power
             return 0.0
         except Exception as e:
             print(f"❌ Error fetching buying power: {e}")
+            logger.error(f"Buying power exception: {e}")
             return 0.0
 
     def get_instrument_tick_size(self, symbol: str) -> float:
@@ -184,30 +255,37 @@ class EnhancedRobinhoodTrader:
                 
             # Try to get tick size from instrument data
             instruments = r.get_instruments_by_symbols(symbol)
-            if instruments and instruments[0] and instruments[0].get('min_tick_size'):
-                tick_size = float(instruments[0]['min_tick_size'])
-                print(f"📏 Tick size for {symbol}: ${tick_size}")
-                return tick_size
+            if instruments and len(instruments) > 0 and instruments[0]:
+                if 'min_tick_size' in instruments[0]:
+                    tick_size = float(instruments[0]['min_tick_size'])
+                    print(f"📏 Tick size for {symbol}: ${tick_size}")
+                    logger.debug(f"Tick size for {symbol}: ${tick_size}")
+                    return tick_size
                 
         except Exception as e:
             print(f"❌ Could not fetch tick size for {symbol}: {e}")
+            logger.error(f"Tick size exception for {symbol}: {e}")
         
-        # Enhanced fallback logic
+        # Enhanced fallback logic based on price
         try:
             sample_data = r.get_quotes(symbol)
-            if sample_data and sample_data[0]:
+            if sample_data and len(sample_data) > 0 and sample_data[0]:
                 price = float(sample_data[0].get('last_trade_price', 1.0))
                 
                 # Standard options tick size rules
                 if price < 3.00:
-                    return 0.05
+                    tick_size = 0.05
                 else:
-                    return 0.10
+                    tick_size = 0.10
+                
+                logger.debug(f"Using price-based tick size for {symbol}: ${tick_size}")
+                return tick_size
                     
         except Exception:
             pass
         
         print(f"⚠️ Using default tick size for {symbol}: $0.05")
+        logger.warning(f"Using default tick size for {symbol}")
         return 0.05
 
     def round_to_tick(self, price: float, symbol: str) -> float:
@@ -221,11 +299,13 @@ class EnhancedRobinhoodTrader:
             
             if abs(rounded_price - price) > 0.001:  # Only log if significant difference
                 print(f"📏 Rounded price from ${price:.2f} to ${rounded_price:.2f} (tick: ${tick_size})")
+                logger.debug(f"Price rounded: ${price:.2f} -> ${rounded_price:.2f}")
             
             return max(rounded_price, tick_size)  # Ensure minimum tick size
             
         except Exception as e:
             print(f"❌ Error rounding price: {e}")
+            logger.error(f"Price rounding exception: {e}")
             return round(max(price, 0.05), 2)
 
     def validate_order_requirements(self, symbol, strike, expiration, opt_type, quantity, price):
@@ -239,15 +319,20 @@ class EnhancedRobinhoodTrader:
             available_power = self.get_buying_power()
             
             if required_capital > available_power * 0.95:  # Leave 5% buffer
-                raise Exception(f"Insufficient buying power: ${required_capital:,.2f} required, ${available_power:,.2f} available")
+                error_msg = f"Insufficient buying power: ${required_capital:,.2f} required, ${available_power:,.2f} available"
+                logger.warning(error_msg)
+                raise Exception(error_msg)
             
             # Validate contract exists
             try:
                 market_data = r.get_option_market_data(symbol, expiration, strike, opt_type)
                 if not market_data or len(market_data) == 0:
-                    raise Exception(f"Contract not found: {symbol} ${strike}{opt_type.upper()} {expiration}")
+                    error_msg = f"Contract not found: {symbol} ${strike}{opt_type.upper()} {expiration}"
+                    logger.warning(error_msg)
+                    raise Exception(error_msg)
             except Exception as e:
                 print(f"⚠️ Could not validate contract existence: {e}")
+                logger.warning(f"Contract validation failed: {e}")
             
             # Check market hours (informational)
             from datetime import datetime, time as dt_time
@@ -258,11 +343,13 @@ class EnhancedRobinhoodTrader:
             
             if not (market_open <= current_time <= market_close):
                 print(f"⚠️ Warning: Trading outside market hours ({current_time.strftime('%H:%M')})")
+                logger.info(f"Trading outside market hours: {current_time.strftime('%H:%M')}")
             
             return True
             
         except Exception as e:
             print(f"❌ Order validation failed: {e}")
+            logger.error(f"Order validation exception: {e}")
             return False
 
     def place_option_buy_order(self, symbol, strike, expiration, opt_type, quantity, limit_price):
@@ -275,6 +362,7 @@ class EnhancedRobinhoodTrader:
             rounded_price = self.round_to_tick(limit_price, symbol)
             
             print(f"🔍 Validating buy order: {symbol} ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
+            logger.info(f"Buy order validation: {symbol} ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
             
             # Validate order
             if not self.validate_order_requirements(symbol, strike, expiration, opt_type, quantity, rounded_price):
@@ -282,6 +370,7 @@ class EnhancedRobinhoodTrader:
             
             # Place the order with timeout
             print(f"📤 Placing LIVE buy order...")
+            logger.info(f"Placing buy order for {symbol}")
             
             start_time = time.time()
             result = r.order_buy_option_limit(
@@ -300,16 +389,19 @@ class EnhancedRobinhoodTrader:
             
             if result and result.get('id'):
                 print(f"✅ LIVE buy order placed: {result['id']} (execution: {execution_time:.2f}s)")
+                logger.info(f"Buy order placed successfully: {result['id']}")
                 
                 # Log order details for tracking
                 print(f"📋 Order details: {quantity}x {symbol} ${strike}{opt_type.upper()} @ ${rounded_price:.2f}")
             else:
                 print(f"❌ Buy order failed: {result}")
+                logger.error(f"Buy order failed: {result}")
                 
             return result
             
         except Exception as e:
             print(f"❌ Error placing buy order: {e}")
+            logger.error(f"Buy order exception: {e}")
             self.connection_errors += 1
             return {"error": str(e)}
 
@@ -325,6 +417,8 @@ class EnhancedRobinhoodTrader:
             
             # ALWAYS get current market price
             print(f"📊 Fetching current market price for {symbol} ${strike}{opt_type[0].upper()}...")
+            logger.info(f"Fetching market price for sell order: {symbol}")
+            
             market_data_list = self.get_option_market_data(symbol, expiration, strike, opt_type)
             
             final_price = None
@@ -346,21 +440,25 @@ class EnhancedRobinhoodTrader:
                         final_price = float(mark_price)
                         price_source = "mark"
                         print(f"✅ Using mark price: ${final_price:.2f}")
+                        logger.debug(f"Using mark price: ${final_price:.2f}")
                     # Priority 2: Bid/Ask midpoint
                     elif bid_price > 0 and ask_price > 0:
                         final_price = (bid_price + ask_price) / 2
                         price_source = "midpoint"
                         print(f"✅ Using bid/ask midpoint: ${final_price:.2f} (bid: ${bid_price:.2f}, ask: ${ask_price:.2f})")
+                        logger.debug(f"Using midpoint: ${final_price:.2f}")
                     # Priority 3: Bid only (conservative)
                     elif bid_price > 0:
                         final_price = bid_price
                         price_source = "bid"
                         print(f"✅ Using bid price: ${final_price:.2f}")
+                        logger.debug(f"Using bid price: ${final_price:.2f}")
                     # Priority 4: Discounted ask
                     elif ask_price > 0:
                         final_price = ask_price * 0.90  # 10% below ask
                         price_source = "discounted_ask"
                         print(f"✅ Using discounted ask: ${final_price:.2f} (ask: ${ask_price:.2f})")
+                        logger.debug(f"Using discounted ask: ${final_price:.2f}")
             
             # Emergency fallback pricing
             if not final_price or final_price <= 0:
@@ -368,10 +466,12 @@ class EnhancedRobinhoodTrader:
                     final_price = limit_price * 0.80  # 20% discount for emergency
                     price_source = "emergency_provided"
                     print(f"⚠️ Using emergency price: ${final_price:.2f}")
+                    logger.warning(f"Using emergency price: ${final_price:.2f}")
                 else:
                     final_price = 0.05  # Absolute minimum
                     price_source = "emergency_minimum"
                     print(f"🚨 Using minimum price: ${final_price:.2f}")
+                    logger.warning(f"Using minimum price: ${final_price:.2f}")
             
             # Apply padding and round to tick
             sell_price = final_price * (1 - sell_padding)
@@ -379,6 +479,7 @@ class EnhancedRobinhoodTrader:
             
             print(f"📤 Placing LIVE sell order: {symbol} ${strike}{opt_type[0].upper()} x{quantity} @ ${sell_price:.2f}")
             print(f"📈 Price source: {price_source}, padding: {sell_padding*100:.1f}%")
+            logger.info(f"Placing sell order: {symbol} x{quantity} @ ${sell_price:.2f} (source: {price_source})")
             
             start_time = time.time()
             result = r.order_sell_option_limit(
@@ -397,13 +498,16 @@ class EnhancedRobinhoodTrader:
             
             if result and result.get('id'):
                 print(f"✅ LIVE sell order placed: {result['id']} @ ${sell_price:.2f} (execution: {execution_time:.2f}s)")
+                logger.info(f"Sell order placed successfully: {result['id']}")
             else:
                 print(f"❌ Sell order failed: {result}")
+                logger.error(f"Sell order failed: {result}")
                 
             return result
             
         except Exception as e:
             print(f"❌ Error placing sell order: {e}")
+            logger.error(f"Sell order exception: {e}")
             self.connection_errors += 1
             return {"error": str(e)}
 
@@ -412,9 +516,12 @@ class EnhancedRobinhoodTrader:
         try:
             if not self.ensure_connection():
                 return []
-            return r.get_open_option_positions()
+            positions = r.get_open_option_positions()
+            logger.debug(f"Retrieved {len(positions)} open positions")
+            return positions
         except Exception as e:
             print(f"❌ Error fetching open positions: {e}")
+            logger.error(f"Open positions exception: {e}")
             self.connection_errors += 1
             return []
 
@@ -423,9 +530,12 @@ class EnhancedRobinhoodTrader:
         try:
             if not self.ensure_connection():
                 return []
-            return r.get_all_open_option_orders()
+            orders = r.get_all_open_option_orders()
+            logger.debug(f"Retrieved {len(orders)} open orders")
+            return orders
         except Exception as e:
             print(f"❌ Error fetching open orders: {e}")
+            logger.error(f"Open orders exception: {e}")
             return []
 
     def cancel_option_order(self, order_id):
@@ -437,9 +547,11 @@ class EnhancedRobinhoodTrader:
             result = r.cancel_option_order(order_id)
             if result:
                 print(f"✅ Cancelled order: {order_id}")
+                logger.info(f"Order cancelled: {order_id}")
             return result
         except Exception as e:
             print(f"❌ Error cancelling order {order_id}: {e}")
+            logger.error(f"Cancel order exception: {e}")
             return {"error": str(e)}
         
     def get_option_instrument_data(self, url):
@@ -447,9 +559,11 @@ class EnhancedRobinhoodTrader:
         try:
             if not self.ensure_connection():
                 return None
-            return r.request_get(url)
+            data = r.request_get(url)
+            return data
         except Exception as e:
             print(f"❌ Error fetching instrument data: {e}")
+            logger.error(f"Instrument data exception: {e}")
             return None
 
     def get_option_order_info(self, order_id):
@@ -457,9 +571,11 @@ class EnhancedRobinhoodTrader:
         try:
             if not self.ensure_connection():
                 return None
-            return r.get_option_order_info(order_id)
+            info = r.get_option_order_info(order_id)
+            return info
         except Exception as e:
             print(f"❌ Error fetching order info for {order_id}: {e}")
+            logger.error(f"Order info exception: {e}")
             return None
 
     def find_open_option_position(self, all_positions, symbol, strike, expiration, opt_type):
@@ -470,17 +586,23 @@ class EnhancedRobinhoodTrader:
                 if not instrument_data: 
                     continue
                     
-                # Enhanced matching with type conversion
-                if (pos['chain_symbol'].upper() == str(symbol).upper() and
-                            abs(float(instrument_data['strike_price']) - float(strike)) < 0.01 and
-                            instrument_data['expiration_date'] == str(expiration) and
-                            instrument_data['type'].lower() == str(opt_type).lower()):
+                # Enhanced matching with type conversion and tolerance
+                symbol_match = pos['chain_symbol'].upper() == str(symbol).upper()
+                strike_match = abs(float(instrument_data['strike_price']) - float(strike)) < 0.01
+                exp_match = instrument_data['expiration_date'] == str(expiration)
+                type_match = instrument_data['type'].lower() == str(opt_type).lower()
+                
+                if symbol_match and strike_match and exp_match and type_match:
                     pos.update(instrument_data)
                     print(f"✅ Found matching position: {symbol} ${strike}{opt_type.upper()}")
+                    logger.debug(f"Position found: {symbol} ${strike}{opt_type.upper()}")
                     return pos
+                    
+            logger.debug(f"No position found for {symbol} ${strike}{opt_type.upper()}")
             return None
         except Exception as e:
             print(f"❌ Error searching positions: {e}")
+            logger.error(f"Position search exception: {e}")
             return None
 
     def cancel_open_option_orders(self, symbol, strike, expiration, opt_type):
@@ -495,6 +617,8 @@ class EnhancedRobinhoodTrader:
             
             if not position:
                 print(f"ℹ️ No position found for {symbol} ${strike}{opt_type.upper()}, checking all open orders...")
+                logger.info(f"No position found, checking all orders for {symbol}")
+                
                 # If no position, check all open orders anyway
                 all_orders = self.get_all_open_option_orders()
                 relevant_orders = []
@@ -502,9 +626,10 @@ class EnhancedRobinhoodTrader:
                 for order in all_orders:
                     if (order.get('state', '').lower() in ['queued', 'unconfirmed', 'confirmed'] and
                         len(order.get('legs', [])) > 0):
-                        leg = order['legs'][0]
                         # Try to match by available order data
-                        relevant_orders.append(order)
+                        leg = order['legs'][0]
+                        if leg.get('symbol', '').upper() == symbol.upper():
+                            relevant_orders.append(order)
                 
                 if not relevant_orders:
                     print(f"ℹ️ No open orders found for {symbol}")
@@ -544,10 +669,12 @@ class EnhancedRobinhoodTrader:
                         cancelled_count += 1
             
             print(f"✅ Cancelled {cancelled_count} orders for {symbol} ${strike}{opt_type.upper()}")
+            logger.info(f"Cancelled {cancelled_count} orders for {symbol}")
             return cancelled_count
             
         except Exception as e:
             print(f"❌ Error cancelling orders for {symbol}: {e}")
+            logger.error(f"Cancel orders exception: {e}")
             return 0
 
     def place_option_stop_loss_order(self, symbol, strike, expiration, opt_type, quantity, stop_price):
@@ -559,6 +686,7 @@ class EnhancedRobinhoodTrader:
             rounded_stop_price = self.round_to_tick(stop_price, symbol)
             
             print(f"🛡️ Placing stop loss: {symbol} ${strike}{opt_type.upper()} x{quantity} @ ${rounded_stop_price:.2f}")
+            logger.info(f"Placing stop loss: {symbol} x{quantity} @ ${rounded_stop_price:.2f}")
             
             result = r.order_sell_option_stop_limit(
                 positionEffect='close', 
@@ -575,238 +703,311 @@ class EnhancedRobinhoodTrader:
             
             if result and result.get('id'):
                 print(f"✅ Stop loss placed: {result['id']}")
+                logger.info(f"Stop loss placed: {result['id']}")
             
             return result
         except Exception as e:
             print(f"❌ Error placing stop loss: {e}")
+            logger.error(f"Stop loss exception: {e}")
             return {"error": str(e)}
 
     def get_option_market_data(self, symbol, expiration, strike, opt_type):
-        """Get market data with enhanced error handling"""
-        try:
-            if not self.ensure_connection():
-                return []
-            
-            data = r.get_option_market_data(symbol, expiration, strike, opt_type)
-            if data:
-                print(f"📊 Market data retrieved for {symbol} ${strike}{opt_type.upper()}")
-            return data
-        except Exception as e:
-            print(f"❌ Error fetching market data for {symbol}: {e}")
-            return []
+       """Get market data with enhanced error handling"""
+       try:
+           if not self.ensure_connection():
+               return []
+           
+           data = r.get_option_market_data(symbol, expiration, strike, opt_type)
+           if data:
+               print(f"📊 Market data retrieved for {symbol} ${strike}{opt_type.upper()}")
+               logger.debug(f"Market data retrieved for {symbol}")
+           return data
+       except Exception as e:
+           print(f"❌ Error fetching market data for {symbol}: {e}")
+           logger.error(f"Market data exception: {e}")
+           return []
 
     def get_session_info(self):
-        """Get current session information"""
-        return {
-            "logged_in": self.logged_in,
-            "session_start": self.session_start_time,
-            "last_heartbeat": self.last_heartbeat,
-            "connection_errors": self.connection_errors,
-            "session_duration": (datetime.now(timezone.utc) - self.session_start_time).total_seconds() / 3600 if self.session_start_time else 0
-        }
+       """Get current session information"""
+       info = {
+           "logged_in": self.logged_in,
+           "session_start": self.session_start_time,
+           "last_heartbeat": self.last_heartbeat,
+           "connection_errors": self.connection_errors,
+           "session_duration": (datetime.now(timezone.utc) - self.session_start_time).total_seconds() / 3600 if self.session_start_time else 0
+       }
+       logger.debug(f"Session info: {info}")
+       return info
 
 
 class EnhancedSimulatedTrader:
-    """Enhanced simulated trader with more realistic behavior"""
-    
-    def __init__(self):
-        print("✅ Enhanced Simulated Trader initialized.")
-        self.simulated_orders = {}
-        self.simulated_positions = {}
-        self.logged_in = True
-        self.session_start_time = datetime.now(timezone.utc)
-        self.order_counter = 0
+   """Enhanced simulated trader with more realistic behavior"""
+   
+   def __init__(self):
+       print("✅ Enhanced Simulated Trader initialized.")
+       logger.info("Simulated trader initialized")
+       self.simulated_orders = {}
+       self.simulated_positions = {}
+       self.logged_in = True
+       self.session_start_time = datetime.now(timezone.utc)
+       self.order_counter = 0
+       self.connection_errors = 0  # Add for compatibility
 
-    def login(self): 
-        print("✅ [SIMULATED] Login successful.")
-        self.logged_in = True
-        
-    def reconnect(self): 
-        print("🔄 [SIMULATED] Reconnect called.")
-        return True
-        
-    def ensure_connection(self):
-        return True
-        
-    def get_portfolio_value(self) -> float: 
-        return 100000.0
-        
-    def get_buying_power(self) -> float: 
-        return 50000.0
-        
-    def get_instrument_tick_size(self, symbol: str) -> float: 
-        return 0.05
-        
-    def round_to_tick(self, price: float, symbol: str) -> float:
-        tick_size = 0.05
-        return round(round(price / tick_size) * tick_size, 2)
-        
-    def validate_order_requirements(self, *args): 
-        return True
+   def login(self): 
+       print("✅ [SIMULATED] Login successful.")
+       logger.info("[SIMULATED] Login")
+       self.logged_in = True
+       return True
+       
+   def reconnect(self): 
+       print("🔄 [SIMULATED] Reconnect called.")
+       logger.info("[SIMULATED] Reconnect")
+       return True
+       
+   def ensure_connection(self):
+       return True
+       
+   def check_connection(self):
+       return True
+       
+   def get_portfolio_value(self) -> float: 
+       return 100000.0
+       
+   def get_buying_power(self) -> float: 
+       return 50000.0
+       
+   def get_instrument_tick_size(self, symbol: str) -> float: 
+       # Simulate realistic tick sizes
+       try:
+           # Try to get real tick size for simulation accuracy
+           import robin_stocks.robinhood as r
+           instruments = r.get_instruments_by_symbols(symbol)
+           if instruments and len(instruments) > 0 and instruments[0]:
+               if 'min_tick_size' in instruments[0]:
+                   return float(instruments[0]['min_tick_size'])
+       except:
+           pass
+       return 0.05
+       
+   def round_to_tick(self, price: float, symbol: str) -> float:
+       tick_size = self.get_instrument_tick_size(symbol)
+       if tick_size == 0:
+           tick_size = 0.05
+       return round(round(price / tick_size) * tick_size, 2)
+       
+   def validate_order_requirements(self, *args): 
+       return True
 
-    def get_option_order_info(self, order_id):
-        if order_id in self.simulated_orders:
-            # Simulate order progression
-            order = self.simulated_orders[order_id]
-            if order.get('state') == 'confirmed':
-                order['state'] = 'filled'
-            return order
-        return {'state': 'filled', 'id': order_id}
+   def get_option_order_info(self, order_id):
+       """Simulate order progression"""
+       if order_id in self.simulated_orders:
+           # Simulate order progression
+           order = self.simulated_orders[order_id]
+           if order.get('state') == 'confirmed':
+               order['state'] = 'filled'
+               logger.debug(f"[SIMULATED] Order {order_id} filled")
+           return order
+       return {'state': 'filled', 'id': order_id}
 
-    def find_open_option_position(self, all_positions, symbol, strike, expiration, opt_type):
-        pos_key = f"{str(symbol).upper()}_{str(float(strike))}_{str(expiration)}_{str(opt_type).lower()}"
-        position = self.simulated_positions.get(pos_key)
-        if position:
-            print(f"✅ [SIMULATED] Found position: {symbol} ${strike}{opt_type.upper()}")
-        return position
+   def find_open_option_position(self, all_positions, symbol, strike, expiration, opt_type):
+       """Find simulated position"""
+       pos_key = f"{str(symbol).upper()}_{float(strike):.2f}_{str(expiration)}_{str(opt_type).lower()}"
+       position = self.simulated_positions.get(pos_key)
+       if position:
+           print(f"✅ [SIMULATED] Found position: {symbol} ${strike}{opt_type.upper()}")
+           logger.debug(f"[SIMULATED] Position found: {pos_key}")
+       return position
 
-    def cancel_open_option_orders(self, symbol, strike, expiration, opt_type):
-        print(f"🚫 [SIMULATED] Cancelling orders for {symbol} ${strike}{opt_type.upper()}")
-        return 1
+   def cancel_open_option_orders(self, symbol, strike, expiration, opt_type):
+       """Simulate order cancellation"""
+       print(f"🚫 [SIMULATED] Cancelling orders for {symbol} ${strike}{opt_type.upper()}")
+       logger.info(f"[SIMULATED] Cancelling orders for {symbol}")
+       return 1
 
-    def place_option_buy_order(self, symbol, strike, expiration, opt_type, quantity, limit_price):
-        self.order_counter += 1
-        rounded_price = self.round_to_tick(limit_price, symbol)
-        order_id = f"sim_buy_{self.order_counter}_{uuid.uuid4().hex[:8]}"
-        
-        summary = f"[SIMULATED] BUY {quantity}x {symbol} ${strike}{opt_type.upper()} @ ${rounded_price:.2f}"
-        
-        self.simulated_orders[order_id] = {
-            "id": order_id, 
-            "state": "confirmed", 
-            "detail": summary,
-            "symbol": symbol,
-            "quantity": quantity,
-            "price": rounded_price
-        }
-        
-        # Add to positions
-        pos_key = f"{str(symbol).upper()}_{str(float(strike))}_{str(expiration)}_{str(opt_type).lower()}"
-        if pos_key in self.simulated_positions:
-            existing_qty = float(self.simulated_positions[pos_key]['quantity'])
-            self.simulated_positions[pos_key]['quantity'] = str(existing_qty + float(quantity))
-        else:
-            self.simulated_positions[pos_key] = {
-                "quantity": str(float(quantity)),
-                "symbol": symbol,
-                "strike": strike,
-                "expiration": expiration,
-                "type": opt_type,
-                "entry_price": rounded_price
-            }
-        
-        print(summary)
-        return {"detail": summary, "id": order_id}
+   def place_option_buy_order(self, symbol, strike, expiration, opt_type, quantity, limit_price):
+       """Simulate buy order"""
+       self.order_counter += 1
+       rounded_price = self.round_to_tick(limit_price, symbol)
+       order_id = f"sim_buy_{self.order_counter}_{uuid.uuid4().hex[:8]}"
+       
+       summary = f"[SIMULATED] BUY {quantity}x {symbol} ${strike}{opt_type.upper()} @ ${rounded_price:.2f}"
+       
+       self.simulated_orders[order_id] = {
+           "id": order_id, 
+           "state": "confirmed", 
+           "detail": summary,
+           "symbol": symbol,
+           "quantity": quantity,
+           "price": rounded_price
+       }
+       
+       # Add to positions
+       pos_key = f"{str(symbol).upper()}_{float(strike):.2f}_{str(expiration)}_{str(opt_type).lower()}"
+       if pos_key in self.simulated_positions:
+           existing_qty = float(self.simulated_positions[pos_key]['quantity'])
+           self.simulated_positions[pos_key]['quantity'] = str(existing_qty + float(quantity))
+       else:
+           self.simulated_positions[pos_key] = {
+               "quantity": str(float(quantity)),
+               "symbol": symbol,
+               "strike": strike,
+               "expiration": expiration,
+               "type": opt_type,
+               "entry_price": rounded_price,
+               "chain_symbol": symbol,
+               "option": f"https://simulated.url/{pos_key}"
+           }
+       
+       print(summary)
+       logger.info(f"[SIMULATED] Buy order placed: {order_id}")
+       return {"detail": summary, "id": order_id}
 
-    def place_option_stop_loss_order(self, symbol, strike, expiration, opt_type, quantity, stop_price):
-        rounded_stop = self.round_to_tick(stop_price, symbol)
-        summary = f"🛡️ [SIMULATED] STOP-LOSS for {quantity}x {symbol} ${strike}{opt_type.upper()} @ ${rounded_stop:.2f}"
-        print(summary)
-        return {"detail": summary, "id": f"sim_stop_{uuid.uuid4().hex[:8]}"}
+   def place_option_stop_loss_order(self, symbol, strike, expiration, opt_type, quantity, stop_price):
+       """Simulate stop loss order"""
+       self.order_counter += 1
+       rounded_stop = self.round_to_tick(stop_price, symbol)
+       order_id = f"sim_stop_{self.order_counter}_{uuid.uuid4().hex[:8]}"
+       summary = f"🛡️ [SIMULATED] STOP-LOSS for {quantity}x {symbol} ${strike}{opt_type.upper()} @ ${rounded_stop:.2f}"
+       print(summary)
+       logger.info(f"[SIMULATED] Stop loss placed: {order_id}")
+       return {"detail": summary, "id": order_id}
 
-    def get_open_option_positions(self):
-        """Return simulated positions in Robinhood format"""
-        positions = []
-        for pos_key, pos_data in self.simulated_positions.items():
-            positions.append({
-                'chain_symbol': pos_data['symbol'],
-                'quantity': pos_data['quantity'],
-                'option': f"https://simulated.url/{pos_key}"
-            })
-        return positions
+   def get_open_option_positions(self):
+       """Return simulated positions in Robinhood format"""
+       positions = []
+       for pos_key, pos_data in self.simulated_positions.items():
+           if float(pos_data.get('quantity', 0)) > 0:
+               positions.append({
+                   'chain_symbol': pos_data['symbol'],
+                   'quantity': pos_data['quantity'],
+                   'option': pos_data.get('option', f"https://simulated.url/{pos_key}")
+               })
+       logger.debug(f"[SIMULATED] Returning {len(positions)} positions")
+       return positions
 
-    def get_all_open_option_orders(self):
-        """Return simulated open orders"""
-        return [order for order in self.simulated_orders.values() if order.get('state') == 'confirmed']
+   def get_all_open_option_orders(self):
+       """Return simulated open orders"""
+       orders = [order for order in self.simulated_orders.values() 
+                if order.get('state') in ['confirmed', 'queued', 'unconfirmed']]
+       logger.debug(f"[SIMULATED] Returning {len(orders)} open orders")
+       return orders
 
-    def cancel_option_order(self, order_id):
-        if order_id in self.simulated_orders:
-            self.simulated_orders[order_id]['state'] = 'cancelled'
-            print(f"🚫 [SIMULATED] Cancelled order: {order_id}")
-        return {"detail": "cancelled"}
+   def cancel_option_order(self, order_id):
+       """Simulate order cancellation"""
+       if order_id in self.simulated_orders:
+           self.simulated_orders[order_id]['state'] = 'cancelled'
+           print(f"🚫 [SIMULATED] Cancelled order: {order_id}")
+           logger.info(f"[SIMULATED] Order cancelled: {order_id}")
+       return {"detail": "cancelled"}
 
-    def get_option_instrument_data(self, url):
-        """Simulate instrument data from URL"""
-        # Extract data from simulated URL
-        pos_key = url.split('/')[-1]
-        if '_' in pos_key:
-            parts = pos_key.split('_')
-            if len(parts) >= 4:
-                return {
-                    'strike_price': parts[1],
-                    'expiration_date': parts[2],
-                    'type': parts[3]
-                }
-        return None
+   def get_option_instrument_data(self, url):
+       """Simulate instrument data from URL"""
+       # Extract data from simulated URL
+       if isinstance(url, str) and '/' in url:
+           pos_key = url.split('/')[-1]
+           if '_' in pos_key:
+               parts = pos_key.split('_')
+               if len(parts) >= 4:
+                   return {
+                       'strike_price': parts[1],
+                       'expiration_date': parts[2],
+                       'type': parts[3]
+                   }
+       return None
 
-    def get_option_market_data(self, symbol, expiration, strike, opt_type):
-        """Simulate realistic market data"""
-        try:
-            # Try to get real market data first (for simulation realism)
-            import robin_stocks.robinhood as r
-            real_data = r.get_option_market_data(symbol, expiration, strike, opt_type)
-            if real_data:
-                print(f"📊 [SIMULATED] Using real market data for {symbol}")
-                return real_data
-        except:
-            pass
-        
-        # Fallback to simulated data
-        print(f"📊 [SIMULATED] Using mock market data for {symbol}")
-        return [{
-            'bid_price': '1.45', 
-            'ask_price': '1.55', 
-            'mark_price': '1.50',
-            'volume': '150',
-            'open_interest': '1250'
-        }]
+   def get_option_market_data(self, symbol, expiration, strike, opt_type):
+       """Simulate realistic market data"""
+       try:
+           # Try to get real market data first (for simulation realism)
+           import robin_stocks.robinhood as r
+           real_data = r.get_option_market_data(symbol, expiration, strike, opt_type)
+           if real_data:
+               print(f"📊 [SIMULATED] Using real market data for {symbol}")
+               logger.debug(f"[SIMULATED] Using real market data for {symbol}")
+               return real_data
+       except:
+           pass
+       
+       # Fallback to simulated data with some randomness for realism
+       import random
+       base_price = 1.50
+       spread = 0.10
+       bid = round(base_price - spread/2 + random.uniform(-0.05, 0.05), 2)
+       ask = round(base_price + spread/2 + random.uniform(-0.05, 0.05), 2)
+       mark = round((bid + ask) / 2, 2)
+       
+       print(f"📊 [SIMULATED] Using mock market data for {symbol}")
+       logger.debug(f"[SIMULATED] Mock market data for {symbol}")
+       return [{
+           'bid_price': str(bid), 
+           'ask_price': str(ask), 
+           'mark_price': str(mark),
+           'volume': str(random.randint(100, 1000)),
+           'open_interest': str(random.randint(500, 5000))
+       }]
 
-    def get_session_info(self):
-        """Get simulated session info"""
-        return {
-            "logged_in": True,
-            "session_start": self.session_start_time,
-            "last_heartbeat": datetime.now(timezone.utc),
-            "connection_errors": 0,
-            "session_duration": (datetime.now(timezone.utc) - self.session_start_time).total_seconds() / 3600,
-            "mode": "SIMULATION"
-        }
+   def get_session_info(self):
+       """Get simulated session info"""
+       return {
+           "logged_in": True,
+           "session_start": self.session_start_time,
+           "last_heartbeat": datetime.now(timezone.utc),
+           "connection_errors": 0,
+           "session_duration": (datetime.now(timezone.utc) - self.session_start_time).total_seconds() / 3600,
+           "mode": "SIMULATION"
+       }
 
-    def place_option_sell_order(self, symbol, strike, expiration, opt_type, quantity, limit_price=None, sell_padding=None):
-        self.order_counter += 1
-        
-        # Use provided padding or default
-        if sell_padding is None:
-            sell_padding = DEFAULT_SELL_PRICE_PADDING
-            
-        # Simulate market-based pricing
-        if not limit_price or limit_price <= 0:
-            # Simulate getting market price
-            limit_price = 1.50  # Default simulation price
-            print(f"📊 [SIMULATED] Using simulated market price: ${limit_price:.2f}")
-        
-        # Apply padding
-        final_price = limit_price * (1 - sell_padding)
-        rounded_price = self.round_to_tick(final_price, symbol)
-        
-        order_id = f"sim_sell_{self.order_counter}_{uuid.uuid4().hex[:8]}"
-        summary = f"[SIMULATED] SELL {quantity}x {symbol} ${strike}{opt_type.upper()} @ ${rounded_price:.2f} (market-based, padding: {sell_padding*100:.1f}%)"
-        
-        # Update positions
-        pos_key = f"{str(symbol).upper()}_{str(float(strike))}_{str(expiration)}_{str(opt_type).lower()}"
-        if pos_key in self.simulated_positions:
-            current_qty = float(self.simulated_positions[pos_key]['quantity'])
-            new_qty = current_qty - float(quantity)
-            if new_qty < 0.01:
-                del self.simulated_positions[pos_key]
-                print(f"🔴 [SIMULATED] Closed position: {symbol}")
-            else:
-                self.simulated_positions[pos_key]['quantity'] = str(new_qty)
-                print(f"🟡 [SIMULATED] Trimmed position: {symbol} ({new_qty} remaining)")
-        
-        print(summary)
-        return {"detail": summary, "id": order_id}
+   def place_option_sell_order(self, symbol, strike, expiration, opt_type, quantity, limit_price=None, sell_padding=None):
+       """Simulate sell order"""
+       self.order_counter += 1
+       
+       # Use provided padding or default
+       if sell_padding is None:
+           sell_padding = DEFAULT_SELL_PRICE_PADDING
+           
+       # Simulate market-based pricing
+       if not limit_price or limit_price <= 0:
+           # Get simulated market price
+           market_data = self.get_option_market_data(symbol, expiration, strike, opt_type)
+           if market_data and len(market_data) > 0:
+               data = market_data[0]
+               mark_price = data.get('mark_price')
+               if mark_price:
+                   limit_price = float(mark_price)
+               else:
+                   limit_price = 1.50  # Default simulation price
+           else:
+               limit_price = 1.50
+           print(f"📊 [SIMULATED] Using simulated market price: ${limit_price:.2f}")
+       
+       # Apply padding
+       final_price = limit_price * (1 - sell_padding)
+       rounded_price = self.round_to_tick(final_price, symbol)
+       
+       order_id = f"sim_sell_{self.order_counter}_{uuid.uuid4().hex[:8]}"
+       summary = f"[SIMULATED] SELL {quantity}x {symbol} ${strike}{opt_type.upper()} @ ${rounded_price:.2f} (market-based, padding: {sell_padding*100:.1f}%)"
+       
+       # Update positions
+       pos_key = f"{str(symbol).upper()}_{float(strike):.2f}_{str(expiration)}_{str(opt_type).lower()}"
+       if pos_key in self.simulated_positions:
+           current_qty = float(self.simulated_positions[pos_key]['quantity'])
+           new_qty = current_qty - float(quantity)
+           if new_qty < 0.01:
+               del self.simulated_positions[pos_key]
+               print(f"🔴 [SIMULATED] Closed position: {symbol}")
+               logger.info(f"[SIMULATED] Position closed: {symbol}")
+           else:
+               self.simulated_positions[pos_key]['quantity'] = str(new_qty)
+               print(f"🟡 [SIMULATED] Trimmed position: {symbol} ({new_qty} remaining)")
+               logger.info(f"[SIMULATED] Position trimmed: {symbol} ({new_qty} remaining)")
+       
+       print(summary)
+       logger.info(f"[SIMULATED] Sell order placed: {order_id}")
+       return {"detail": summary, "id": order_id}
 
-# Aliases for backwards compatibility
+# Create aliases for backwards compatibility
 RobinhoodTrader = EnhancedRobinhoodTrader
 SimulatedTrader = EnhancedSimulatedTrader
+
+# Export all classes
+__all__ = ['EnhancedRobinhoodTrader', 'EnhancedSimulatedTrader', 'RobinhoodTrader', 'SimulatedTrader']

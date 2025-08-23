@@ -1,4 +1,4 @@
-# main.py - Fixed Discord Client & Message Routing with Auto-Restart and Reconnection Handling
+# main.py - Discord Client with Dedicated Heartbeat Channel
 import os
 import sys
 import asyncio
@@ -142,7 +142,7 @@ class EnhancedDiscordClient(discord.Client):
             self.heartbeat_task = asyncio.create_task(self._heartbeat_task())
             print("💓 Heartbeat task started (30min intervals)")
         
-        # Send startup notification
+        # Send startup notification TO HEARTBEAT CHANNEL
         await self._send_startup_notification()
     
     async def on_resumed(self):
@@ -169,7 +169,7 @@ class EnhancedDiscordClient(discord.Client):
             print("⚠️ Heartbeat task dead - restarting...")
             self.heartbeat_task = asyncio.create_task(self._heartbeat_task())
         
-        # Send reconnection notification
+        # Send reconnection notification TO HEARTBEAT CHANNEL
         try:
             reconnect_embed = {
                 "title": "🔄 Bot Reconnected",
@@ -190,8 +190,9 @@ class EnhancedDiscordClient(discord.Client):
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
             
+            # Send to dedicated HEARTBEAT channel instead of ALL_NOTIFICATION
             await self.alert_manager.add_alert(
-                ALL_NOTIFICATION_WEBHOOK,
+                HEARTBEAT_WEBHOOK,
                 {"embeds": [reconnect_embed]},
                 "reconnection",
                 priority=1
@@ -213,7 +214,7 @@ class EnhancedDiscordClient(discord.Client):
             sys.exit(1)  # This will trigger the restart logic
 
     async def _heartbeat_task(self):
-        """Send periodic heartbeat to confirm bot is alive"""
+        """Send periodic heartbeat to DEDICATED heartbeat channel"""
         while True:
             try:
                 await asyncio.sleep(1800)  # Every 30 minutes
@@ -263,8 +264,9 @@ class EnhancedDiscordClient(discord.Client):
                     "footer": {"text": "Automatic heartbeat every 30 minutes"}
                 }
                 
+                # Send to DEDICATED heartbeat channel
                 await self.alert_manager.add_alert(
-                    ALL_NOTIFICATION_WEBHOOK, 
+                    HEARTBEAT_WEBHOOK, 
                     {"embeds": [heartbeat_embed]}, 
                     "heartbeat"
                 )
@@ -597,7 +599,7 @@ class EnhancedDiscordClient(discord.Client):
         await self.alert_manager.add_alert(ALL_NOTIFICATION_WEBHOOK, {"embeds": [test_embed]}, "test_alert")
 
     async def _handle_heartbeat_command(self):
-        """Handle heartbeat command"""
+        """Handle MANUAL heartbeat command - sends to HEARTBEAT CHANNEL"""
         uptime = datetime.now(timezone.utc) - self.start_time
         uptime_str = str(uptime).split('.')[0]
         
@@ -675,7 +677,8 @@ class EnhancedDiscordClient(discord.Client):
                 "inline": True
             })
         
-        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [heartbeat_embed]}, "manual_heartbeat")
+        # Send MANUAL heartbeat to HEARTBEAT channel
+        await self.alert_manager.add_alert(HEARTBEAT_WEBHOOK, {"embeds": [heartbeat_embed]}, "manual_heartbeat")
         print("💓 Manual heartbeat command executed")
 
     async def _handle_help_command(self):
@@ -687,7 +690,7 @@ class EnhancedDiscordClient(discord.Client):
 `!sim on|off` - Toggle simulation mode
 `!testing on|off` - Toggle testing channels
 `!status` - System status overview
-`!heartbeat` - Detailed health check
+`!heartbeat` - Detailed health check (📡 #heartbeat channel)
 
 **Alert System:**
 `!alert_health` - Alert system diagnostics
@@ -707,6 +710,7 @@ class EnhancedDiscordClient(discord.Client):
 - Resilient alert system with circuit breaker
 - Channel-isolated position tracking
 - Real-time health monitoring
+- **📡 Dedicated #heartbeat channel for system notifications**
             """,
             "color": 0x3498db
         }
@@ -859,7 +863,7 @@ class EnhancedDiscordClient(discord.Client):
 **Total Processed:** {metrics.get('total_alerts', 0)}
 **Success Rate:** {metrics.get('success_rate', 0):.1f}%
 **Current Queue:** {metrics.get('queue_size_current', 0)}
-**Processing:** {'Yes' if metrics.get('is_processing') else 'No'}
+**Processing:** {'Yes' if metrics.get('is_running') else 'No'}
                     """,
                     "inline": True
                 }
@@ -869,7 +873,7 @@ class EnhancedDiscordClient(discord.Client):
         await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [queue_embed]}, "command_response")
 
     async def _send_startup_notification(self):
-        """Send enhanced startup notification"""
+        """Send enhanced startup notification TO HEARTBEAT CHANNEL"""
         startup_embed = {
             "title": "🚀 RHTB v4 Enhanced - System Online",
             "color": 0x00ff00,
@@ -891,6 +895,7 @@ class EnhancedDiscordClient(discord.Client):
 **Reconnect Handler:** ✅ Active
 **Alert Recovery:** ✅ Ready
 **Health Monitor:** ✅ Running
+**Heartbeat Channel:** 📡 Active
                     """,
                     "inline": True
                 },
@@ -908,7 +913,8 @@ class EnhancedDiscordClient(discord.Client):
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        await self.alert_manager.add_alert(ALL_NOTIFICATION_WEBHOOK, {"embeds": [startup_embed]}, "startup", priority=3)
+        # Send startup notification to HEARTBEAT channel instead of ALL_NOTIFICATION
+        await self.alert_manager.add_alert(HEARTBEAT_WEBHOOK, {"embeds": [startup_embed]}, "startup", priority=3)
 
     async def close(self):
         """Clean shutdown"""
@@ -953,6 +959,7 @@ if __name__ == "__main__":
             print("   ✅ Resilient alert system with circuit breaker")
             print("   ✅ Channel-isolated position tracking")
             print("   ✅ Real-time health monitoring")
+            print("   📡 Dedicated #heartbeat channel for system notifications")
             print("")
             print("🛡️ Automatic Risk Management Active:")
             print(f"   ⏱️ Delayed stop loss: {STOP_LOSS_DELAY_SECONDS/60:.0f} minutes after buy")
