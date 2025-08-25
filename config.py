@@ -1,4 +1,4 @@
-# config.py - Enhanced RHTB v4 Configuration with Channel Isolation
+# config.py - Enhanced RHTB v4 Configuration with Channel Isolation and Symbol Mapping
 MAX_PCT_PORTFOLIO = 0.05
 MAX_DOLLAR_AMOUNT = 20000
 MIN_TRADE_QUANTITY = 3
@@ -19,7 +19,62 @@ STOP_LOSS_DELAY_SECONDS = 900  # 15 minutes
 DEFAULT_INITIAL_STOP_LOSS = 0.50  # 50% loss protection
 DEFAULT_TRAILING_STOP_PCT = 0.20  # 20% trailing stop
 
-# Webhook URLs - Updated with dedicated heartbeat channel
+# ========================================
+# SYMBOL MAPPING CONFIGURATION
+# ========================================
+# Map symbols from what traders say to what brokers use
+SYMBOL_MAPPINGS = {
+    "SPX": "SPXW",     # SPX trades as SPXW weekly options on Robinhood
+    "NDX": "NDXP",     # NDX might trade as NDXP (example)
+    # Add more mappings as discovered
+}
+
+# Reverse mapping for position lookups (auto-generated + manual)
+REVERSE_SYMBOL_MAPPINGS = {}
+for original, broker in SYMBOL_MAPPINGS.items():
+    REVERSE_SYMBOL_MAPPINGS[broker] = original
+
+# Additional reverse mappings if needed
+REVERSE_SYMBOL_MAPPINGS.update({
+    # Can add explicit reverse mappings here if needed
+})
+
+def get_broker_symbol(symbol: str) -> str:
+    """Convert trader symbol to broker symbol"""
+    if not symbol:
+        return symbol
+    symbol_upper = symbol.upper()
+    return SYMBOL_MAPPINGS.get(symbol_upper, symbol_upper)
+
+def get_trader_symbol(broker_symbol: str) -> str:
+    """Convert broker symbol back to trader symbol"""
+    if not broker_symbol:
+        return broker_symbol
+    symbol_upper = broker_symbol.upper()
+    return REVERSE_SYMBOL_MAPPINGS.get(symbol_upper, symbol_upper)
+
+def get_all_symbol_variants(symbol: str) -> list:
+    """Get all possible variants of a symbol for searching"""
+    if not symbol:
+        return []
+    
+    variants = set()
+    symbol_upper = symbol.upper()
+    variants.add(symbol_upper)
+    
+    # Add broker variant if exists
+    if symbol_upper in SYMBOL_MAPPINGS:
+        variants.add(SYMBOL_MAPPINGS[symbol_upper])
+    
+    # Add trader variant if this is a broker symbol
+    if symbol_upper in REVERSE_SYMBOL_MAPPINGS:
+        variants.add(REVERSE_SYMBOL_MAPPINGS[symbol_upper])
+    
+    return list(variants)
+
+# ========================================
+# WEBHOOK URLS
+# ========================================
 PLAYS_WEBHOOK = "https://discord.com/api/webhooks/1397759819590537366/WQu-ryRbotOx0Zyz2zH17ls9TGuxeDIZ4T9I3uOlpfwnCswGZrAs5VfHTwHxNWkqXwFw"
 ALL_NOTIFICATION_WEBHOOK = "https://discord.com/api/webhooks/1400001289374662787/QsFEWAMTGkKPXZbJXMBPUCRfD1K8x4-_OrT4iY3WqELCzrBdL1DnROT540RsS_4nk8UQ"
 LIVE_FEED_WEBHOOK = "https://discord.com/api/webhooks/1404682958564233226/lFCIL_VhoWpdn88fuCyWD4dQ9duTEi_W-0MzIvSrfETy3f9yj-O1Yxgzk1YHOunHLGP5"
@@ -41,7 +96,11 @@ CHANNELS_CONFIG = {
         "color": 3447003,  # Blue
         "description": "Ryan's scalping alerts with tight risk management",
         "risk_level": "medium",
-        "typical_hold_time": "5-30 minutes"
+        "typical_hold_time": "5-30 minutes",
+        # Symbol remapping specific to Ryan's channel
+        "symbol_remapping": {
+            "SPX": "SPXW"  # Ryan often uses SPX which trades as SPXW
+        }
     },
     "Eva": {
         "live_id": 1072556084662902846,  # evas-plays
@@ -190,4 +249,12 @@ ORDER_MANAGEMENT_CONFIG = {
     "minimum_spread_check": True,
     "liquidity_check_enabled": True,
     "auto_cancel_stale_orders": True
+}
+
+# Symbol normalization configuration
+SYMBOL_NORMALIZATION_CONFIG = {
+    "enabled": True,
+    "log_conversions": True,
+    "store_both_symbols": True,  # Store both original and broker symbols
+    "search_all_variants": True  # Search using all symbol variants
 }

@@ -1,14 +1,25 @@
-# trade_executor.py - Fixed Channel-Aware Trade Execution Logic with Proper Async Support
+# trade_executor.py - Enhanced Trade Execution with Symbol Mapping
 import asyncio
 import time
 import threading
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
+import json
+import csv
+import os
+import math
 
-from config import *
+from config import (
+    CHANNELS_CONFIG, POSITION_SIZE_MULTIPLIERS, MAX_PCT_PORTFOLIO, 
+    MAX_DOLLAR_AMOUNT, MIN_TRADE_QUANTITY, DEFAULT_BUY_PRICE_PADDING,
+    DEFAULT_SELL_PRICE_PADDING, STOP_LOSS_DELAY_SECONDS,
+    ALL_NOTIFICATION_WEBHOOK, PLAYS_WEBHOOK,
+    get_broker_symbol, get_trader_symbol, get_all_symbol_variants,
+    SYMBOL_NORMALIZATION_CONFIG
+)
 
 class ChannelAwareFeedbackLogger:
-    """Enhanced feedback logger with strict channel isolation"""
+    """Enhanced feedback logger with symbol mapping support"""
     
     def __init__(self, filename="parsing_feedback.csv"):
         self.filename = filename
@@ -17,9 +28,6 @@ class ChannelAwareFeedbackLogger:
 
     def _initialize_file(self):
         """Creates the CSV file with headers if it doesn't exist."""
-        import csv
-        import os
-        
         if not os.path.exists(self.filename):
             with self.lock:
                 if not os.path.exists(self.filename):
@@ -30,16 +38,19 @@ class ChannelAwareFeedbackLogger:
                             "Original Message", 
                             "Parsed Message",
                             "Latency (ms)",
-                            "Timestamp"
+                            "Timestamp",
+                            "Trader Symbol",
+                            "Broker Symbol"
                         ])
 
     def log(self, channel_name, original_message, parsed_message_json, latency=0):
-        """Log parse result with channel isolation"""
-        import csv
-        import json
-        
+        """Log parse result with symbol mapping information"""
         with self.lock:
             try:
+                # Extract symbol information
+                trader_symbol = parsed_message_json.get('ticker', '')
+                broker_symbol = get_broker_symbol(trader_symbol) if trader_symbol else ''
+                
                 with open(self.filename, 'a', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     writer.writerow([
@@ -47,21 +58,23 @@ class ChannelAwareFeedbackLogger:
                         original_message,
                         json.dumps(parsed_message_json),
                         f"{latency:.2f}",
-                        datetime.now(timezone.utc).isoformat()
+                        datetime.now(timezone.utc).isoformat(),
+                        trader_symbol,
+                        broker_symbol
                     ])
             except Exception as e:
                 print(f"❌ Failed to write to feedback log: {e}")
     
     def get_recent_parse_for_channel(self, channel_name: str, ticker: str):
-        """Get most recent successful parse for ticker within specific channel"""
-        import csv
-        import json
-        
+        """Get most recent successful parse for ticker within specific channel, handling symbol variants"""
         try:
             with self.lock:
                 if not os.path.exists(self.filename):
                     return None
-                    
+                
+                # Get all symbol variants for the search
+                symbol_variants = get_all_symbol_variants(ticker)
+                
                 with open(self.filename, 'r', newline='', encoding='utf-8') as f:
                     reader = csv.reader(f)
                     next(reader)  # Skip header
@@ -75,23 +88,32 @@ class ChannelAwareFeedbackLogger:
                             if row_channel == channel_name:
                                 try:
                                     parsed_data = json.loads(parsed_json)
-                                    if (isinstance(parsed_data, dict) and 
-                                        parsed_data.get('ticker') == ticker and
-                                        parsed_data.get('strike') and 
-                                        parsed_data.get('expiration') and 
-                                        parsed_data.get('type')):
-                                        recent_parses.append(parsed_data)
+                                    if isinstance(parsed_data, dict):
+                                        parsed_ticker = parsed_data.get('ticker', '').upper()
+                                        
+                                        # Check if the parsed ticker matches any of our symbol variants
+                                        if (parsed_ticker in symbol_variants and
+                                            parsed_data.get('strike') and 
+                                            parsed_data.get('expiration') and 
+                                            parsed_data.get('type')):
+                                            recent_parses.append(parsed_data)
                                 except:
                                     continue
                     
-                    return recent_parses[-1] if recent_parses else None
+                    if recent_parses:
+                        most_recent = recent_parses[-1]
+                        if ticker != most_recent.get('ticker'):
+                            print(f"🔄 Symbol variant match in feedback: {ticker} → {most_recent.get('ticker')}")
+                        return most_recent
+                    
+                    return None
                     
         except Exception as e:
             print(f"❌ Error reading feedback log: {e}")
             return None
 
 class DelayedStopLossManager:
-    """Manages delayed stop loss orders"""
+    """Manages delayed stop loss orders with symbol mapping"""
     
     def __init__(self):
         self.pending_stops = {}
@@ -104,6 +126,7 @@ class DelayedStopLossManager:
             
             trader = stop_data['trader']
             try:
+                # Symbol is already normalized in stop_data
                 response = trader.place_option_stop_loss_order(
                     stop_data['symbol'],
                     stop_data['strike'],
@@ -125,7 +148,7 @@ class DelayedStopLossManager:
         print(f"⏱️ Stop loss scheduled for {delay_seconds/60:.1f} minutes from now")
 
 class TradeExecutor:
-    """Channel-aware trade execution with enhanced error handling and proper async support"""
+    """Channel-aware trade execution with symbol mapping support"""
     
     def __init__(self, live_trader, sim_trader, performance_tracker, position_manager, alert_manager):
         self.live_trader = live_trader
@@ -134,11 +157,11 @@ class TradeExecutor:
         self.position_manager = position_manager
         self.alert_manager = alert_manager
         
-        # Enhanced feedback logger with channel isolation
+        # Enhanced feedback logger with symbol mapping
         self.feedback_logger = ChannelAwareFeedbackLogger()
         self.stop_loss_manager = DelayedStopLossManager()
         
-        print("✅ Trade Executor initialized with channel isolation")
+        print("✅ Trade Executor initialized with symbol mapping support")
     
     async def process_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id=None, is_edit=False, event_loop=None):
         """Main trade processing entry point with proper async support"""
@@ -181,7 +204,7 @@ class TradeExecutor:
         )
     
     def _blocking_handle_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id, is_edit, log_func):
-        """Blocking trade execution logic with channel isolation"""
+        """Blocking trade execution logic with symbol mapping"""
         try:
             log_func(f"🔄 Processing message from {handler.name}: {raw_msg[:100]}...")
             
@@ -191,7 +214,7 @@ class TradeExecutor:
                 
                 if parsed_results:
                     for parsed_obj in parsed_results:
-                        # Log with CHANNEL-SPECIFIC feedback
+                        # Log with CHANNEL-SPECIFIC feedback including symbol mapping
                         self.feedback_logger.log(handler.name, raw_msg, parsed_obj, latency_ms)
                 
                 if not parsed_results:
@@ -222,32 +245,55 @@ class TradeExecutor:
 
                     trader = self.live_trader if not is_sim_mode else self.sim_trader
                     
-                    # Enhanced contract resolution with STRICT channel isolation
+                    # Enhanced contract resolution with symbol mapping
                     trade_obj['channel'] = handler.name
                     trade_obj['channel_id'] = handler.channel_id
+                    
+                    # Normalize symbol early for consistent handling
+                    if trade_obj.get('ticker'):
+                        original_symbol = trade_obj['ticker']
+                        broker_symbol = get_broker_symbol(original_symbol)
+                        if original_symbol != broker_symbol:
+                            log_func(f"🔄 Symbol mapping: {original_symbol} → {broker_symbol}")
+                        trade_obj['trader_symbol'] = original_symbol
+                        trade_obj['broker_symbol'] = broker_symbol
                     
                     # Try to find active position for trim/exit actions
                     active_position = None
                     if action in ("trim", "exit", "stop"):
-                        # FIRST: Try position manager (channel-specific)
+                        # FIRST: Try position manager with symbol variants
                         active_position = self.position_manager.find_position(trade_obj['channel_id'], trade_obj) or {}
                         
-                        # SECOND: Try performance tracker (channel-specific)
+                        # SECOND: Try performance tracker with symbol variants
                         if not active_position and trade_obj.get('ticker'):
+                            # Pass the original ticker, performance tracker should handle variants
                             trade_id = self.performance_tracker.find_open_trade_by_ticker(
-                                trade_obj['ticker'], handler.name  # Pass channel name for isolation
+                                trade_obj['ticker'], handler.name
                             )
                             if trade_id:
                                 log_func(f"🔍 Found open trade by ticker in {handler.name}: {trade_id}")
                                 active_position = {'trade_id': trade_id}
 
-                    # Fill in missing contract details with CHANNEL-SPECIFIC fallback
-                    symbol = trade_obj.get("ticker") or (active_position.get("symbol") if active_position else None)
+                    # Fill in missing contract details with symbol mapping support
+                    symbol = trade_obj.get("ticker") or (active_position.get("trader_symbol") or active_position.get("symbol") if active_position else None)
                     strike = trade_obj.get("strike") or (active_position.get("strike") if active_position else None)
                     expiration = trade_obj.get("expiration") or (active_position.get("expiration") if active_position else None)
                     opt_type = trade_obj.get("type") or (active_position.get("type") if active_position else None)
                     
-                    # CHANNEL-ISOLATED feedback lookup
+                    # Handle BE (Break Even) price
+                    if trade_obj.get('price') == 'BE' or str(trade_obj.get('price', '')).upper() == 'BE':
+                        if active_position:
+                            entry_price = active_position.get('entry_price') or active_position.get('purchase_price')
+                            if entry_price:
+                                trade_obj['price'] = entry_price
+                                trade_obj['is_breakeven'] = True
+                                log_func(f"💹 Using break-even price: ${entry_price:.2f}")
+                            else:
+                                log_func(f"⚠️ BE requested but no entry price found, using fallback")
+                        else:
+                            log_func(f"⚠️ BE requested but no position found")
+                    
+                    # CHANNEL-ISOLATED feedback lookup with symbol mapping
                     if symbol and (not strike or not expiration or not opt_type):
                         log_func(f"🔍 Incomplete contract info for {symbol} in {handler.name}, checking feedback history...")
                         recent_parse = self.feedback_logger.get_recent_parse_for_channel(handler.name, symbol)
@@ -283,7 +329,7 @@ class TradeExecutor:
                             
                             # Calculate and schedule stop loss
                             price = trade_obj.get('price', 0)
-                            if price > 0:
+                            if price > 0 and not trade_obj.get('is_breakeven'):
                                 stop_price = self._round_to_tick(
                                     price * (1 - config.get("initial_stop_loss", 0.50)), 
                                     trader.get_instrument_tick_size(symbol) or 0.05
@@ -293,7 +339,7 @@ class TradeExecutor:
                                 
                                 stop_data = {
                                     'trader': trader,
-                                    'symbol': symbol,
+                                    'symbol': symbol,  # This will be normalized by trader
                                     'strike': strike,
                                     'expiration': expiration,
                                     'opt_type': opt_type,
@@ -305,11 +351,11 @@ class TradeExecutor:
                                 trade_obj['stop_loss_price'] = stop_price
                                 trade_obj['stop_loss_scheduled'] = True
                             
-                            # Record entry with channel information
+                            # Record entry with both symbols
                             self.performance_tracker.record_entry(trade_obj)
                             self.position_manager.add_position(trade_obj['channel_id'], trade_obj)
                             
-                            # Send alert using asyncio.run_coroutine_threadsafe
+                            # Send alert
                             future = asyncio.run_coroutine_threadsafe(
                                 self._send_trade_alert(
                                     trade_obj, 'buy', trade_obj.get('quantity', 1), 
@@ -322,7 +368,7 @@ class TradeExecutor:
                         trade_id = active_position.get('trade_id') if active_position else None
                         if not trade_id and trade_obj.get('ticker'):
                             trade_id = self.performance_tracker.find_open_trade_by_ticker(
-                                trade_obj['ticker'], handler.name  # Channel-specific lookup
+                                trade_obj['ticker'], handler.name
                             )
                         
                         execution_success, result_summary = self._execute_sell_order(
@@ -355,7 +401,7 @@ class TradeExecutor:
                                 if trade_record:
                                     self.position_manager.clear_position(trade_obj['channel_id'], trade_id)
                             
-                            # Send alert with P&L data using asyncio.run_coroutine_threadsafe
+                            # Send alert with P&L data
                             if 'trade_record' in locals():
                                 future = asyncio.run_coroutine_threadsafe(
                                     self._send_trade_alert(
@@ -386,7 +432,8 @@ class TradeExecutor:
             cleaned_data['price'] = cleaned_data.pop('entry_price')
         
         if 'ticker' in cleaned_data and isinstance(cleaned_data['ticker'], str):
-            cleaned_data['ticker'] = cleaned_data['ticker'].replace('$', '').upper()    
+            cleaned_data['ticker'] = cleaned_data['ticker'].replace('$', '').upper()
+            
         return cleaned_data
     
     def _round_to_tick(self, price: float, tick_size: float, round_up: bool = False) -> float:
@@ -395,7 +442,6 @@ class TradeExecutor:
             tick_size = 0.05
         
         if round_up:
-            import math
             ticks = math.ceil(price / tick_size)
         else:
             ticks = round(price / tick_size)
@@ -451,8 +497,9 @@ class TradeExecutor:
         return False, elapsed_time
 
     def _execute_buy_order(self, trader, trade_obj, config, log_func):
-        """Execute buy order with enhanced error handling"""
+        """Execute buy order with symbol mapping"""
         try:
+            # Symbol normalization is handled by the trader
             symbol = trade_obj['ticker']
             strike = trade_obj['strike']
             expiration = trade_obj['expiration']
@@ -482,7 +529,7 @@ class TradeExecutor:
             
             log_func(f"📤 Placing buy: {contracts}x {symbol} {strike}{opt_type} @ ${padded_price:.2f}")
             
-            # Place order
+            # Place order (trader handles symbol normalization)
             buy_response = trader.place_option_buy_order(symbol, strike, expiration, opt_type, contracts, padded_price)
             
             # Check if this is a simulated trader
@@ -509,22 +556,23 @@ class TradeExecutor:
             return False, str(e)
 
     def _execute_sell_order(self, trader, trade_obj, config, log_func, active_position):
-        """Execute sell order with enhanced error handling"""
+        """Execute sell order with symbol mapping and BE support"""
         try:
+            # Symbol normalization is handled by the trader
             symbol = trade_obj['ticker']
             strike = trade_obj['strike']
             expiration = trade_obj['expiration']
             opt_type = trade_obj['type']
             action = trade_obj.get('action', 'exit')
             
-            # Get position quantity
+            # Get position quantity (trader handles symbol mapping in find_open_option_position)
             if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
                 total_quantity = 10
             else:
                 all_positions = trader.get_open_option_positions()
                 position = trader.find_open_option_position(all_positions, symbol, strike, expiration, opt_type)
                 if not position:
-                    log_func(f"❌ No position found for {symbol}")
+                    log_func(f"❌ No position found for {symbol} (will check variants)")
                     return False, "No position found"
                 total_quantity = int(float(position.get('quantity', 0)))
             
@@ -536,7 +584,7 @@ class TradeExecutor:
             
             trade_obj['quantity'] = sell_quantity
             
-            # Cancel existing orders first
+            # Cancel existing orders first (trader handles symbol mapping)
             log_func(f"🚫 Cancelling existing orders for {symbol}...")
             cancelled = trader.cancel_open_option_orders(symbol, strike, expiration, opt_type)
             if cancelled > 0:
@@ -545,44 +593,54 @@ class TradeExecutor:
             # Get market price and apply padding
             sell_padding = config.get("sell_padding", DEFAULT_SELL_PRICE_PADDING)
             
-            log_func(f"📊 Getting market price for {symbol} {strike}{opt_type}...")
-            market_data = trader.get_option_market_data(symbol, expiration, strike, opt_type)
-            
-            market_price = None
-            if market_data and len(market_data) > 0:
-                data = market_data[0]
-                if isinstance(data, list) and len(data) > 0:
-                    data = data[0]
+            # Check if this is a BE (breakeven) exit
+            if trade_obj.get('is_breakeven'):
+                market_price = trade_obj.get('price')  # Already set to entry price
+                log_func(f"💹 Using break-even price: ${market_price:.2f}")
+            else:
+                log_func(f"📊 Getting market price for {symbol} {strike}{opt_type}...")
+                market_data = trader.get_option_market_data(symbol, expiration, strike, opt_type)
                 
-                if isinstance(data, dict):
-                    mark_price = data.get('mark_price')
-                    if mark_price and float(mark_price) > 0:
-                        market_price = float(mark_price)
-                        log_func(f"📈 Using mark price: ${market_price:.2f}")
-                    else:
-                        bid = float(data.get('bid_price', 0) or 0)
-                        ask = float(data.get('ask_price', 0) or 0)
-                        if bid > 0 and ask > 0:
-                            market_price = (bid + ask) / 2
-                            log_func(f"📈 Using bid/ask midpoint: ${market_price:.2f}")
-                        elif bid > 0:
-                            market_price = bid
-                            log_func(f"📈 Using bid price: ${market_price:.2f}")
+                market_price = None
+                if market_data and len(market_data) > 0:
+                    data = market_data[0]
+                    if isinstance(data, list) and len(data) > 0:
+                        data = data[0]
+                    
+                    if isinstance(data, dict):
+                        mark_price = data.get('mark_price')
+                        if mark_price and float(mark_price) > 0:
+                            market_price = float(mark_price)
+                            log_func(f"📈 Using mark price: ${market_price:.2f}")
+                        else:
+                            bid = float(data.get('bid_price', 0) or 0)
+                            ask = float(data.get('ask_price', 0) or 0)
+                            if bid > 0 and ask > 0:
+                                market_price = (bid + ask) / 2
+                                log_func(f"📈 Using bid/ask midpoint: ${market_price:.2f}")
+                            elif bid > 0:
+                                market_price = bid
+                                log_func(f"📈 Using bid price: ${market_price:.2f}")
             
             # Fallback price
             if not market_price or market_price <= 0:
                 specified_price = trade_obj.get('price', 0)
-                if specified_price and specified_price > 0:
-                    if specified_price == 'BE':
-                        # For breakeven, use entry price from active position
-                        market_price = active_position.get('purchase_price', 0.50) if active_position else 0.50
-                        log_func(f"⚠️ Using breakeven price: ${market_price:.2f}")
-                    else:
-                        market_price = float(specified_price) * 0.9
-                        log_func(f"⚠️ Using discounted specified price: ${market_price:.2f}")
+                if specified_price and specified_price > 0 and not isinstance(specified_price, str):
+                    market_price = float(specified_price) * 0.9
+                    log_func(f"⚠️ Using discounted specified price: ${market_price:.2f}")
                 else:
-                    market_price = 0.05
-                    log_func(f"🚨 Using emergency minimum price: ${market_price:.2f}")
+                    # Last resort: try to get entry price for emergency exit
+                    if active_position:
+                        entry_price = active_position.get('entry_price') or active_position.get('purchase_price')
+                        if entry_price:
+                            market_price = float(entry_price) * 0.5  # 50% of entry for emergency
+                            log_func(f"🚨 Using emergency price (50% of entry): ${market_price:.2f}")
+                        else:
+                            market_price = 0.05
+                            log_func(f"🚨 Using absolute minimum price: ${market_price:.2f}")
+                    else:
+                        market_price = 0.05
+                        log_func(f"🚨 Using absolute minimum price: ${market_price:.2f}")
             
             # Apply padding and round to tick
             final_price = market_price * (1 - sell_padding)
@@ -593,7 +651,7 @@ class TradeExecutor:
             
             log_func(f"📤 Placing {action}: {sell_quantity}x {symbol} @ ${final_price:.2f}")
             
-            # Place sell order
+            # Place sell order (trader handles symbol normalization)
             sell_response = trader.place_option_sell_order(
                 symbol, strike, expiration, opt_type, sell_quantity, 
                 limit_price=final_price, sell_padding=sell_padding
@@ -711,8 +769,10 @@ class TradeExecutor:
             'stop': '🛑'
         }
         
+        trader_symbol = trade_data.get('trader_symbol') or trade_data.get('ticker', 'Unknown')
+        
         embed = {
-            "title": f"{emojis.get(action, '')} {'[SIM]' if is_simulation else '[LIVE]'} {trade_data.get('channel', 'Unknown')} • {action.upper()} • {trade_data.get('ticker', 'Unknown')}",
+            "title": f"{emojis.get(action, '')} {'[SIM]' if is_simulation else '[LIVE]'} {trade_data.get('channel', 'Unknown')} • {action.upper()} • {trader_symbol}",
             "color": colors.get(action, 0x888888),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "fields": [],
@@ -720,12 +780,14 @@ class TradeExecutor:
         }
         
         # Contract details
-        contract_info = f"**{trade_data.get('ticker', 'N/A')}** ${trade_data.get('strike', 0)}{trade_data.get('type', 'N/A')[0].upper() if trade_data.get('type') else 'N/A'}"
+        contract_info = f"**{trader_symbol}** ${trade_data.get('strike', 0)}{trade_data.get('type', 'N/A')[0].upper() if trade_data.get('type') else 'N/A'}"
         try:
-            exp_date = datetime.fromisoformat(trade_data.get('expiration', '')).strftime('%m/%d/%y')
-            contract_info += f" {exp_date}"
-        except:
-            contract_info += f" {trade_data.get('expiration', 'N/A')}"
+            exp_date_str = trade_data.get('expiration', '')
+            if exp_date_str:
+                exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d').strftime('%m/%d/%y')
+                contract_info += f" {exp_date}"
+        except ValueError:
+             contract_info += f" {trade_data.get('expiration', 'N/A')}"
         
         embed["fields"].append({
             "name": "📈 Contract Details",
@@ -748,7 +810,7 @@ class TradeExecutor:
         })
         
         # P&L information if available
-        if trade_record and hasattr(trade_record, 'pnl_percent'):
+        if trade_record and hasattr(trade_record, 'pnl_percent') and trade_record.pnl_percent is not None:
             pnl_emoji = "🟢" if trade_record.pnl_percent > 0 else "🔴"
             pnl_info = f"""
 {pnl_emoji} **P&L:** {trade_record.pnl_percent:+.2f}%

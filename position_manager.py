@@ -1,14 +1,16 @@
-# position_manager.py - Enhanced Position Manager with Channel Isolation
+# position_manager.py - Enhanced Position Manager with Symbol Mapping
 import json
 import os
 from threading import Lock
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
+from config import get_broker_symbol, get_trader_symbol, get_all_symbol_variants, SYMBOL_NORMALIZATION_CONFIG
 
 class EnhancedPositionManager:
     """
-    Enhanced position manager with strict channel isolation and better tracking.
+    Enhanced position manager with strict channel isolation and symbol mapping.
     Each channel maintains completely separate position lists.
+    Handles both trader symbols (SPX) and broker symbols (SPXW).
     """
     
     def __init__(self, track_file: str):
@@ -16,7 +18,8 @@ class EnhancedPositionManager:
         self._lock = Lock()
         # Structure: {channel_id: [list of positions]}
         self._positions = self._load()
-        print(f"✅ Enhanced Position Manager initialized: {track_file}")
+        self._migrate_positions_if_needed()
+        print(f"✅ Enhanced Position Manager initialized with symbol mapping: {track_file}")
 
     def _load(self) -> dict:
         """Load positions from file with error handling"""
@@ -33,6 +36,38 @@ class EnhancedPositionManager:
                 print(f"❌ Unexpected error loading positions: {e}")
                 return {}
         return {}
+
+    def _migrate_positions_if_needed(self):
+        """Migrate existing positions to include both trader and broker symbols"""
+        with self._lock:
+            migrated = False
+            for channel_id, positions in self._positions.items():
+                for position in positions:
+                    # Add broker_symbol if not present
+                    if 'broker_symbol' not in position and 'symbol' in position:
+                        trader_symbol = position['symbol']
+                        broker_symbol = get_broker_symbol(trader_symbol)
+                        position['broker_symbol'] = broker_symbol
+                        position['trader_symbol'] = trader_symbol
+                        migrated = True
+                        
+                    # Add trader_symbol if not present but broker_symbol exists
+                    elif 'trader_symbol' not in position and 'broker_symbol' in position:
+                        broker_symbol = position['broker_symbol']
+                        trader_symbol = get_trader_symbol(broker_symbol)
+                        position['trader_symbol'] = trader_symbol
+                        migrated = True
+                    
+                    # Ensure we have symbol_variants for quick lookup
+                    if 'symbol_variants' not in position:
+                        symbol = position.get('symbol') or position.get('trader_symbol')
+                        if symbol:
+                            position['symbol_variants'] = get_all_symbol_variants(symbol)
+                            migrated = True
+            
+            if migrated:
+                self._save()
+                print("📊 Migrated positions to include symbol mapping")
 
     def _save(self):
         """Save positions to file with backup"""
@@ -52,7 +87,7 @@ class EnhancedPositionManager:
 
     def add_position(self, channel_id: int, trade_data: dict) -> Optional[dict]:
         """
-        Add a new position to the specific channel's list.
+        Add a new position to the specific channel's list with symbol mapping.
         Maintains strict channel isolation.
         """
         channel_id_str = str(channel_id)
@@ -62,13 +97,22 @@ class EnhancedPositionManager:
             print("❌ PositionManager Error: trade_id was not provided in trade_data.")
             return None
 
+        # Get both trader and broker symbols
+        trader_symbol = trade_data.get("ticker") or trade_data.get("symbol")
+        broker_symbol = get_broker_symbol(trader_symbol) if trader_symbol else None
+        symbol_variants = get_all_symbol_variants(trader_symbol) if trader_symbol else []
+
         contract_info = {
             "trade_id": trade_id,
-            "symbol": trade_data.get("ticker"),
+            "symbol": trader_symbol,  # Keep original field for compatibility
+            "trader_symbol": trader_symbol,
+            "broker_symbol": broker_symbol,
+            "symbol_variants": symbol_variants,
             "strike": trade_data.get("strike"),
             "type": trade_data.get("type"),
             "expiration": trade_data.get("expiration"),
             "purchase_price": trade_data.get("price"),
+            "entry_price": trade_data.get("price"),  # Store as both for compatibility
             "size": trade_data.get("size", "full"),
             "quantity": trade_data.get("quantity", 1),
             "channel": trade_data.get("channel"),
@@ -92,12 +136,15 @@ class EnhancedPositionManager:
             self._positions[channel_id_str].append(contract_info)
             self._save()
             
-        print(f"✅ Position added to channel {channel_id_str}: {contract_info.get('symbol')} (Trade ID: {trade_id})")
+        print(f"✅ Position added to channel {channel_id_str}: {trader_symbol} (broker: {broker_symbol}) (Trade ID: {trade_id})")
+        if SYMBOL_NORMALIZATION_CONFIG.get('log_conversions') and trader_symbol != broker_symbol:
+            print(f"   Symbol mapping: {trader_symbol} → {broker_symbol}")
+        
         return contract_info
 
     def find_position(self, channel_id: int, trade_data: dict) -> Optional[dict]:
         """
-        Find a specific position within a channel with multiple lookup strategies.
+        Find a specific position within a channel with symbol mapping support.
         STRICT channel isolation - only looks within the specified channel.
         """
         channel_id_str = str(channel_id)
@@ -107,8 +154,11 @@ class EnhancedPositionManager:
             if not active_trades:
                 return None
 
-            ticker = trade_data.get("ticker")
+            ticker = trade_data.get("ticker") or trade_data.get("symbol")
             trade_id = trade_data.get("trade_id")
+            
+            # Get all symbol variants for searching
+            symbol_variants = get_all_symbol_variants(ticker) if ticker else []
             
             # Strategy 1: Exact trade_id match (most precise)
             if trade_id:
@@ -117,23 +167,41 @@ class EnhancedPositionManager:
                         print(f"🎯 Found position by trade_id in channel {channel_id_str}: {trade_id}")
                         return trade
             
-            # Strategy 2: Ticker match - find most recent open position for this ticker
-            if ticker:
-                matching_trades = [
-                    trade for trade in active_trades 
-                    if trade.get("symbol") == ticker and trade.get("status") == "open"
-                ]
+            # Strategy 2: Symbol match with variants - find most recent open position
+            if ticker and symbol_variants:
+                matching_trades = []
+                for trade in active_trades:
+                    if trade.get("status") == "open":
+                        # Check if any of the position's symbols match our search variants
+                        position_symbols = [
+                            trade.get("symbol"),
+                            trade.get("trader_symbol"),
+                            trade.get("broker_symbol")
+                        ]
+                        position_symbols = [s.upper() for s in position_symbols if s]
+                        
+                        # Also check stored variants
+                        if trade.get("symbol_variants"):
+                            position_symbols.extend([v.upper() for v in trade.get("symbol_variants", [])])
+                        
+                        # Check for match
+                        if any(variant in position_symbols for variant in symbol_variants):
+                            matching_trades.append(trade)
+                
                 if matching_trades:
                     # Return the most recently created position
                     most_recent = max(matching_trades, key=lambda x: x.get("created_at", ""))
-                    print(f"📍 Found position by ticker in channel {channel_id_str}: {ticker} (Trade ID: {most_recent.get('trade_id')})")
+                    found_symbol = most_recent.get("trader_symbol") or most_recent.get("symbol")
+                    print(f"📍 Found position by symbol variants in channel {channel_id_str}: {ticker} → {found_symbol} (Trade ID: {most_recent.get('trade_id')})")
+                    if ticker != found_symbol:
+                        print(f"   Symbol variant match: {ticker} matched with {found_symbol}")
                     return most_recent
             
             # Strategy 3: No identifying info - return most recent open position
             open_trades = [trade for trade in active_trades if trade.get("status") == "open"]
             if open_trades:
                 most_recent = max(open_trades, key=lambda x: x.get("created_at", ""))
-                print(f"🔍 Found most recent position in channel {channel_id_str}: {most_recent.get('symbol')} (Trade ID: {most_recent.get('trade_id')})")
+                print(f"🔍 Found most recent position in channel {channel_id_str}: {most_recent.get('trader_symbol')} (Trade ID: {most_recent.get('trade_id')})")
                 return most_recent
             
             return None
@@ -141,20 +209,42 @@ class EnhancedPositionManager:
     def find_position_by_ticker(self, channel_id: int, ticker: str) -> Optional[dict]:
         """
         Find the most recent open position for a specific ticker within a channel.
+        Handles symbol mapping (SPX/SPXW).
         """
         channel_id_str = str(channel_id)
         
         with self._lock:
             active_trades = self._positions.get(channel_id_str, [])
-            matching_trades = [
-                trade for trade in active_trades 
-                if trade.get("symbol") == ticker and trade.get("status") == "open"
-            ]
+            
+            # Get all symbol variants for searching
+            symbol_variants = get_all_symbol_variants(ticker)
+            
+            matching_trades = []
+            for trade in active_trades:
+                if trade.get("status") == "open":
+                    # Check all stored symbols
+                    position_symbols = [
+                        trade.get("symbol"),
+                        trade.get("trader_symbol"),
+                        trade.get("broker_symbol")
+                    ]
+                    position_symbols = [s.upper() for s in position_symbols if s]
+                    
+                    # Also check stored variants
+                    if trade.get("symbol_variants"):
+                        position_symbols.extend([v.upper() for v in trade.get("symbol_variants", [])])
+                    
+                    # Check for match
+                    if any(variant in position_symbols for variant in symbol_variants):
+                        matching_trades.append(trade)
             
             if matching_trades:
                 # Return the most recently created position
                 most_recent = max(matching_trades, key=lambda x: x.get("created_at", ""))
-                print(f"📍 Found position for {ticker} in channel {channel_id_str}: {most_recent.get('trade_id')}")
+                found_symbol = most_recent.get("trader_symbol") or most_recent.get("symbol")
+                print(f"📍 Found position for {ticker} (variants: {symbol_variants}) in channel {channel_id_str}: {most_recent.get('trade_id')}")
+                if ticker != found_symbol:
+                    print(f"   Symbol mapping: {ticker} → {found_symbol}")
                 return most_recent
             
             return None
@@ -195,7 +285,8 @@ class EnhancedPositionManager:
                         trade["status"] = "closed"
                         trade["closed_at"] = datetime.now(timezone.utc).isoformat()
                         self._save()
-                        print(f"✅ Closed position {trade_id} in channel {channel_id_str}")
+                        symbol = trade.get("trader_symbol") or trade.get("symbol")
+                        print(f"✅ Closed position {trade_id} for {symbol} in channel {channel_id_str}")
                         return True
             
             print(f"❌ Position {trade_id} not found for closing in channel {channel_id_str}")
@@ -228,12 +319,20 @@ class EnhancedPositionManager:
             open_positions = [pos for pos in positions if pos.get("status") == "open"]
             closed_positions = [pos for pos in positions if pos.get("status") == "closed"]
             
+            # Get unique tickers including mapped symbols
+            open_tickers = set()
+            for pos in open_positions:
+                if pos.get("trader_symbol"):
+                    open_tickers.add(pos.get("trader_symbol"))
+                elif pos.get("symbol"):
+                    open_tickers.add(pos.get("symbol"))
+            
             return {
                 "channel_id": channel_id,
                 "total_positions": len(positions),
                 "open_positions": len(open_positions),
                 "closed_positions": len(closed_positions),
-                "open_tickers": list(set(pos.get("symbol") for pos in open_positions)),
+                "open_tickers": list(open_tickers),
                 "recent_activity": sorted(positions, key=lambda x: x.get("created_at", ""))[-5:]
             }
 
@@ -278,6 +377,44 @@ class EnhancedPositionManager:
             
             return cleaned_count
 
+    def find_position_by_contract_details(self, channel_id: int, symbol: str, strike: float, 
+                                         expiration: str, opt_type: str) -> Optional[dict]:
+        """
+        Find position by exact contract details with symbol mapping support.
+        """
+        channel_id_str = str(channel_id)
+        
+        with self._lock:
+            active_trades = self._positions.get(channel_id_str, [])
+            
+            # Get all symbol variants
+            symbol_variants = get_all_symbol_variants(symbol)
+            
+            for trade in active_trades:
+                if trade.get("status") != "open":
+                    continue
+                
+                # Check symbol match with variants
+                position_symbols = [
+                    trade.get("symbol"),
+                    trade.get("trader_symbol"),
+                    trade.get("broker_symbol")
+                ]
+                position_symbols = [s.upper() for s in position_symbols if s]
+                
+                symbol_match = any(variant in position_symbols for variant in symbol_variants)
+                
+                # Check other contract details
+                strike_match = abs(float(trade.get("strike", 0)) - float(strike)) < 0.01
+                exp_match = trade.get("expiration") == str(expiration)
+                type_match = trade.get("type", "").lower() == str(opt_type).lower()
+                
+                if symbol_match and strike_match and exp_match and type_match:
+                    print(f"✅ Found exact contract match in channel {channel_id_str}: {trade.get('trade_id')}")
+                    return trade
+            
+            return None
+
     def export_positions_csv(self, filename: str = None):
         """
         Export all positions to CSV for analysis.
@@ -313,3 +450,40 @@ class EnhancedPositionManager:
                     writer.writerow(pos)
             
             print(f"📊 Exported {len(all_positions)} positions to {filename}")
+
+    def debug_positions(self, channel_id: int = None):
+        """
+        Debug method to print current positions with symbol mapping details.
+        """
+        with self._lock:
+            if channel_id:
+                channel_id_str = str(channel_id)
+                positions = self._positions.get(channel_id_str, [])
+                print(f"\n🔍 Debug: Positions for channel {channel_id_str}:")
+            else:
+                print(f"\n🔍 Debug: All positions:")
+                positions = []
+                for ch_id, ch_positions in self._positions.items():
+                    for pos in ch_positions:
+                        pos_copy = pos.copy()
+                        pos_copy['_channel'] = ch_id
+                        positions.append(pos_copy)
+            
+            for pos in positions:
+                if pos.get("status") == "open":
+                    print(f"  Trade ID: {pos.get('trade_id')}")
+                    print(f"    Trader Symbol: {pos.get('trader_symbol')}")
+                    print(f"    Broker Symbol: {pos.get('broker_symbol')}")
+                    print(f"    Variants: {pos.get('symbol_variants')}")
+                    print(f"    Contract: ${pos.get('strike')} {pos.get('type')} {pos.get('expiration')}")
+                    print(f"    Entry Price: ${pos.get('entry_price')}")
+                    print(f"    Status: {pos.get('status')}")
+                    if '_channel' in pos:
+                        print(f"    Channel: {pos['_channel']}")
+                    print()
+
+# Compatibility alias
+PositionManager = EnhancedPositionManager
+
+# Export
+__all__ = ['EnhancedPositionManager', 'PositionManager']
