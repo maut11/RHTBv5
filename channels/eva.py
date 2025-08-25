@@ -55,6 +55,15 @@ Your ONLY job is to extract the specified fields and return a single JSON object
 - **Missing Info**: Avoid inferring trades from general commentary. If critical info for an action is missing, it is better to return a "null" action.
 Return only the valid JSON object. Do not include explanations.
 
+ACTION VALUES (CRITICAL - USE EXACTLY THESE):
+- Use "buy" for any new position entry
+- Use "trim" for any partial exit
+- Use "exit" for any full position close
+- Use "null" for non-actionable messages
+
+NEVER use variations like "entry", "ENTRY", "BTO", etc. - ALWAYS use the exact values above.
+
+
 --- MESSAGE TO PARSE ---
 Title: "{title.strip()}"
 Description: "{description.strip()}"

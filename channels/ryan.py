@@ -74,6 +74,14 @@ The trading system is designed to handle incomplete information by looking up re
 
 Return only the valid JSON object. Do not include explanations or markdown formatting.
 
+ACTION VALUES (CRITICAL - USE EXACTLY THESE):
+- Use "buy" for any new position entry
+- Use "trim" for any partial exit
+- Use "exit" for any full position close
+- Use "null" for non-actionable messages
+
+NEVER use variations like "entry", "ENTRY", "BTO", etc. - ALWAYS use the exact values above.
+
 Now parse the following:
 
 Title: "{title.strip()}"  

@@ -1,10 +1,10 @@
 # config.py - Enhanced RHTB v4 Configuration with Channel Isolation and Symbol Mapping
 MAX_PCT_PORTFOLIO = 0.05
 MAX_DOLLAR_AMOUNT = 20000
-MIN_TRADE_QUANTITY = 3
+MIN_TRADE_QUANTITY = 1
 
 # Default paddings (can be overridden per channel)
-DEFAULT_BUY_PRICE_PADDING = 0.02
+DEFAULT_BUY_PRICE_PADDING = 0.025
 DEFAULT_SELL_PRICE_PADDING = 0.01
 
 POSITION_SIZE_MULTIPLIERS = { 

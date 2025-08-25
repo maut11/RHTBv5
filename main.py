@@ -1,4 +1,4 @@
-# main.py - Discord Client with Dedicated Heartbeat Channel
+# main.py - Discord Client with Enhanced Logging and Debugging
 import os
 import sys
 import asyncio
@@ -6,8 +6,10 @@ import discord
 import traceback
 import time
 import threading
+import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
+from pathlib import Path
 
 from config import *
 from alert_manager import ResilientAlertManager
@@ -41,6 +43,104 @@ LIVE_COMMAND_CHANNEL_ID = 1401792635483717747
 MAX_RESTART_ATTEMPTS = 5
 restart_count = 0
 last_restart_time = None
+
+# ============= ENHANCED LOGGING SETUP =============
+class LoggingPrintRedirect:
+    """Redirects print statements to both console and log file"""
+    def __init__(self, logger, level=logging.INFO):
+        self.logger = logger
+        self.level = level
+        self.terminal = sys.stdout
+        self.line_buffer = ""
+        
+    def write(self, message):
+        # Write to terminal
+        self.terminal.write(message)
+        
+        # Buffer until we have a complete line
+        self.line_buffer += message
+        
+        # If we have a newline, log the complete line
+        if '\n' in self.line_buffer:
+            lines = self.line_buffer.split('\n')
+            # Log all complete lines
+            for line in lines[:-1]:
+                if line.strip():  # Don't log empty lines
+                    self.logger.log(self.level, line.strip())
+            # Keep any incomplete line in the buffer
+            self.line_buffer = lines[-1]
+    
+    def flush(self):
+        if self.line_buffer.strip():
+            self.logger.log(self.level, self.line_buffer.strip())
+            self.line_buffer = ""
+        if hasattr(self.terminal, 'flush'):
+            self.terminal.flush()
+
+def setup_comprehensive_logging():
+    """Setup comprehensive logging that captures everything"""
+    # Create logs directory if it doesn't exist
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+    
+    # Setup main logger
+    main_logger = logging.getLogger('main')
+    main_logger.setLevel(logging.DEBUG)
+    
+    # Clear existing handlers
+    main_logger.handlers.clear()
+    
+    # Create formatters
+    detailed_formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # File handler for debug.log (everything)
+    debug_handler = logging.FileHandler(log_dir / "debug.log", encoding='utf-8')
+    debug_handler.setLevel(logging.DEBUG)
+    debug_handler.setFormatter(detailed_formatter)
+    main_logger.addHandler(debug_handler)
+    
+    # File handler for errors.log (errors only)
+    error_handler = logging.FileHandler(log_dir / "errors.log", encoding='utf-8')
+    error_handler.setLevel(logging.ERROR)
+    error_handler.setFormatter(detailed_formatter)
+    main_logger.addHandler(error_handler)
+    
+    # Console handler (for immediate visibility)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    simple_formatter = logging.Formatter('%(levelname)s - %(message)s')
+    console_handler.setFormatter(simple_formatter)
+    main_logger.addHandler(console_handler)
+    
+    # Setup root logger to catch everything
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+    
+    # Add file handler to root logger to catch all module logs
+    root_debug_handler = logging.FileHandler(log_dir / "debug.log", encoding='utf-8')
+    root_debug_handler.setLevel(logging.DEBUG)
+    root_debug_handler.setFormatter(detailed_formatter)
+    root_logger.addHandler(root_debug_handler)
+    
+    # Redirect print statements to logger
+    sys.stdout = LoggingPrintRedirect(main_logger, logging.INFO)
+    sys.stderr = LoggingPrintRedirect(main_logger, logging.ERROR)
+    
+    main_logger.info("="*50)
+    main_logger.info("Comprehensive logging system initialized")
+    main_logger.info(f"Debug log: {log_dir / 'debug.log'}")
+    main_logger.info(f"Error log: {log_dir / 'errors.log'}")
+    main_logger.info("="*50)
+    
+    return main_logger
+
+# Initialize logging before anything else
+logger = setup_comprehensive_logging()
+
+# ============= END LOGGING SETUP =============
 
 class MessageEditTracker:
     def __init__(self):
@@ -83,7 +183,7 @@ class ChannelHandlerManager:
                     self.handlers[channel_id] = parser_instance
         
         mode = "TESTING" if testing_mode else "PRODUCTION"
-        print(f"✅ Handlers updated for {mode} mode: {list(self.handlers.keys())}")
+        logger.info(f"Handlers updated for {mode} mode: {list(self.handlers.keys())}")
         
     def get_handler(self, channel_id: int):
         return self.handlers.get(channel_id)
@@ -92,85 +192,105 @@ class EnhancedDiscordClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Initialize core systems
-        from openai import OpenAI
-        self.openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        logger.info("Initializing Enhanced Discord Client")
         
-        # Initialize managers
-        self.alert_manager = ResilientAlertManager()
-        self.performance_tracker = EnhancedPerformanceTracker()
-        self.position_manager = EnhancedPositionManager("tracked_contracts_live.json")
-        
-        # Initialize traders
-        self.live_trader = EnhancedRobinhoodTrader()
-        self.sim_trader = EnhancedSimulatedTrader()
-        
-        # Initialize handlers and utilities
-        self.channel_manager = ChannelHandlerManager(self.openai_client)
-        self.price_parser = PriceParser(self.openai_client)
-        self.edit_tracker = MessageEditTracker()
-        
-        # Initialize trade executor with proper event loop reference
-        self.trade_executor = TradeExecutor(
-            self.live_trader, 
-            self.sim_trader,
-            self.performance_tracker,
-            self.position_manager,
-            self.alert_manager
-        )
-        
-        # System state
-        self.start_time = datetime.now(timezone.utc)
-        self.heartbeat_task = None
-        self.connection_lost_count = 0
-        self.last_ready_time = None
+        try:
+            # Initialize core systems
+            from openai import OpenAI
+            self.openai_client = OpenAI(api_key=OPENAI_API_KEY)
+            logger.info("OpenAI client initialized")
+            
+            # Initialize managers
+            self.alert_manager = ResilientAlertManager()
+            logger.info("Alert manager initialized")
+            
+            self.performance_tracker = EnhancedPerformanceTracker()
+            logger.info("Performance tracker initialized")
+            
+            self.position_manager = EnhancedPositionManager("tracked_contracts_live.json")
+            logger.info("Position manager initialized")
+            
+            # Initialize traders
+            self.live_trader = EnhancedRobinhoodTrader()
+            logger.info("Live trader initialized")
+            
+            self.sim_trader = EnhancedSimulatedTrader()
+            logger.info("Simulated trader initialized")
+            
+            # Initialize handlers and utilities
+            self.channel_manager = ChannelHandlerManager(self.openai_client)
+            self.price_parser = PriceParser(self.openai_client)
+            self.edit_tracker = MessageEditTracker()
+            
+            # Initialize trade executor with proper event loop reference
+            self.trade_executor = TradeExecutor(
+                self.live_trader, 
+                self.sim_trader,
+                self.performance_tracker,
+                self.position_manager,
+                self.alert_manager
+            )
+            logger.info("Trade executor initialized")
+            
+            # System state
+            self.start_time = datetime.now(timezone.utc)
+            self.heartbeat_task = None
+            self.connection_lost_count = 0
+            self.last_ready_time = None
+            
+            logger.info("Discord client initialization complete")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize Discord client: {e}", exc_info=True)
+            raise
         
     async def on_ready(self):
         """Called when Discord connection is established"""
-        print(f"✅ Discord client ready: {self.user}")
+        logger.info(f"Discord client ready: {self.user}")
         self.last_ready_time = datetime.now(timezone.utc)
         self.connection_lost_count = 0  # Reset on successful connection
         
-        # Start alert system
-        await self.alert_manager.start()
-        
-        # Update channel handlers
-        self.channel_manager.update_handlers(TESTING_MODE)
-        
-        # Start heartbeat task
-        if not self.heartbeat_task or self.heartbeat_task.done():
-            self.heartbeat_task = asyncio.create_task(self._heartbeat_task())
-            print("💓 Heartbeat task started (30min intervals)")
-        
-        # Send startup notification TO HEARTBEAT CHANNEL
-        await self._send_startup_notification()
+        try:
+            # Start alert system
+            await self.alert_manager.start()
+            logger.info("Alert system started")
+            
+            # Update channel handlers
+            self.channel_manager.update_handlers(TESTING_MODE)
+            
+            # Start heartbeat task
+            if not self.heartbeat_task or self.heartbeat_task.done():
+                self.heartbeat_task = asyncio.create_task(self._heartbeat_task())
+                logger.info("Heartbeat task started")
+            
+            # Send startup notification
+            await self._send_startup_notification()
+            
+        except Exception as e:
+            logger.error(f"Error in on_ready: {e}", exc_info=True)
     
     async def on_resumed(self):
         """Called when Discord resumes after disconnection"""
-        print("🔄 Discord connection resumed - checking services...")
+        logger.info("Discord connection resumed - checking services...")
         
-        # Check and restart alert system if needed
         try:
+            # Check and restart alert system if needed
             metrics = await self.alert_manager.get_metrics()
             if not metrics.get('is_running'):
-                print("⚠️ Alert system stopped during disconnect - restarting...")
+                logger.warning("Alert system stopped during disconnect - restarting...")
                 await self.alert_manager.start()
             else:
                 # Verify processors are alive
                 if not metrics.get('primary_alive') or not metrics.get('backup_alive'):
-                    print("⚠️ Dead alert processors detected - restarting...")
+                    logger.warning("Dead alert processors detected - restarting...")
                     await self.alert_manager.emergency_restart()
-        except Exception as e:
-            print(f"⚠️ Error checking alert system: {e} - forcing restart...")
-            await self.alert_manager.start()
-        
-        # Restart heartbeat if needed
-        if not self.heartbeat_task or self.heartbeat_task.done():
-            print("⚠️ Heartbeat task dead - restarting...")
-            self.heartbeat_task = asyncio.create_task(self._heartbeat_task())
-        
-        # Send reconnection notification TO HEARTBEAT CHANNEL
-        try:
+            
+            # Restart heartbeat if needed
+            if not self.heartbeat_task or self.heartbeat_task.done():
+                logger.warning("Heartbeat task dead - restarting...")
+                self.heartbeat_task = asyncio.create_task(self._heartbeat_task())
+            
+            # Send reconnection notification
             reconnect_embed = {
                 "title": "🔄 Bot Reconnected",
                 "description": "Discord session resumed, all services checked",
@@ -190,31 +310,31 @@ class EnhancedDiscordClient(discord.Client):
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
             
-            # Send to dedicated HEARTBEAT channel instead of ALL_NOTIFICATION
             await self.alert_manager.add_alert(
                 HEARTBEAT_WEBHOOK,
                 {"embeds": [reconnect_embed]},
                 "reconnection",
                 priority=1
             )
+            
+            logger.info("All services verified after reconnection")
+            
         except Exception as e:
-            print(f"❌ Failed to send reconnection alert: {e}")
-        
-        print("✅ All services verified after reconnection")
+            logger.error(f"Error in on_resumed: {e}", exc_info=True)
     
     async def on_disconnect(self):
         """Called when Discord disconnects"""
         self.connection_lost_count += 1
-        print(f"🔌 Discord disconnected (count: {self.connection_lost_count})")
+        logger.warning(f"Discord disconnected (count: {self.connection_lost_count})")
         
         # Don't stop services on normal disconnects - Discord will reconnect
         # Only force restart if too many disconnections
         if self.connection_lost_count > 10:
-            print("❌ Too many disconnections - forcing restart")
+            logger.error("Too many disconnections - forcing restart")
             sys.exit(1)  # This will trigger the restart logic
 
     async def _heartbeat_task(self):
-        """Send periodic heartbeat to DEDICATED heartbeat channel"""
+        """Send periodic heartbeat to dedicated heartbeat channel"""
         while True:
             try:
                 await asyncio.sleep(1800)  # Every 30 minutes
@@ -264,20 +384,19 @@ class EnhancedDiscordClient(discord.Client):
                     "footer": {"text": "Automatic heartbeat every 30 minutes"}
                 }
                 
-                # Send to DEDICATED heartbeat channel
                 await self.alert_manager.add_alert(
                     HEARTBEAT_WEBHOOK, 
                     {"embeds": [heartbeat_embed]}, 
                     "heartbeat"
                 )
                 
-                print("💓 Heartbeat sent successfully")
+                logger.info("Heartbeat sent successfully")
                 
             except asyncio.CancelledError:
-                print("💓 Heartbeat task cancelled")
+                logger.info("Heartbeat task cancelled")
                 break
             except Exception as e:
-                print(f"❌ Heartbeat error: {e}")
+                logger.error(f"Heartbeat error: {e}", exc_info=True)
                 await asyncio.sleep(60)  # Wait a minute before retrying
 
     async def on_message(self, message):
@@ -291,7 +410,7 @@ class EnhancedDiscordClient(discord.Client):
             # Handle trading messages
             handler = self.channel_manager.get_handler(message.channel.id)
             if handler:
-                print(f"📨 Message received from {handler.name}: {message.content[:100]}...")
+                logger.info(f"Message received from {handler.name}: {message.content[:100]}...")
                 
                 # Extract message content
                 message_meta, raw_msg = self._extract_message_content(message, handler)
@@ -308,7 +427,7 @@ class EnhancedDiscordClient(discord.Client):
                     )
                     
         except Exception as e:
-            print(f"❌ Message handling error: {e}")
+            logger.error(f"Message handling error: {e}", exc_info=True)
             await self.alert_manager.send_error_alert(f"Message handling error: {e}")
 
     async def on_message_edit(self, before, after):
@@ -319,7 +438,7 @@ class EnhancedDiscordClient(discord.Client):
                 
             handler = self.channel_manager.get_handler(after.channel.id)
             if handler:
-                print(f"📝 Message edit detected in {handler.name}")
+                logger.info(f"Message edit detected in {handler.name}")
                 
                 processed_info = await self.edit_tracker.get_processed_info(str(after.id))
                 if processed_info:
@@ -333,7 +452,7 @@ class EnhancedDiscordClient(discord.Client):
                         )
                         
         except Exception as e:
-            print(f"❌ Edit handling error: {e}")
+            logger.error(f"Edit handling error: {e}", exc_info=True)
 
     def _extract_message_content(self, message, handler):
         """Extract message content for processing"""
@@ -372,7 +491,7 @@ class EnhancedDiscordClient(discord.Client):
             return message_meta, raw_msg
             
         except Exception as e:
-            print(f"❌ Content extraction error: {e}")
+            logger.error(f"Content extraction error: {e}", exc_info=True)
             return None, ""
 
     async def _send_live_feed_alert(self, handler, content):
@@ -390,7 +509,7 @@ class EnhancedDiscordClient(discord.Client):
             )
             
         except Exception as e:
-            print(f"❌ Live feed alert error: {e}")
+            logger.error(f"Live feed alert error: {e}", exc_info=True)
 
     async def _handle_command(self, message):
         """Enhanced command handling with all commands"""
@@ -401,7 +520,7 @@ class EnhancedDiscordClient(discord.Client):
             parts = content.split()
             command = parts[0].lower()
             
-            print(f"🎮 Command received: {command}")
+            logger.info(f"Command received: {command}")
             
             if command == "!sim":
                 if len(parts) > 1 and parts[1] in ["on", "true"]:
@@ -413,6 +532,7 @@ class EnhancedDiscordClient(discord.Client):
                 else:
                     response = "Usage: `!sim on` or `!sim off`"
                 
+                logger.info(f"Simulation mode changed to: {SIM_MODE}")
                 await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": response}, "command_response")
             
             elif command == "!testing":
@@ -425,6 +545,7 @@ class EnhancedDiscordClient(discord.Client):
                 else:
                     response = "Usage: `!testing on` or `!testing off`"
                 
+                logger.info(f"Testing mode changed to: {TESTING_MODE}")
                 await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": response}, "command_response")
                 await asyncio.sleep(1)
                 self.channel_manager.update_handlers(TESTING_MODE)
@@ -467,14 +588,14 @@ class EnhancedDiscordClient(discord.Client):
                 
             elif command == "!queue":
                 await self._handle_queue_command()
-                    
+                      
             else:
                 await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {
                     "content": f"Unknown command: {command}. Use `!help` for available commands."
                 }, "command_response")
                 
         except Exception as e:
-            print(f"❌ Command handling error: {e}")
+            logger.error(f"Command handling error: {e}", exc_info=True)
             await self.alert_manager.send_error_alert(f"Command error: {e}")
 
     async def _handle_status_command(self):
@@ -599,7 +720,7 @@ class EnhancedDiscordClient(discord.Client):
         await self.alert_manager.add_alert(ALL_NOTIFICATION_WEBHOOK, {"embeds": [test_embed]}, "test_alert")
 
     async def _handle_heartbeat_command(self):
-        """Handle MANUAL heartbeat command - sends to HEARTBEAT CHANNEL"""
+        """Handle manual heartbeat command"""
         uptime = datetime.now(timezone.utc) - self.start_time
         uptime_str = str(uptime).split('.')[0]
         
@@ -639,24 +760,24 @@ class EnhancedDiscordClient(discord.Client):
 **Debug Mode:** {'🟢 ON' if DEBUG_MODE else '🔴 OFF'}
 **Active Channels:** {len(self.channel_manager.handlers)}
 **Disconnections:** {self.connection_lost_count}
-                    """,
-                    "inline": True
+                   """,
+                   "inline": True
                 },
                 {
-                    "name": "📊 Performance Metrics",
-                    "value": f"""
+                   "name": "📊 Performance Metrics",
+                   "value": f"""
 **Alert Queue Size:** {queue_metrics.get('queue_size_current', 0)}
 **Total Alerts Sent:** {queue_metrics.get('total_alerts', 0)}
 **Alert Success Rate:** {queue_metrics.get('success_rate', 0):.1f}%
 **Recent Trades:** {len(recent_trades)} completed
 **Processing Status:** {'🟢 Active' if queue_metrics.get('is_running') else '🔴 Stopped'}
-                    """,
-                    "inline": True
+                   """,
+                   "inline": True
                 },
                 {
-                    "name": "🖥️ System Resources",
-                    "value": system_info,
-                    "inline": False
+                   "name": "🖥️ System Resources",
+                   "value": system_info,
+                   "inline": False
                 }
             ],
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -677,9 +798,8 @@ class EnhancedDiscordClient(discord.Client):
                 "inline": True
             })
         
-        # Send MANUAL heartbeat to HEARTBEAT channel
         await self.alert_manager.add_alert(HEARTBEAT_WEBHOOK, {"embeds": [heartbeat_embed]}, "manual_heartbeat")
-        print("💓 Manual heartbeat command executed")
+        logger.info("Manual heartbeat command executed")
 
     async def _handle_help_command(self):
         """Handle help command"""
@@ -690,7 +810,7 @@ class EnhancedDiscordClient(discord.Client):
 `!sim on|off` - Toggle simulation mode
 `!testing on|off` - Toggle testing channels
 `!status` - System status overview
-`!heartbeat` - Detailed health check (📡 #heartbeat channel)
+`!heartbeat` - Detailed health check
 
 **Alert System:**
 `!alert_health` - Alert system diagnostics
@@ -710,7 +830,7 @@ class EnhancedDiscordClient(discord.Client):
 - Resilient alert system with circuit breaker
 - Channel-isolated position tracking
 - Real-time health monitoring
-- **📡 Dedicated #heartbeat channel for system notifications**
+- Comprehensive logging to debug.log & errors.log
             """,
             "color": 0x3498db
         }
@@ -719,12 +839,12 @@ class EnhancedDiscordClient(discord.Client):
     async def _handle_get_price(self, query: str):
         """Handle getprice command"""
         await self.alert_manager.add_alert(COMMANDS_WEBHOOK, 
-                                             {"content": f"⏳ Parsing and fetching price for: `{query}`..."}, 
-                                             "command_response")
+                                            {"content": f"⏳ Parsing and fetching price for: `{query}`..."}, 
+                                            "command_response")
 
         def blocking_parse_and_fetch():
             def parser_logger(msg, level="INFO"):
-                print(f"[{level}] PriceParser: {msg}")
+                logger.info(f"PriceParser: {msg}")
 
             parsed_contract = self.price_parser.parse_query(query, parser_logger)
 
@@ -745,11 +865,9 @@ class EnhancedDiscordClient(discord.Client):
             
             market_data_dict = None
             if market_data and isinstance(market_data, list):
-                # Handles cases like [[{...}]]
                 if market_data[0] and isinstance(market_data[0], list):
                     if len(market_data[0]) > 0 and market_data[0][0] and isinstance(market_data[0][0], dict):
                         market_data_dict = market_data[0][0]
-                # Handles cases like [{...}]
                 elif market_data[0] and isinstance(market_data[0], dict):
                     market_data_dict = market_data[0]
 
@@ -805,10 +923,11 @@ class EnhancedDiscordClient(discord.Client):
                         if instrument_data:
                             holdings.append(f"• {p['chain_symbol']} {instrument_data['expiration_date']} {instrument_data['strike_price']}{instrument_data['type'].upper()[0]} x{int(float(p['quantity']))}")
                     except Exception as e:
-                        print(f"Could not process a position: {e}")
+                        logger.error(f"Could not process a position: {e}")
                 
                 return "\n".join(holdings) if holdings else "No processable option positions found."
             except Exception as e:
+                logger.error(f"Error retrieving holdings: {e}", exc_info=True)
                 return f"Error retrieving holdings: {e}"
         
         pos_string = await self.loop.run_in_executor(None, get_positions_sync)
@@ -873,7 +992,7 @@ class EnhancedDiscordClient(discord.Client):
         await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [queue_embed]}, "command_response")
 
     async def _send_startup_notification(self):
-        """Send enhanced startup notification TO HEARTBEAT CHANNEL"""
+        """Send enhanced startup notification to heartbeat channel"""
         startup_embed = {
             "title": "🚀 RHTB v4 Enhanced - System Online",
             "color": 0x00ff00,
@@ -895,17 +1014,17 @@ class EnhancedDiscordClient(discord.Client):
 **Reconnect Handler:** ✅ Active
 **Alert Recovery:** ✅ Ready
 **Health Monitor:** ✅ Running
-**Heartbeat Channel:** 📡 Active
+**Comprehensive Logging:** ✅ Active
                     """,
                     "inline": True
                 },
                 {
-                    "name": "🛡️ Risk Management",
+                    "name": "📁 Logging System",
                     "value": f"""
-**Delayed Stop Loss:** {STOP_LOSS_DELAY_SECONDS/60:.0f} minutes
-**Initial Stop:** 50% loss protection
-**Trailing Stops:** 20% trailing on trims
-**Auto Risk Management:** ✅ ENABLED
+**Debug Log:** logs/debug.log
+**Error Log:** logs/errors.log
+**Analytics DB:** logs/debug_analytics.db
+**All print() statements:** ✅ Captured
                     """,
                     "inline": True
                 }
@@ -913,12 +1032,11 @@ class EnhancedDiscordClient(discord.Client):
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        # Send startup notification to HEARTBEAT channel instead of ALL_NOTIFICATION
         await self.alert_manager.add_alert(HEARTBEAT_WEBHOOK, {"embeds": [startup_embed]}, "startup", priority=3)
 
     async def close(self):
         """Clean shutdown"""
-        print("🔌 Shutting down Discord client...")
+        logger.info("Shutting down Discord client...")
         
         # Cancel heartbeat task
         if self.heartbeat_task and not self.heartbeat_task.done():
@@ -938,36 +1056,37 @@ class EnhancedDiscordClient(discord.Client):
 if __name__ == "__main__":
     while True:
         try:
-            print("🚀 Starting RHTB v4 Enhanced...")
-            print(f"Restart attempt: {restart_count}/{MAX_RESTART_ATTEMPTS}")
+            logger.info("="*50)
+            logger.info("Starting RHTB v4 Enhanced...")
+            logger.info(f"Restart attempt: {restart_count}/{MAX_RESTART_ATTEMPTS}")
             
             # Track restart frequency
             current_time = datetime.now()
             if last_restart_time:
                 time_since_last = current_time - last_restart_time
                 if time_since_last < timedelta(minutes=5):
-                    print("⚠️ Restarting too frequently - waiting 30 seconds")
+                    logger.warning("Restarting too frequently - waiting 30 seconds")
                     time.sleep(30)
             
             last_restart_time = current_time
             
-            print(f"Settings: SIM_MODE={SIM_MODE}, TESTING_MODE={TESTING_MODE}, DEBUG_MODE={DEBUG_MODE}")
+            logger.info(f"Settings: SIM_MODE={SIM_MODE}, TESTING_MODE={TESTING_MODE}, DEBUG_MODE={DEBUG_MODE}")
             
-            print("📊 Enhanced Features Active:")
-            print("   ✅ Auto-restart on crash (max 5 attempts)")
-            print("   ✅ Auto-recovery after Discord disconnects")
-            print("   ✅ Resilient alert system with circuit breaker")
-            print("   ✅ Channel-isolated position tracking")
-            print("   ✅ Real-time health monitoring")
-            print("   📡 Dedicated #heartbeat channel for system notifications")
-            print("")
-            print("🛡️ Automatic Risk Management Active:")
-            print(f"   ⏱️ Delayed stop loss: {STOP_LOSS_DELAY_SECONDS/60:.0f} minutes after buy")
-            print("   📉 Initial stop loss: 50% protection")
-            print("   📈 Trailing stops: 20% on partial exits")
-            print("   🎯 Market-based exit pricing")
-            print("   ⚡ Enhanced order monitoring with auto-cancel")
-            print("")
+            logger.info("Enhanced Features Active:")
+            logger.info("   ✅ Auto-restart on crash (max 5 attempts)")
+            logger.info("   ✅ Auto-recovery after Discord disconnects")
+            logger.info("   ✅ Resilient alert system with circuit breaker")
+            logger.info("   ✅ Channel-isolated position tracking")
+            logger.info("   ✅ Real-time health monitoring")
+            logger.info("   ✅ Comprehensive logging to files")
+            logger.info("")
+            logger.info("Automatic Risk Management Active:")
+            logger.info(f"   ⏱️ Delayed stop loss: {STOP_LOSS_DELAY_SECONDS/60:.0f} minutes after buy")
+            logger.info("   📉 Initial stop loss: 50% protection")
+            logger.info("   📈 Trailing stops: 20% on partial exits")
+            logger.info("   🎯 Market-based exit pricing")
+            logger.info("   ⚡ Enhanced order monitoring with auto-cancel")
+            logger.info("="*50)
             
             # Create and run the bot
             client = EnhancedDiscordClient()
@@ -976,29 +1095,30 @@ if __name__ == "__main__":
             client.run(DISCORD_TOKEN)
             
             # If we get here, bot exited normally
-            print("✅ Bot exited normally")
+            logger.info("Bot exited normally")
             break
             
         except discord.errors.LoginFailure as e:
             # Don't restart on auth failures
+            logger.error(f"Discord login failed: {e}")
             print(f"❌ Discord login failed: {e}")
             print("Check your Discord token in .env file!")
             sys.exit(1)
             
         except KeyboardInterrupt:
             # User stopped the bot
+            logger.info("Bot stopped by user")
             print("\n👋 Bot stopped by user")
             sys.exit(0)
             
         except asyncio.CancelledError:
             # Normal asyncio cancellation - might be from Discord reconnect
-            print("⚠️ Async tasks cancelled - this is usually normal")
+            logger.warning("Async tasks cancelled - this is usually normal")
             continue
             
         except Exception as e:
             # Actual crash - this triggers restart
-            print(f"❌ Bot crashed with error: {e}")
-            print(f"Traceback:\n{traceback.format_exc()}")
+            logger.error(f"Bot crashed with error: {e}", exc_info=True)
             
             # Log crash to file
             try:
@@ -1012,9 +1132,10 @@ if __name__ == "__main__":
             
             restart_count += 1
             if restart_count > MAX_RESTART_ATTEMPTS:
+                logger.error(f"Max restarts ({MAX_RESTART_ATTEMPTS}) reached")
                 print(f"❌ Max restarts ({MAX_RESTART_ATTEMPTS}) reached")
-                print("Check crash_log.txt for details")
+                print("Check crash_log.txt and logs/errors.log for details")
                 sys.exit(1)
             
-            print(f"🔄 Restarting in 10 seconds (attempt {restart_count}/{MAX_RESTART_ATTEMPTS})...")
+            logger.info(f"Restarting in 10 seconds (attempt {restart_count}/{MAX_RESTART_ATTEMPTS})...")
             time.sleep(10)
