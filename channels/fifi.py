@@ -108,6 +108,14 @@ Primary: "got stopped out" + Original: "BTO UNH 305C @ 1.50" → {{"action": "ex
 Primary: "trim half here @ 3.20" + Original: "UNH 305C" → {{"action": "trim", "ticker": "UNH", "strike": 305, "type": "call", "price": 3.20}}
 Primary: "PLTR $150 put 8/22 $3.40" → {{"action": "buy", "ticker": "PLTR", "strike": 150, "type": "put", "expiration": "2025-08-22", "price": 3.40}}
 
+ACTION VALUES (CRITICAL - USE EXACTLY THESE):
+- Use "buy" for any new position entry
+- Use "trim" for any partial exit
+- Use "exit" for any full position close
+- Use "null" for non-actionable messages
+
+NEVER use variations like "entry", "ENTRY", "BTO", etc. - ALWAYS use the exact values above.
+
 Return only a single, valid JSON object.
 
 --- MESSAGE TO PARSE ---

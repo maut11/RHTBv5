@@ -74,6 +74,13 @@ Messages without an explicit trade directive (e.g. “all cash”, “still hold
 - **Missing Info**: Avoid inferring trades from general commentary. If critical info for an action is missing, it is better to return a "null" action.
 -  **Stop Loss** If the message mentions "Stop Loss" or "SL" this is a stop loss indicator and not a Ticker, Do not assume a SL is a ticker, return null for the ticker and the trading boths fallback logic will fill it in  
 
+ACTION VALUES (CRITICAL - USE EXACTLY THESE):
+- Use "buy" for any new position entry
+- Use "trim" for any partial exit
+- Use "exit" for any full position close
+- Use "null" for non-actionable messages
+
+NEVER use variations like "entry", "ENTRY", "BTO", etc. - ALWAYS use the exact values above.
 
 
 --- MESSAGE TO PARSE ---
