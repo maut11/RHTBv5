@@ -1,11 +1,104 @@
-# channels/ryan.py - Fixed Ryan Parser for Better Trim/Exit Handling
+# channels/ryan.py - OPTIMIZED Ryan Parser with Fast TRIM/EXIT Regex Parsing
+import re
 from datetime import datetime, timezone
 from .base_parser import BaseParser
 
 class RyanParser(BaseParser):
     def __init__(self, openai_client, channel_id, config):
         super().__init__(openai_client, channel_id, config)
+        
+        # OPTIMIZATION: Pre-compile regex patterns for speed
+        self.trim_exit_patterns = {
+            'price': re.compile(r'\$?([0-9]+\.?[0-9]*)', re.IGNORECASE),  # Price like $3.3, 3.3
+            'percentage': re.compile(r'\+?([0-9]+)%', re.IGNORECASE),      # +18%, 32%
+            'ticker': re.compile(r'\$?([A-Z]{1,5})', re.IGNORECASE),      # $SPX, SPX
+            'be_pattern': re.compile(r'\b(BE|break.?even)\b', re.IGNORECASE)  # BE, breakeven
+        }
+        
+        print(f"✅ [{self.name}] Optimized Ryan parser initialized with fast regex patterns")
 
+    def _fast_trim_exit_parse(self, title: str, description: str) -> dict:
+        """SPEED OPTIMIZATION: Fast regex-based parsing for TRIM/EXIT (bypasses OpenAI)"""
+        title_upper = title.strip().upper()
+        
+        if title_upper not in ['TRIM', 'EXIT']:
+            return None  # Not a trim/exit - fall back to OpenAI
+        
+        print(f"⚡ [{self.name}] FAST PARSE: {title_upper} - {description[:50]}...")
+        
+        result = {
+            'action': 'trim' if title_upper == 'TRIM' else 'exit'
+        }
+        
+        # Extract ticker (optional)
+        ticker_match = self.trim_exit_patterns['ticker'].search(description)
+        if ticker_match:
+            result['ticker'] = ticker_match.group(1).upper().replace('$', '')
+        
+        # Check for BE (break even)
+        if self.trim_exit_patterns['be_pattern'].search(description):
+            result['price'] = 'BE'
+            print(f"💹 [{self.name}] Detected BE (breakeven) exit")
+        else:
+            # Extract price
+            price_match = self.trim_exit_patterns['price'].search(description)
+            if price_match:
+                try:
+                    result['price'] = float(price_match.group(1))
+                    print(f"💰 [{self.name}] Extracted price: ${result['price']}")
+                except ValueError:
+                    pass
+        
+        # Extract percentage (for logging/tracking)
+        pct_match = self.trim_exit_patterns['percentage'].search(description)
+        if pct_match:
+            result['gain_percent'] = int(pct_match.group(1))
+            print(f"📈 [{self.name}] Gain: +{result['gain_percent']}%")
+        
+        print(f"⚡ [{self.name}] FAST PARSED: {result}")
+        return result
+    
+    def parse_message(self, message_meta, received_ts, log_func):
+        """OPTIMIZED: Use fast regex for TRIM/EXIT, OpenAI only for BUY"""
+        try:
+            # Store message meta for other methods
+            self._current_message_meta = message_meta
+            
+            title, description = message_meta if isinstance(message_meta, tuple) else ("UNKNOWN", message_meta)
+            title_upper = title.strip().upper()
+            
+            # ========== SPEED OPTIMIZATION ==========
+            # For TRIM/EXIT: Use fast regex parsing (skip OpenAI)
+            if title_upper in ['TRIM', 'EXIT']:
+                start_time = datetime.now(timezone.utc)
+                fast_result = self._fast_trim_exit_parse(title, description)
+                
+                if fast_result:
+                    end_time = datetime.now(timezone.utc)
+                    latency_ms = (end_time - start_time).total_seconds() * 1000
+                    
+                    # Tag as fast parsed for normalization
+                    self._fast_parsed = True
+                    
+                    # Apply normalization
+                    normalized_result = self._normalize_entry(fast_result)
+                    
+                    print(f"⚡ [{self.name}] FAST PARSE completed in {latency_ms:.1f}ms (vs ~2000ms OpenAI)")
+                    log_func(f"⚡ FAST PARSE: {title_upper} executed in {latency_ms:.1f}ms")
+                    
+                    return [normalized_result], latency_ms
+            
+            # ========== FALLBACK TO OPENAI ==========
+            # For BUY (ENTRY) and COMMENT: Use OpenAI (accuracy needed)
+            print(f"🤖 [{self.name}] Using OpenAI for {title_upper} (accuracy needed)")
+            return super().parse_message(message_meta, received_ts, log_func)
+            
+        except Exception as e:
+            print(f"❌ [{self.name}] Parse error: {e}")
+            log_func(f"Parse error in {self.name}: {e}")
+            # Fallback to OpenAI if regex fails
+            return super().parse_message(message_meta, received_ts, log_func)
+    
     def build_prompt(self) -> str:
         today = datetime.now(timezone.utc)
         current_year = today.year
@@ -112,4 +205,12 @@ Description: "{description.strip()}"
             print(f"[{self.name}] No expiration found for BUY, defaulting to 0DTE: {entry['expiration']}")
 
         # For TRIM/EXIT, don't add missing fields - let the system fill them in
+        
+        # OPTIMIZATION: Tag fast-parsed entries
+        if hasattr(self, '_fast_parsed') and self._fast_parsed:
+            entry['parsing_method'] = 'fast_regex'
+            delattr(self, '_fast_parsed')
+        else:
+            entry['parsing_method'] = 'openai'
+            
         return entry
