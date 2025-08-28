@@ -1,10 +1,10 @@
 # config.py - Enhanced RHTB v4 Configuration with Channel Isolation and Symbol Mapping
-MAX_PCT_PORTFOLIO = 0.05
-MAX_DOLLAR_AMOUNT = 20000
+MAX_PCT_PORTFOLIO = 0.10
+MAX_DOLLAR_AMOUNT = 25000
 MIN_TRADE_QUANTITY = 1
 
 # Default paddings (can be overridden per channel)
-DEFAULT_BUY_PRICE_PADDING = 0.025
+DEFAULT_BUY_PRICE_PADDING = 0.020
 DEFAULT_SELL_PRICE_PADDING = 0.01
 
 POSITION_SIZE_MULTIPLIERS = { 
@@ -88,10 +88,10 @@ CHANNELS_CONFIG = {
         "test_id": 1396011198343811102,  # ryan simulation channel
         "parser": "RyanParser",
         "multiplier": 1.0,
-        "initial_stop_loss": 0.35,  # 35% stop loss for Ryan
+        "initial_stop_loss": 0.5,  # 35% stop loss for Ryan
         "trailing_stop_loss_pct": 0.20,
-        "buy_padding": 0.05,  # 5% padding for buys
-        "sell_padding": 0.025,  # 2.5% padding for sells
+        "buy_padding": 0.025,  # 5% padding for buys
+        "sell_padding": 0.01,  # 2.5% padding for sells
         "model": "gpt-4o-2024-08-06",
         "color": 3447003,  # Blue
         "description": "Ryan's scalping alerts with tight risk management",
@@ -107,10 +107,10 @@ CHANNELS_CONFIG = {
         "test_id": 1399289540484530247,  # eva simulation channel
         "parser": "EvaParser",
         "multiplier": 1.0,
-        "initial_stop_loss": 0.30,  # 30% stop loss for Eva
+        "initial_stop_loss": 0.5,  # 30% stop loss for Eva
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding for buys
-        "sell_padding": 0.025,  # 2.5% padding for sells
+        "sell_padding": 0.01,  # 2.5% padding for sells
         "model": "gpt-4o-2024-08-06",
         "color": 10181046,  # Purple
         "description": "Eva's swing trades with momentum focus",
@@ -125,7 +125,7 @@ CHANNELS_CONFIG = {
         "initial_stop_loss": 0.50,  # 50% stop loss for Sean
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding
-        "sell_padding": 0.025,  # 2.5% padding
+        "sell_padding": 0.01,  # 2.5% padding
         "model": "gpt-4o-2024-08-06",
         "color": 3066993,  # Green
         "description": "Sean's technical analysis based trades",
@@ -136,11 +136,11 @@ CHANNELS_CONFIG = {
         "live_id": 1257442835465244732,  # will-alerts
         "test_id": 1398585430617886720,  # will simulation channel
         "parser": "WillParser",
-        "multiplier": 1.0,
-        "initial_stop_loss": 0.30,  # 30% stop loss for Will
+        "multiplier": 0.5,
+        "initial_stop_loss": 0.5,  # 30% stop loss for Will
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding
-        "sell_padding": 0.025,   # 2.5% padding
+        "sell_padding": 0.01,   # 2.5% padding
         "model": "gpt-4o-2024-08-06",
         "color": 15105642,  # Orange
         "description": "Will's day trading strategies",
@@ -155,7 +155,7 @@ CHANNELS_CONFIG = {
         "initial_stop_loss": 0.50,  # 50% stop loss for FiFi
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding
-        "sell_padding": 0.025,  # 2.5% padding
+        "sell_padding": 0.01,  # 2.5% padding
         "model": "gpt-4o-2024-08-06",
         "color": 15277667,  # Pink
         "description": "FiFi's swing and momentum trades",
