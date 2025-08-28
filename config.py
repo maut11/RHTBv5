@@ -100,7 +100,11 @@ CHANNELS_CONFIG = {
         # Symbol remapping specific to Ryan's channel
         "symbol_remapping": {
             "SPX": "SPXW"  # Ryan often uses SPX which trades as SPXW
-        }
+        },
+        # SPEED OPTIMIZATIONS for Ryan's sequential trading style
+        "fast_parsing_enabled": True,  # Use regex for TRIM/EXIT
+        "trade_first_mode": True,     # Execute trades before alerts
+        "use_robinhood_tick_api": True  # Always use live tick sizes
     },
     "Eva": {
         "live_id": 1072556084662902846,  # evas-plays
@@ -241,14 +245,20 @@ RISK_MANAGEMENT_CONFIG = {
     "emergency_exit_threshold": 0.20  # 20% portfolio loss triggers emergency exit
 }
 
-# Enhanced order management
+# Enhanced order management with SPEED OPTIMIZATIONS
 ORDER_MANAGEMENT_CONFIG = {
     "order_timeout_seconds": 600,  # 10 minutes
     "price_improvement_attempts": 3,
     "market_hours_only": False,  # Allow extended hours trading
     "minimum_spread_check": True,
     "liquidity_check_enabled": True,
-    "auto_cancel_stale_orders": True
+    "auto_cancel_stale_orders": True,
+    
+    # CRITICAL SPEED OPTIMIZATIONS
+    "robinhood_tick_cache_ttl": 300,  # 5 minutes tick size cache
+    "trade_first_alert_last": True,   # Global setting for trade-first workflow
+    "async_non_critical_updates": True,  # Fire alerts/tracking async
+    "fast_execution_logging": True    # Minimal logging during execution
 }
 
 # Symbol normalization configuration
