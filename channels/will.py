@@ -64,10 +64,10 @@ Each message falls into one of these categories:
 - "null": A non-actionable message (e.g., commentary, "watching", "still holding").
 
 --- DATE RULES ---
-1.  The current year is {current_year}. Today's date is {today_str}.
-2.  If an expiration date in the message does not specify a year (e.g., "Sep 19"), you MUST assume the year is {current_year}.
-3.  If the message mentions "0dte", you MUST return today's date: {today_str}.
-4.  The final `expiration` field in the JSON output must always be in YYYY-MM-DD format.
+1.  Today's date is {today_str}.
+2.  For expiration dates, return them in MM-DD format (e.g., "01-16", "09-19"). Do NOT add years.
+3.  If the message mentions "0dte", return "0dte" as the expiration value.
+4.  Examples: "1/16" → "01-16", "Sep 19" → "09-19", "0dte" → "0dte"
 
 --- OUTPUT FORMAT RULES ---
 1.  All JSON keys MUST be lowercase and snake_case (e.g., "option_type").
@@ -75,7 +75,7 @@ Each message falls into one of these categories:
 3.  `strike`: The strike price (number).
 4.  `type`: The option type ("call" or "put"). 'C' is "call", 'P' is "put".
 5.  `price`: The execution price (number). If "BE", return the string "BE".
-6.  `expiration`: The expiration date in YYYY-MM-DD format.
+6.  `expiration`: The expiration date in MM-DD format (or "0dte" for same-day trades).
 7.  `size`: The position size (e.g., "small", "lotto", "full"). Default to "full" ONLY if no other size is mentioned.
 
 --- SIZE RULES ---
