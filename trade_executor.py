@@ -805,8 +805,7 @@ class TradeExecutor:
                 trailing_stop_candidate = current_market_price * (1 - trailing_stop_pct)
                 new_stop_price = max(trailing_stop_candidate, purchase_price)
                 
-                tick_size = trader.get_instrument_tick_size(symbol) or 0.05
-                new_stop_price_rounded = self._round_to_tick(new_stop_price, tick_size)
+                new_stop_price_rounded = trader.round_to_tick(new_stop_price, symbol, round_up_for_buy=False)
                 
                 log_func(f"📊 Placing trailing stop for remaining {remaining_qty} contracts @ ${new_stop_price_rounded:.2f}")
                 

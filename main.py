@@ -589,6 +589,15 @@ class EnhancedDiscordClient(discord.Client):
                 
             elif command == "!queue":
                 await self._handle_queue_command()
+                
+            elif command == "!mintick":
+                query = content[len("!mintick"):].strip()
+                if query:
+                    await self._handle_mintick_command(query)
+                else:
+                    await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {
+                        "content": "Usage: `!mintick <ticker symbol>`\nExample: `!mintick SPY` or `!mintick TSLA`"
+                    }, "command_response")
                       
             else:
                 await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {
@@ -821,6 +830,7 @@ class EnhancedDiscordClient(discord.Client):
 
 **Trading:**
 `!getprice <query>` - Get option market price
+`!mintick <symbol>` - Get minimum tick size for symbol
 `!positions` - Show current positions
 `!portfolio` - Show portfolio value
 `!trades` - Recent trade performance
@@ -991,6 +1001,125 @@ class EnhancedDiscordClient(discord.Client):
         }
         
         await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [queue_embed]}, "command_response")
+
+    async def _handle_mintick_command(self, query: str):
+        """Handle mintick command to get minimum tick size for a symbol"""
+        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, 
+                                            {"content": f"⏳ Fetching minimum tick size for: `{query}`..."}, 
+                                            "command_response")
+
+        def get_tick_size_sync():
+            try:
+                # Normalize the symbol
+                symbol = query.upper().strip()
+                
+                # Use the live trader's tick size method
+                trader = self.live_trader if not SIM_MODE else self.sim_trader
+                tick_size = trader.get_instrument_tick_size(symbol)
+                
+                if tick_size is None or tick_size <= 0:
+                    return {"error": f"Could not determine tick size for {symbol}. Symbol may not exist or may not be tradeable."}
+                
+                # Get additional info if possible
+                try:
+                    from config import get_broker_symbol
+                    broker_symbol = get_broker_symbol(symbol)
+                    
+                    # Try to get instrument info for additional context
+                    instruments = None
+                    if hasattr(trader, 'logged_in') and trader.logged_in:
+                        try:
+                            import robin_stocks.robinhood as r
+                            instruments = r.get_instruments_by_symbols(broker_symbol)
+                        except:
+                            instruments = None
+                    
+                    additional_info = {}
+                    if instruments and isinstance(instruments, list) and len(instruments) > 0:
+                        inst = instruments[0]
+                        additional_info = {
+                            'name': inst.get('simple_name', inst.get('name', 'N/A')),
+                            'tradeable': inst.get('tradeable', 'Unknown'),
+                            'type': inst.get('type', 'Unknown')
+                        }
+                    
+                    return {
+                        "success": True, 
+                        "symbol": symbol,
+                        "broker_symbol": broker_symbol,
+                        "tick_size": tick_size,
+                        "info": additional_info
+                    }
+                    
+                except Exception as e:
+                    # Still return tick size even if we can't get additional info
+                    return {
+                        "success": True,
+                        "symbol": symbol,
+                        "tick_size": tick_size,
+                        "info": {}
+                    }
+                    
+            except Exception as e:
+                logger.error(f"Error getting tick size for {query}: {e}", exc_info=True)
+                return {"error": f"Error fetching tick size: {str(e)}"}
+
+        result = await self.loop.run_in_executor(None, get_tick_size_sync)
+
+        if "error" in result:
+            await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": f"❌ {result['error']}"}, "command_response")
+        else:
+            symbol = result['symbol']
+            tick_size = result['tick_size']
+            info = result.get('info', {})
+            
+            # Create embed with tick size information
+            embed = {
+                "title": f"📏 Minimum Tick Size - {symbol}",
+                "description": f"**Minimum tick size:** ${tick_size:.4f}".rstrip('0').rstrip('.'),
+                "color": 0x00ff00,
+                "fields": [
+                    {
+                        "name": "Tick Size Details",
+                        "value": f"""
+**Symbol:** {symbol}
+**Min Tick:** ${tick_size:.4f}
+**Decimal Places:** {len(str(tick_size).split('.')[-1])}
+                        """.strip(),
+                        "inline": True
+                    }
+                ],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "footer": {"text": "Tick size determines minimum price increments for trading"}
+            }
+            
+            # Add additional info if available
+            if info.get('name'):
+                embed["fields"].append({
+                    "name": "Instrument Info",
+                    "value": f"""
+**Name:** {info.get('name', 'N/A')}
+**Tradeable:** {info.get('tradeable', 'Unknown')}
+**Type:** {info.get('type', 'Unknown')}
+                    """.strip(),
+                    "inline": True
+                })
+            
+            # Add usage examples
+            trader = self.live_trader if not SIM_MODE else self.sim_trader
+            example_prices = []
+            for base_price in [10.00, 50.00, 100.00]:
+                rounded_up = trader.round_to_tick(base_price + tick_size/2, symbol, round_up_for_buy=True)
+                rounded_down = trader.round_to_tick(base_price + tick_size/2, symbol, round_up_for_buy=False)
+                example_prices.append(f"${base_price:.2f} → ↑${rounded_up:.4f}".rstrip('0').rstrip('.') + f" ↓${rounded_down:.4f}".rstrip('0').rstrip('.'))
+            
+            embed["fields"].append({
+                "name": "Price Rounding Examples",
+                "value": "\n".join(example_prices[:2]),
+                "inline": False
+            })
+            
+            await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [embed]}, "command_response")
 
     async def _send_startup_notification(self):
         """Send enhanced startup notification to heartbeat channel"""

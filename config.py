@@ -25,7 +25,7 @@ DEFAULT_TRAILING_STOP_PCT = 0.20  # 20% trailing stop
 # Map symbols from what traders say to what brokers use
 SYMBOL_MAPPINGS = {
     "SPX": "SPXW",     # SPX trades as SPXW weekly options on Robinhood
-    "NDX": "NDXP",     # NDX might trade as NDXP (example)
+    # "NDX": "NDXP",   # NDX options may not be available on Robinhood
     # Add more mappings as discovered
 }
 
