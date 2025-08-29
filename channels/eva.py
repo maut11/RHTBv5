@@ -22,14 +22,14 @@ Your ONLY job is to extract the specified fields and return a single JSON object
 3.  `strike`: The strike price (number).
 4.  `type`: The option type ("call" or "put"). 'C' is "call", 'P' is "put".
 5.  `price`: The execution price (number). If "BE", return the string "BE".
-6.  `expiration`: The expiration date in YYYY-MM-DD format.
+6.  `expiration`: The expiration date in MM-DD format (or "0dte" for same-day trades).
 7.  `size`: The position size (e.g., "small", "lotto", "full"). Default to "full" ONLY if no other size is mentioned.
 
 --- DATE RULES ---
-1.  Today's date is {today_str}. The current year is {current_year}.
-2.  **PRIORITY 1: Explicit Year.** If a full date with a year is provided (e.g., "09/18/2026", "Sep 18, 2026"), you MUST use that exact year. Do NOT change it to the current year unless the provided year is in the past.
-3.  **PRIORITY 2: No Year.** If an expiration date does not specify a year (e.g., "Sep 19"), you MUST assume the year is {current_year}.
-4.  **Final Format.** The final `expiration` field in the JSON output MUST always be in YYYY-MM-DD format.
+1.  Today's date is {today_str}.
+2.  For expiration dates, return them in MM-DD format (e.g., "01-16", "09-19"). Do NOT add years.
+3.  If the message mentions "0dte", return "0dte" as the expiration value.
+4.  Examples: "1/16" → "01-16", "Sep 19" → "09-19", "0dte" → "0dte"
 
 --- ACTION RULES ---
 1.  If Title is "OPEN", the action is "buy", return the stickern strick pricem type, price expiration, size

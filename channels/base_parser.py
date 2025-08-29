@@ -3,6 +3,7 @@ import json
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from openai import OpenAI
+import re
 
 class BaseParser(ABC):
     """
@@ -195,12 +196,72 @@ class BaseParser(ABC):
 
         return normalized_results, latency_ms
 
+    def _smart_year_detection(self, date_str: str, logger) -> str:
+        """
+        Convert MM-DD format dates to YYYY-MM-DD with intelligent year detection.
+        If the date has already passed this year, assume it's for next year (LEAPS).
+        Special handling for 0DTE (today's date).
+        """
+        if not date_str:
+            return date_str
+            
+        # If already in YYYY-MM-DD format, return as-is
+        if re.match(r'\d{4}-\d{2}-\d{2}', date_str):
+            return date_str
+            
+        # Handle 0DTE case - return today's date
+        if date_str.lower() in ['0dte', 'today']:
+            return datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            
+        # Try to parse MM-DD or M/D format
+        date_patterns = [
+            r'^(\d{1,2})-(\d{1,2})$',     # MM-DD or M-D
+            r'^(\d{1,2})/(\d{1,2})$',     # MM/DD or M/D  
+        ]
+        
+        for pattern in date_patterns:
+            match = re.match(pattern, date_str)
+            if match:
+                month, day = int(match.group(1)), int(match.group(2))
+                
+                # Get current date info
+                now = datetime.now(timezone.utc)
+                current_year = now.year
+                
+                try:
+                    # Try to create date for current year
+                    target_date = datetime(current_year, month, day, tzinfo=timezone.utc)
+                    
+                    # If the date has already passed this year, assume next year
+                    if target_date.date() < now.date():
+                        target_date = datetime(current_year + 1, month, day, tzinfo=timezone.utc)
+                        logger(f"🗓️ [{self.name}] Date {date_str} has passed in {current_year}, using {current_year + 1}")
+                    else:
+                        logger(f"🗓️ [{self.name}] Date {date_str} is future in {current_year}, using {current_year}")
+                        
+                    return target_date.strftime('%Y-%m-%d')
+                    
+                except ValueError:
+                    # Invalid date (e.g., Feb 30), return as-is
+                    logger(f"⚠️ [{self.name}] Invalid date format: {date_str}")
+                    return date_str
+        
+        # If no pattern matched, return as-is
+        return date_str
+
     def _normalize_entry(self, entry: dict) -> dict:
         """
         Optional hook for subclasses to perform custom normalization.
-        By default, it does nothing.
+        By default, it applies smart year detection to expiration dates.
         Subclasses can override this to add channel-specific logic.
         """
+        # Apply smart year detection to expiration field
+        if 'expiration' in entry and entry['expiration']:
+            original_exp = entry['expiration']
+            smart_exp = self._smart_year_detection(original_exp, print)
+            if smart_exp != original_exp:
+                entry['expiration'] = smart_exp
+                
         return entry
 
     def validate_parsed_data(self, entry: dict, logger) -> bool:

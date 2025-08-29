@@ -116,7 +116,7 @@ Your ONLY job is to extract the specified fields and return a single JSON object
 3.  `strike`: The strike price (number).
 4.  `type`: The option type ("call" or "put"). 'C' is "call", 'P' is "put".
 5.  `price`: The execution price (number). If "BE", return the string "BE".
-6.  `expiration`: The expiration date in YYYY-MM-DD format.
+6.  `expiration`: The expiration date in MM-DD format (or "0dte" for same-day trades).
 7.  `size`: The position size (e.g., "small", "lotto", "full"). Default to "full" ONLY if no other size is mentioned.
 
 Messages come from a trader named Ryan and are embedded alerts with one of the following titles: ENTRY, TRIM, EXIT, or COMMENT.
@@ -140,10 +140,10 @@ For TRIM and EXIT actions, you should EXTRACT WHATEVER INFORMATION IS AVAILABLE,
 The trading system will automatically fill in missing contract details from recent positions.
 
 --- DATE RULES ---
-1.  The current year is {current_year}.
-2.  If an expiration date in the message does not specify a year, you MUST assume the year is {current_year}.
-3.  If no expiration is mentioned at all, it is a 0DTE trade. You MUST use today's date: {today_str}.
-4.  The final `expiration` field in the JSON output must always be in YYYY-MM-DD format.
+1.  Today's date is {today_str}.
+2.  For expiration dates, return them in MM-DD format (e.g., "01-16", "09-19"). Do NOT add years.
+3.  If no expiration is mentioned at all, it is a 0DTE trade. Return "0dte" as the expiration value.
+4.  Examples: "1/16" → "01-16", "Sep 19" → "09-19", "0dte" → "0dte"
 
 --- ENHANCED EXAMPLES ---
 **ENTRY Example:**

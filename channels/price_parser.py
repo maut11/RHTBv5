@@ -32,24 +32,24 @@ Today: {today_str}
 Year: {current_year}
 
 --- DATE RULES ---
-1.  If a year is not specified (e.g., "Sep 19"), you MUST assume it is the current year, {current_year}.
-2.  If the query mentions "weekly" or "next week", assume it's for the coming Friday.
-3.  If the query mentions "monthly", assume it's for the third Friday of the specified month.
-4.  If no expiration is mentioned at all, assume it's a 0DTE trade for today: {today_str}.
-5.  The final `expiration` field in the JSON output must always be in YYYY-MM-DD format.
+1.  For expiration dates, return them in MM-DD format (e.g., "01-16", "09-19"). Do NOT add years.
+2.  If the query mentions "weekly" or "next week", assume it's for the coming Friday and return in MM-DD format.
+3.  If the query mentions "monthly", assume it's for the third Friday of the specified month and return in MM-DD format.
+4.  If no expiration is mentioned at all, assume it's a 0DTE trade. Return "0dte" as the expiration value.
+5.  Examples: "1/16" → "01-16", "Sep 19" → "09-19", "0dte" → "0dte"
 
 --- EXTRACTION RULES ---
 -   `ticker`: The stock symbol (e.g., "SPY", "$APLD").
 -   `strike`: The strike price (number).
 -   `type`: The option type ("call" or "put"). 'c' or 'C' means "call", 'p' or 'P' means "put".
--   `expiration`: The expiration date in YYYY-MM-DD format.
+-   `expiration`: The expiration date in MM-DD format (or "0dte" for same-day trades).
 
 --- EXAMPLES ---
-- Query: "$APLD 15c Sep 19" -> {{"ticker": "APLD", "strike": 15, "type": "call", "expiration": "{current_year}-09-19"}}
-- Query: "SPY 500 put this friday" -> (You would calculate the date for the upcoming Friday and format it as YYYY-MM-DD)
-- Query: "TSLA 900 weekly call" -> (You would calculate the date for the upcoming Friday and format it as YYYY-MM-DD)
-- Query: "QQQ 450p 10/20/25" -> {{"ticker": "QQQ", "strike": 450, "type": "put", "expiration": "2025-10-20"}}
-- Query: "IWM 200 call 0dte" -> {{"ticker": "IWM", "strike": 200, "type": "call", "expiration": "{today_str}"}}
+- Query: "$APLD 15c Sep 19" -> {{"ticker": "APLD", "strike": 15, "type": "call", "expiration": "09-19"}}
+- Query: "SPY 500 put this friday" -> (You would calculate the date for the upcoming Friday and format it as MM-DD)
+- Query: "TSLA 900 weekly call" -> (You would calculate the date for the upcoming Friday and format it as MM-DD)
+- Query: "QQQ 450p 10/20/25" -> {{"ticker": "QQQ", "strike": 450, "type": "put", "expiration": "10-20"}}
+- Query: "IWM 200 call 0dte" -> {{"ticker": "IWM", "strike": 200, "type": "call", "expiration": "0dte"}}
 
 If you cannot confidently extract all four key pieces of information (ticker, strike, type, expiration), return null.
 
