@@ -549,12 +549,10 @@ class EnhancedRobinhoodTrader:
             # Round to proper tick size (round UP for buy orders to ensure execution)
             rounded_price = self.round_to_tick(limit_price, broker_symbol, round_up_for_buy=True)
 
-            print(f"🔍 Validating buy order: {symbol} (broker: {broker_symbol}) ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
-            logger.info(f"Buy order validation: {symbol}/{broker_symbol} ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
+            print(f"🔍 Preparing buy order: {symbol} (broker: {broker_symbol}) ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
+            logger.info(f"Buy order preparation: {symbol}/{broker_symbol} ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
 
-            # Validate order
-            if not self.validate_order_requirements(broker_symbol, strike, expiration, opt_type, quantity, rounded_price):
-                return {"error": "Order validation failed"}
+            # NOTE: Validation now happens in trade executor BEFORE this method is called
 
             # Place the order with broker symbol
             print(f"📤 Placing LIVE buy order with broker symbol: {broker_symbol}...")
