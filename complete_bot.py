@@ -1064,8 +1064,7 @@ def execute_buy_order(trader, trade_obj, config, log_func):
         
         # Apply channel-specific padding
         buy_padding = config.get("buy_padding", DEFAULT_BUY_PRICE_PADDING)
-        tick_size = trader.get_instrument_tick_size(symbol) or 0.05
-        padded_price = round_to_tick(price * (1 + buy_padding), tick_size, round_up=True)
+        padded_price = trader.round_to_tick(price * (1 + buy_padding), symbol, round_up_for_buy=True)
         
         contracts = max(MIN_TRADE_QUANTITY, int(max_amount / (padded_price * 100)))
         
@@ -1173,8 +1172,7 @@ def execute_sell_order(trader, trade_obj, config, log_func, active_position):
         
         # Apply padding and round to tick
         final_price = market_price * (1 - sell_padding)
-        tick_size = trader.get_instrument_tick_size(symbol) or 0.05
-        final_price = round_to_tick(final_price, tick_size)
+        final_price = trader.round_to_tick(final_price, symbol, round_up_for_buy=False)
         
         trade_obj['price'] = final_price
         
@@ -1409,8 +1407,7 @@ def _blocking_handle_trade(loop, handler, message_meta, raw_msg, is_sim_mode_on,
                                     trailing_stop_candidate = current_market_price * (1 - trailing_stop_pct)
                                     new_stop_price = max(trailing_stop_candidate, purchase_price)
                                     
-                                    tick_size = trader.get_instrument_tick_size(symbol) or 0.05
-                                    new_stop_price_rounded = round_to_tick(new_stop_price, tick_size)
+                                    new_stop_price_rounded = trader.round_to_tick(new_stop_price, symbol, round_up_for_buy=False)
                                     
                                     enhanced_log(f"📊 Placing trailing stop for remaining {remaining_qty} contracts @ ${new_stop_price_rounded:.2f}")
                                     

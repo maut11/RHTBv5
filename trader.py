@@ -308,48 +308,53 @@ class EnhancedRobinhoodTrader:
         
         tick_size = None  # Start with None to force proper detection
         
-        # PRIORITY 1: ALWAYS try Robinhood API first for options
+        # PRIORITY 1: ALWAYS use Robinhood Instrument API min_tick_size field
         try:
             if self.ensure_connection():
-                print(f"🔍 Fetching LIVE tick size from Robinhood API for {broker_symbol}...")
+                print(f"🔍 Fetching LIVE tick size from Robinhood Instrument API for {broker_symbol}...")
                 logger.info(f"Fetching tick size from Robinhood API: {broker_symbol}")
                 
-                # Try option-specific API first (more accurate for options)
-                try:
-                    quotes = r.get_option_historicals(broker_symbol, '2025-12-31', '5000', 'call', 'day')
-                    if quotes and len(quotes) > 0:
-                        # Options with quotes use standard option tick rules
-                        sample_price = float(quotes[0].get('close_price', 0) or quotes[0].get('open_price', 1.0))
-                        tick_size = 0.05 if sample_price < 3.00 else 0.10
-                        print(f"✅ OPTIONS API tick size for {symbol}/{broker_symbol}: ${tick_size} (based on price: ${sample_price})")
-                        logger.info(f"Options API tick size: {symbol}/{broker_symbol} = ${tick_size}")
-                except:
-                    pass
-                
-                # Fallback to instrument API
-                if not tick_size:
-                    instruments = r.get_instruments_by_symbols(broker_symbol)
-                    if instruments and len(instruments) > 0 and instruments[0]:
-                        api_tick = instruments[0].get('min_tick_size')
-                        if api_tick and float(api_tick) > 0:
-                            tick_size = float(api_tick)
-                            print(f"✅ ROBINHOOD INSTRUMENT API tick size for {symbol}/{broker_symbol}: ${tick_size}")
-                            logger.info(f"Robinhood instrument API tick size: {symbol}/{broker_symbol} = ${tick_size}")
-                        else:
-                            print(f"⚠️ Robinhood API returned invalid tick size for {broker_symbol}: {api_tick}")
-                            logger.warning(f"Invalid API tick size: {broker_symbol} = {api_tick}")
+                # Get instrument data which contains the authoritative min_tick_size
+                instruments = r.get_instruments_by_symbols(broker_symbol)
+                if instruments and len(instruments) > 0 and instruments[0]:
+                    api_tick = instruments[0].get('min_tick_size')
+                    instrument_type = instruments[0].get('type')
+                    tradable_chain_id = instruments[0].get('tradable_chain_id')
+                    
+                    if api_tick and float(api_tick) > 0:
+                        tick_size = float(api_tick)
+                        print(f"✅ ROBINHOOD API tick size for {symbol}/{broker_symbol}: ${tick_size}")
+                        logger.info(f"Robinhood API tick size: {symbol}/{broker_symbol} = ${tick_size}")
+                        
+                        # Cache the result with timestamp
+                        self.tick_size_cache[cache_key] = {
+                            'tick_size': tick_size,
+                            'timestamp': current_time,
+                            'source': 'robinhood_api'
+                        }
+                        return tick_size
                     else:
-                        print(f"⚠️ No instrument data from Robinhood API for {broker_symbol}")
-                        logger.warning(f"No instrument data from API: {broker_symbol}")
-                
-                if tick_size:
-                    # Cache the result with timestamp
-                    self.tick_size_cache[cache_key] = {
-                        'tick_size': tick_size,
-                        'timestamp': current_time,
-                        'source': 'robinhood_api'
-                    }
-                    return tick_size
+                        # For options, min_tick_size is often None - try options-specific approach
+                        if tradable_chain_id:
+                            print(f"📊 Instrument has options chain, trying options tick size detection...")
+                            tick_size = self._get_options_tick_size(broker_symbol, tradable_chain_id)
+                            if tick_size:
+                                print(f"✅ OPTIONS tick size for {symbol}/{broker_symbol}: ${tick_size}")
+                                logger.info(f"Options tick size: {symbol}/{broker_symbol} = ${tick_size}")
+                                
+                                # Cache the result
+                                self.tick_size_cache[cache_key] = {
+                                    'tick_size': tick_size,
+                                    'timestamp': current_time,
+                                    'source': 'options_detection'
+                                }
+                                return tick_size
+                        
+                        print(f"⚠️ Robinhood API returned invalid tick size for {broker_symbol}: {api_tick}")
+                        logger.warning(f"Invalid API tick size: {broker_symbol} = {api_tick}")
+                else:
+                    print(f"⚠️ No instrument data from Robinhood API for {broker_symbol}")
+                    logger.warning(f"No instrument data from API: {broker_symbol}")
             else:
                 print(f"❌ No connection to Robinhood API for tick size lookup")
                 logger.error(f"No connection for tick size: {broker_symbol}")
@@ -358,83 +363,14 @@ class EnhancedRobinhoodTrader:
             print(f"❌ Robinhood API tick size error for {broker_symbol}: {e}")
             logger.error(f"Robinhood API tick size exception for {broker_symbol}: {e}")
         
-        # PRIORITY 2: Enhanced price-based detection with current market data
-        try:
-            print(f"📊 API failed, trying enhanced price-based tick size for {broker_symbol}...")
-            
-            # Try to get current option price for better accuracy
-            try:
-                # For options, try to get current market data
-                sample_data = r.get_quotes(broker_symbol)
-                if sample_data and len(sample_data) > 0 and sample_data[0]:
-                    price = float(sample_data[0].get('last_trade_price', 0) or 
-                                sample_data[0].get('ask_price', 0) or 
-                                sample_data[0].get('bid_price', 1.0))
-                    
-                    # IMPROVED: Standard options tick size rules based on actual price
-                    if price < 3.00:
-                        tick_size = 0.05
-                    else:
-                        tick_size = 0.10
-                    
-                    print(f"📈 Enhanced price-based tick size for {symbol}: ${tick_size} (current price: ${price})")
-                    logger.debug(f"Enhanced price-based tick size: {symbol} = ${tick_size} (price: ${price})")
-                    
-                    # Cache with lower priority
-                    self.tick_size_cache[cache_key] = {
-                        'tick_size': tick_size,
-                        'timestamp': current_time,
-                        'source': 'price_based_enhanced'
-                    }
-                    return tick_size
-            except:
-                pass
-                
-            # Fallback to basic price detection if specific methods fail
-            sample_data = r.get_quotes(broker_symbol)
-            if sample_data and len(sample_data) > 0 and sample_data[0]:
-                price = float(sample_data[0].get('last_trade_price', 1.0))
-                
-                # Standard options tick size rules
-                tick_size = 0.05 if price < 3.00 else 0.10
-                
-                print(f"📈 Basic price-based tick size for {symbol}: ${tick_size} (price: ${price})")
-                logger.debug(f"Basic price-based tick size: {symbol} = ${tick_size}")
-                
-                # Cache with lower priority
-                self.tick_size_cache[cache_key] = {
-                    'tick_size': tick_size,
-                    'timestamp': current_time,
-                    'source': 'price_based_basic'
-                }
-                return tick_size
+        # FALLBACK: Conservative defaults only when API completely fails
+        print(f"⚠️ Using conservative fallback tick size for {broker_symbol}")
+        logger.warning(f"Using fallback tick size for {broker_symbol}")
         
-        except Exception as e:
-            print(f"⚠️ Enhanced price-based tick size failed for {broker_symbol}: {e}")
-            logger.warning(f"Enhanced price-based tick size exception: {broker_symbol}: {e}")
-        
-        # PRIORITY 3: Smart symbol-based fallback for common symbols
-        try:
-            # Known symbols with specific tick sizes
-            symbol_upper = broker_symbol.upper()
-            if symbol_upper in ['SPY', 'SPX', 'SPXW', 'QQQ', 'IWM']:
-                tick_size = 0.05  # These typically trade in $0.05 increments for lower prices
-                print(f"📋 Symbol-based tick size for {symbol}: ${tick_size} (known symbol)")
-                logger.debug(f"Symbol-based tick size: {symbol} = ${tick_size}")
-                
-                self.tick_size_cache[cache_key] = {
-                    'tick_size': tick_size,
-                    'timestamp': current_time,
-                    'source': 'symbol_based'
-                }
-                return tick_size
-        except:
-            pass
-        
-        # PRIORITY 4: Absolute fallback with warning
+        # Use conservative fallback
         tick_size = 0.05
-        print(f"🚨 Using ABSOLUTE FALLBACK tick size for {symbol}: ${tick_size}")
-        logger.warning(f"Using absolute fallback tick size for {symbol}")
+        print(f"🚨 Using ABSOLUTE FALLBACK tick size for {symbol}/{broker_symbol}: ${tick_size}")
+        logger.warning(f"Using absolute fallback tick size for {symbol}/{broker_symbol}")
         
         # Cache even the fallback to avoid repeated failures
         self.tick_size_cache[cache_key] = {
@@ -444,6 +380,73 @@ class EnhancedRobinhoodTrader:
         }
         
         return tick_size
+
+    def _get_options_tick_size(self, broker_symbol: str, chain_id: str) -> float:
+        """Get options tick size using current option quotes"""
+        try:
+            # Get current option quotes to determine tick size based on actual market prices
+            import robin_stocks.robinhood as r
+            
+            # Try to get some sample option quotes for this underlying
+            quotes = r.get_quotes(broker_symbol)
+            if quotes and len(quotes) > 0 and quotes[0]:
+                # Get the current stock price to estimate option prices
+                stock_price = quotes[0].get('last_trade_price')
+                if stock_price:
+                    stock_price = float(stock_price)
+                    
+                    # Try to get some actual option quotes
+                    try:
+                        # Get option chain info
+                        from datetime import datetime, timedelta
+                        future_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+                        
+                        # Try to get option quotes for a reasonable strike
+                        sample_strikes = [
+                            int(stock_price * 0.95),  # OTM put
+                            int(stock_price),         # ATM 
+                            int(stock_price * 1.05)   # OTM call
+                        ]
+                        
+                        for strike in sample_strikes:
+                            try:
+                                option_quotes = r.get_option_quotes(broker_symbol, str(strike), future_date, 'call')
+                                if option_quotes and len(option_quotes) > 0:
+                                    option_data = option_quotes[0]
+                                    ask_price = option_data.get('ask_price')
+                                    bid_price = option_data.get('bid_price')
+                                    
+                                    if ask_price and bid_price:
+                                        avg_price = (float(ask_price) + float(bid_price)) / 2
+                                        
+                                        # Standard options tick size rules
+                                        if avg_price < 3.00:
+                                            if broker_symbol.upper() in ['SPY', 'QQQ', 'IWM']:  # Major ETFs in Penny Pilot
+                                                return 0.01
+                                            else:
+                                                return 0.05
+                                        else:
+                                            if broker_symbol.upper() in ['SPY', 'QQQ', 'IWM']:  # Major ETFs in Penny Pilot
+                                                return 0.05  
+                                            else:
+                                                return 0.10
+                                        
+                            except Exception as e:
+                                continue  # Try next strike
+                                
+                    except Exception as e:
+                        logger.debug(f"Could not get option quotes for {broker_symbol}: {e}")
+                    
+                    # Fallback based on symbol recognition
+                    if broker_symbol.upper() in ['SPY', 'QQQ', 'IWM', 'SPX', 'SPXW']:
+                        return 0.05  # Conservative for major symbols
+                    else:
+                        return 0.10  # Conservative for other symbols
+                        
+        except Exception as e:
+            logger.error(f"Error getting options tick size for {broker_symbol}: {e}")
+            
+        return None  # Could not determine
 
     def round_to_tick(self, price: float, symbol: str, round_up_for_buy: bool = False) -> float:
         """ENHANCED: Round price to valid tick with buy/sell logic"""
@@ -1138,7 +1141,7 @@ class EnhancedSimulatedTrader:
         return 50000.0
 
     def get_instrument_tick_size(self, symbol: str) -> float:
-        # Simulate realistic tick sizes
+        # Use the same logic as live trader for consistency
         try:
             # Normalize symbol
             broker_symbol = self.normalize_symbol_for_broker(symbol)
@@ -1146,10 +1149,15 @@ class EnhancedSimulatedTrader:
             import robin_stocks.robinhood as r
             instruments = r.get_instruments_by_symbols(broker_symbol)
             if instruments and len(instruments) > 0 and instruments[0]:
-                if 'min_tick_size' in instruments[0]:
-                    return float(instruments[0]['min_tick_size'])
+                api_tick = instruments[0].get('min_tick_size')
+                if api_tick and float(api_tick) > 0:
+                    tick_size = float(api_tick)
+                    print(f"✅ [SIMULATED] ROBINHOOD API tick size for {symbol}/{broker_symbol}: ${tick_size}")
+                    return tick_size
         except:
             pass
+        # Fallback for simulation
+        print(f"🚨 [SIMULATED] Using fallback tick size for {symbol}: $0.05")
         return 0.05
 
     def round_to_tick(self, price: float, symbol: str, round_up_for_buy: bool = False) -> float:
