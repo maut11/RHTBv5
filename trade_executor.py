@@ -597,6 +597,12 @@ class TradeExecutor:
                 'min_quantity': MIN_TRADE_QUANTITY
             }
             
+            # ========== PRE-EXECUTION VALIDATION (CRITICAL SAFETY) ==========
+            print(f"🔍 VALIDATING: {contracts}x {symbol} {strike}{opt_type} @ ${final_price:.2f}")
+            if not trader.validate_order_requirements(symbol, strike, expiration, opt_type, contracts, final_price):
+                log_func(f"❌ Order validation failed for {symbol} {strike}{opt_type}")
+                return False, "Order validation failed"
+            
             # SPEED OPTIMIZATION: Minimal logging during execution
             print(f"⚡ FAST BUY: {contracts}x {symbol} {strike}{opt_type} @ ${final_price:.2f}")
             
@@ -705,6 +711,15 @@ class TradeExecutor:
             padded_price = market_price * (1 - sell_padding)
             final_price = trader.round_to_tick(padded_price, symbol, round_up_for_buy=False)
             trade_obj['price'] = final_price
+            
+            # ========== PRE-EXECUTION VALIDATION (SAFETY CHECK) ==========
+            if final_price <= 0:
+                log_func(f"❌ Invalid price for {action}: ${final_price:.2f}")
+                return False, f"Invalid {action} price: ${final_price:.2f}"
+            
+            if sell_quantity <= 0:
+                log_func(f"❌ Invalid quantity for {action}: {sell_quantity}")
+                return False, f"Invalid {action} quantity: {sell_quantity}"
             
             print(f"⚡ ENHANCED {action.upper()}: {sell_quantity}x {symbol} @ ${final_price:.2f}")
             

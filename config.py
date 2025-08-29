@@ -119,7 +119,8 @@ CHANNELS_CONFIG = {
         "color": 10181046,  # Purple
         "description": "Eva's swing trades with momentum focus",
         "risk_level": "medium",
-        "typical_hold_time": "30 minutes - 2 hours"
+        "typical_hold_time": "30 minutes - 2 hours",
+        "trade_first_mode": True     # Execute trades before alerts
     },
     "Sean": {
         "live_id": 1072555808832888945,  # seans-plays
@@ -134,7 +135,8 @@ CHANNELS_CONFIG = {
         "color": 3066993,  # Green
         "description": "Sean's technical analysis based trades",
         "risk_level": "medium-high",
-        "typical_hold_time": "1-4 hours"
+        "typical_hold_time": "1-4 hours",
+        "trade_first_mode": True     # Execute trades before alerts
     },
     "Will": {
         "live_id": 1257442835465244732,  # will-alerts
@@ -149,7 +151,8 @@ CHANNELS_CONFIG = {
         "color": 15105642,  # Orange
         "description": "Will's day trading strategies",
         "risk_level": "high",
-        "typical_hold_time": "15 minutes - 1 hour"
+        "typical_hold_time": "15 minutes - 1 hour",
+        "trade_first_mode": True     # Execute trades before alerts
     },
     "FiFi": {
         "live_id": 1368713891072315483,  # fifi-alerts
@@ -164,7 +167,8 @@ CHANNELS_CONFIG = {
         "color": 15277667,  # Pink
         "description": "FiFi's swing and momentum trades",
         "risk_level": "medium",
-        "typical_hold_time": "30 minutes - 4 hours"
+        "typical_hold_time": "30 minutes - 4 hours",
+        "trade_first_mode": True     # Execute trades before alerts
     }
 }
 
