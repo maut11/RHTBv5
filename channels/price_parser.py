@@ -59,13 +59,54 @@ If you cannot confidently extract all four key pieces of information (ticker, st
 Return only a single, valid JSON object. Do not include explanations or markdown formatting.
 """
 
+    def parse_message(self, message_meta, received_ts: datetime, logger):
+        """
+        Override BaseParser to handle utility parsing without action filtering.
+        PriceParser doesn't need action fields - just contract details.
+        """
+        self._current_message_meta = message_meta
+        prompt = self.build_prompt()
+        parsed_data, latency_ms = self._call_openai(prompt, logger)
+
+        total_latency = (datetime.now(timezone.utc) - received_ts).total_seconds() * 1000
+        logger(f"⏱️ [{self.name}] Total processing latency: {total_latency:.2f} ms (OpenAI: {latency_ms:.2f} ms)")
+
+        if parsed_data is None:
+            return [], 0
+
+        # Ensure we have a list
+        results = parsed_data if isinstance(parsed_data, list) else [parsed_data]
+
+        normalized_results = []
+        now = datetime.now(timezone.utc).isoformat()
+        
+        for entry in results:
+            if not isinstance(entry, dict):
+                continue
+            
+            # For PriceParser, we don't need action fields - skip action processing entirely
+            # Add minimal metadata
+            entry["received_ts"] = now
+            
+            # Apply date normalization
+            entry = self._normalize_entry(entry)
+            
+            normalized_results.append(entry)
+
+        # Log summary - no action filtering needed for utility parser
+        if normalized_results:
+            logger(f"📊 [{self.name}] Parsed {len(normalized_results)} contract details")
+        else:
+            logger(f"ℹ️ [{self.name}] No contract details extracted")
+
+        return normalized_results, latency_ms
+
     def parse_query(self, query: str, logger):
         """
         A simplified public method for this utility parser. It takes a raw query string,
         parses it, and returns the structured contract data.
         """
-        # The base `parse_message` method handles the OpenAI call and returns a list of results.
-        # For this command, we only expect one result.
+        # Use the overridden parse_message method
         received_ts = datetime.now(timezone.utc)
         parsed_results, _ = self.parse_message(query, received_ts, logger)
         
