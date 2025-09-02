@@ -663,7 +663,21 @@ class TradeExecutor:
                 # Get current market price for tracking purposes
                 try:
                     market_data = trader.get_option_market_data(symbol, strike, expiration, opt_type)
-                    current_price = market_data.get('mark_price') or market_data.get('last_trade_price') or final_price
+                    current_price = final_price
+                    
+                    # Handle different market_data formats
+                    if market_data:
+                        if isinstance(market_data, dict):
+                            # Direct dict response
+                            current_price = market_data.get('mark_price') or market_data.get('last_trade_price') or final_price
+                        elif isinstance(market_data, list) and len(market_data) > 0:
+                            # List response - get first element
+                            data = market_data[0]
+                            if isinstance(data, dict):
+                                current_price = data.get('mark_price') or data.get('last_trade_price') or final_price
+                            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                                current_price = data[0].get('mark_price') or data[0].get('last_trade_price') or final_price
+                    
                     trade_obj['market_price_at_alert'] = current_price
                     log_func(f"📊 Market price captured for tracking: ${current_price:.2f}")
                 except Exception as e:
