@@ -116,6 +116,9 @@ PRIMARY MESSAGE: "{primary_message}"
         return prompt
 
     def _normalize_entry(self, entry: dict) -> dict:
+        # First call BaseParser's normalization for date handling
+        entry = super()._normalize_entry(entry)
+        
         # Normalize ambiguous sizes
         if entry.get("size") in ("some", "small", "starter"):
             entry["size"] = "half"

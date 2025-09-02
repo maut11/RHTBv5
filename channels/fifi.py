@@ -154,14 +154,21 @@ PRIMARY MESSAGE: "{primary_message}"
     def _normalize_entry(self, entry: dict) -> dict:
         """Enhanced normalization with SOLD TO OPEN detection and better size handling"""
         
-        # Get the original messages for additional processing
+        # First call BaseParser's normalization for date handling
+        entry = super()._normalize_entry(entry)
+        
+        # Get the original messages for additional processing (with safe null handling)
         primary_message = ""
         context_message = ""
-        if isinstance(self._current_message_meta, tuple):
-            primary_message = self._current_message_meta[0].lower()
-            context_message = self._current_message_meta[1].lower()
+        if self._current_message_meta:
+            if isinstance(self._current_message_meta, tuple):
+                primary_message = (self._current_message_meta[0] or "").lower()
+                context_message = (self._current_message_meta[1] or "").lower()
+            else:
+                primary_message = (self._current_message_meta or "").lower()
         else:
-            primary_message = self._current_message_meta.lower()
+            primary_message = ""
+            context_message = ""
 
         # Enhanced SOLD TO OPEN detection as fallback
         sold_to_open_phrases = [
