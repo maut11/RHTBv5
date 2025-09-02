@@ -72,10 +72,23 @@ class ChannelAwareFeedbackLogger:
                         )
                         
                         if market_data:
-                            mark_price = f"{market_data.get('mark_price', '')}"
-                            bid_price = f"{market_data.get('bid_price', '')}"
-                            ask_price = f"{market_data.get('ask_price', '')}"
-                            last_price = f"{market_data.get('last_trade_price', '')}"
+                            # Handle different market_data formats
+                            data_dict = None
+                            if isinstance(market_data, dict):
+                                data_dict = market_data
+                            elif isinstance(market_data, list) and len(market_data) > 0:
+                                if isinstance(market_data[0], dict):
+                                    data_dict = market_data[0]
+                                elif isinstance(market_data[0], list) and len(market_data[0]) > 0 and isinstance(market_data[0][0], dict):
+                                    data_dict = market_data[0][0]
+                            
+                            if data_dict:
+                                mark_price = f"{data_dict.get('mark_price', '')}"
+                                bid_price = f"{data_dict.get('bid_price', '')}"
+                                ask_price = f"{data_dict.get('ask_price', '')}"
+                                last_price = f"{data_dict.get('last_trade_price', '')}"
+                            else:
+                                mark_price = bid_price = ask_price = last_price = ""
                     except Exception as price_error:
                         print(f"⚠️ Could not fetch API price for {trader_symbol}: {price_error}")
                 
