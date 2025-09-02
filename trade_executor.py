@@ -319,17 +319,31 @@ class TradeExecutor:
                     result_summary = ""
 
                     if action == "buy":
+                        # ========== NON-SEQUENTIAL TRADE DETECTION (RYAN'S CHANNEL) ==========
+                        if handler.name == "Ryan":
+                            # Check for existing open positions for Ryan's channel
+                            existing_trades = self.performance_tracker.get_open_trades_for_channel(handler.name)
+                            if existing_trades and len(existing_trades) > 0:
+                                log_func(f"⚠️ Ryan non-sequential trade detected: {len(existing_trades)} open position(s) exist")
+                                print(f"📊 EXISTING POSITIONS for {handler.name}:")
+                                for i, trade in enumerate(existing_trades, 1):
+                                    print(f"  {i}. {trade.get('ticker', 'Unknown')} ${trade.get('strike', 'N/A')}{trade.get('option_type', 'N/A')} {trade.get('expiration', 'N/A')} - Entry: ${trade.get('entry_price', 0):.2f}")
+                                
+                                # For Ryan, we'll proceed but with a warning
+                                log_func(f"🔄 Proceeding with new Ryan position (non-sequential pattern detected)")
+                                
                         # ========== TRADE-FIRST WORKFLOW ==========
                         print(f"⚡ EXECUTING TRADE FIRST: {action.upper()} {symbol}")
                         execution_success, result_summary = self._execute_buy_order(
                             trader, trade_obj, config, log_func
                         )
                         
+                        # Generate trade ID for both successful trades and tracking-only
+                        trade_id = f"trade_{int(datetime.now().timestamp() * 1000)}"
+                        trade_obj['trade_id'] = trade_id
+                        
                         if execution_success:
-                            trade_id = f"trade_{int(datetime.now().timestamp() * 1000)}"
-                            trade_obj['trade_id'] = trade_id
-                            
-                            # ========== ASYNC NON-BLOCKING UPDATES (AFTER TRADE) ==========
+                            # ========== ASYNC NON-BLOCKING UPDATES (AFTER SUCCESSFUL TRADE) ==========
                             # Fire these tasks asynchronously - don't wait for them
                             print(f"📊 TRADE PLACED SUCCESSFULLY - Starting async updates...")
                             
@@ -339,7 +353,7 @@ class TradeExecutor:
                                 try:
                                     stop_price = trader.round_to_tick(
                                         price * (1 - config.get("initial_stop_loss", 0.50)), 
-                                        symbol, round_up_for_buy=False
+                                        symbol, round_up_for_buy=False, expiration=expiration
                                     )
                                     
                                     print(f"⏱️ Scheduling stop loss for {STOP_LOSS_DELAY_SECONDS/60:.0f} min @ ${stop_price:.2f}")
@@ -359,27 +373,36 @@ class TradeExecutor:
                                     trade_obj['stop_loss_scheduled'] = True
                                 except Exception as e:
                                     print(f"⚠️ Stop loss scheduling failed (non-critical): {e}")
+                        
+                        # 2. Record in tracking systems (for both real trades and tracking-only)
+                        try:
+                            # Mark as tracking-only if applicable
+                            if trade_obj.get('is_tracking_only'):
+                                trade_obj['status'] = 'tracking_only'
+                                print(f"📊 Recording tracking-only entry: {symbol} @ ${trade_obj.get('price', 0):.2f}")
+                            else:
+                                trade_obj['status'] = 'active'
+                                print(f"✅ Recording active trade entry")
                             
-                            # 2. Record in tracking systems (async, non-blocking)
-                            try:
-                                self.performance_tracker.record_entry(trade_obj)
+                            self.performance_tracker.record_entry(trade_obj)
+                            if not trade_obj.get('is_tracking_only'):
                                 self.position_manager.add_position(trade_obj['channel_id'], trade_obj)
-                                print(f"✅ Position tracking updated")
-                            except Exception as e:
-                                print(f"⚠️ Position tracking failed (non-critical): {e}")
-                            
-                            # 3. Send alerts (async, fire-and-forget)
-                            try:
-                                asyncio.run_coroutine_threadsafe(
-                                    self._send_trade_alert(
-                                        trade_obj, 'buy', trade_obj.get('quantity', 1), 
-                                        trade_obj.get('price', 0), is_sim_mode
-                                    ), 
-                                    self.event_loop
-                                )
-                                print(f"📨 Alert queued (async)")
-                            except Exception as e:
-                                print(f"⚠️ Alert failed (non-critical): {e}")
+                            print(f"✅ Performance tracking updated")
+                        except Exception as e:
+                            print(f"⚠️ Performance tracking failed (non-critical): {e}")
+                        
+                        # 3. Send alerts (async, fire-and-forget) - for all trades
+                        try:
+                            asyncio.run_coroutine_threadsafe(
+                                self._send_trade_alert(
+                                    trade_obj, 'buy', trade_obj.get('quantity', 1), 
+                                    trade_obj.get('price', 0), is_sim_mode
+                                ), 
+                                self.event_loop
+                            )
+                            print(f"📨 Alert queued (async)")
+                        except Exception as e:
+                            print(f"⚠️ Alert failed (non-critical): {e}")
 
                     elif action in ("trim", "exit", "stop"):
                         # ========== TRADE-FIRST WORKFLOW ==========
@@ -397,49 +420,72 @@ class TradeExecutor:
                             trader, trade_obj, config, log_func, active_position
                         )
                         
-                        if execution_success and trade_id:
-                            # ========== ASYNC NON-BLOCKING UPDATES (AFTER TRADE) ==========
-                            print(f"📊 TRADE PLACED SUCCESSFULLY - Starting async updates...")
+                        # Handle tracking and performance updates for both real trades and tracking-only
+                        if (execution_success and trade_id) or trade_obj.get('is_tracking_only'):
+                            # ========== ASYNC NON-BLOCKING UPDATES (AFTER TRADE OR TRACKING) ==========
+                            if execution_success:
+                                print(f"📊 TRADE PLACED SUCCESSFULLY - Starting async updates...")
+                            else:
+                                print(f"📊 TRACKING-ONLY PROCESSING - Recording performance data...")
                             
                             try:
                                 if action == "trim":
-                                    # Record trim (non-blocking)
-                                    trade_record = self.performance_tracker.record_trim(trade_id, {
+                                    # Record trim (non-blocking) - for both real and tracking-only
+                                    trim_data = {
                                         'quantity': trade_obj.get('quantity', 1),
                                         'price': trade_obj.get('price', 0),
                                         'ticker': trade_obj.get('ticker'),
-                                        'channel': handler.name
-                                    })
+                                        'channel': handler.name,
+                                        'is_tracking_only': trade_obj.get('is_tracking_only', False),
+                                        'market_price_at_alert': trade_obj.get('market_price_at_alert')
+                                    }
                                     
-                                    # Handle trailing stop (async, non-critical)
-                                    try:
-                                        self._handle_trailing_stop(
-                                            trader, trade_obj, config, active_position, log_func, is_sim_mode
-                                        )
-                                        print(f"✅ Trailing stop handled")
-                                    except Exception as e:
-                                        print(f"⚠️ Trailing stop failed (non-critical): {e}")
+                                    if trade_obj.get('is_tracking_only'):
+                                        print(f"📊 Recording tracking-only trim: {symbol} @ ${trade_obj.get('price', 0):.2f}")
+                                        # Create a virtual trade record for tracking
+                                        trade_record = {'status': 'tracking_only', 'action': action}
+                                    else:
+                                        trade_record = self.performance_tracker.record_trim(trade_id, trim_data)
+                                    
+                                    # Handle trailing stop (async, non-critical) - only for real trades
+                                    if not trade_obj.get('is_tracking_only'):
+                                        try:
+                                            self._handle_trailing_stop(
+                                                trader, trade_obj, config, active_position, log_func, is_sim_mode
+                                            )
+                                            print(f"✅ Trailing stop handled")
+                                        except Exception as e:
+                                            print(f"⚠️ Trailing stop failed (non-critical): {e}")
                                     
                                 else:  # exit or stop
-                                    # Record exit (non-blocking)
-                                    trade_record = self.performance_tracker.record_exit(trade_id, {
+                                    # Record exit (non-blocking) - for both real and tracking-only
+                                    exit_data = {
                                         'price': trade_obj.get('price', 0),
                                         'action': action,
                                         'is_stop_loss': action == 'stop',
                                         'ticker': trade_obj.get('ticker'),
-                                        'channel': handler.name
-                                    })
+                                        'channel': handler.name,
+                                        'is_tracking_only': trade_obj.get('is_tracking_only', False),
+                                        'market_price_at_alert': trade_obj.get('market_price_at_alert')
+                                    }
                                     
-                                    if trade_record:
-                                        self.position_manager.clear_position(trade_obj['channel_id'], trade_id)
-                                        print(f"✅ Position cleared")
+                                    if trade_obj.get('is_tracking_only'):
+                                        print(f"📊 Recording tracking-only exit: {symbol} @ ${trade_obj.get('price', 0):.2f}")
+                                        # Create a virtual trade record for tracking
+                                        trade_record = {'status': 'tracking_only', 'action': action}
+                                    else:
+                                        trade_record = self.performance_tracker.record_exit(trade_id, exit_data)
+                                        
+                                        if trade_record:
+                                            self.position_manager.clear_position(trade_obj['channel_id'], trade_id)
+                                            print(f"✅ Position cleared")
                                 
                                 print(f"✅ Performance tracking updated")
                                 
                             except Exception as e:
                                 print(f"⚠️ Performance tracking failed (non-critical): {e}")
                             
-                            # Send alerts (async, fire-and-forget)
+                            # Send alerts (async, fire-and-forget) - for all trades including tracking-only
                             try:
                                 asyncio.run_coroutine_threadsafe(
                                     self._send_trade_alert(
@@ -562,11 +608,33 @@ class TradeExecutor:
             # Apply channel-specific padding with OPTIMIZED tick rounding
             buy_padding = config.get("buy_padding", DEFAULT_BUY_PRICE_PADDING)
             
-            # CRITICAL: Use trader's optimized tick rounding with round_up for buys
+            # CRITICAL: Use trader's optimized tick rounding with round_up for buys (include expiration for SPX 0DTE detection)
             padded_price = price * (1 + buy_padding)
-            final_price = trader.round_to_tick(padded_price, symbol, round_up_for_buy=True)
+            final_price = trader.round_to_tick(padded_price, symbol, round_up_for_buy=True, expiration=expiration)
             
             contracts = max(MIN_TRADE_QUANTITY, int(max_amount / (final_price * 100)))
+            
+            # Check minimum trade contracts threshold for channel
+            min_contracts = config.get("min_trade_contracts", 1)
+            if contracts < min_contracts:
+                log_func(f"⚠️ Channel {trade_obj.get('channel', 'Unknown')} disabled: Calculated {contracts} contracts < min threshold {min_contracts}")
+                # Still perform all processing and API calls for tracking
+                # But don't actually execute the trade
+                trade_obj['quantity'] = 0  # Set to 0 for tracking
+                trade_obj['price'] = final_price
+                trade_obj['is_tracking_only'] = True
+                
+                # Get current market price for tracking purposes
+                try:
+                    market_data = trader.get_option_market_data(symbol, strike, expiration, opt_type)
+                    current_price = market_data.get('mark_price') or market_data.get('last_trade_price') or final_price
+                    trade_obj['market_price_at_alert'] = current_price
+                    log_func(f"📊 Market price captured for tracking: ${current_price:.2f}")
+                except Exception as e:
+                    log_func(f"⚠️ Could not capture market price: {e}")
+                    trade_obj['market_price_at_alert'] = final_price
+                
+                return False, f"Channel tracking only: {contracts} contracts < min {min_contracts} threshold (Market: ${trade_obj.get('market_price_at_alert', final_price):.2f})"
             
             # ENHANCED: Show size calculation details
             print(f"💰 SIZE CALCULATION BREAKDOWN:")
@@ -657,6 +725,36 @@ class TradeExecutor:
             sell_quantity = max(1, total_quantity // 2) if action == "trim" else total_quantity
             trade_obj['quantity'] = sell_quantity
             
+            # Check minimum trade contracts threshold for channel (for tracking mode)
+            min_contracts = config.get("min_trade_contracts", 1)
+            if min_contracts == 0:
+                log_func(f"📊 Channel {trade_obj.get('channel', 'Unknown')} tracking only: Processing {action} for monitoring")
+                # Still get market data for tracking purposes but don't execute
+                trade_obj['is_tracking_only'] = True
+                try:
+                    market_data = trader.get_option_market_data(symbol, strike, expiration, opt_type)
+                    if market_data and len(market_data) > 0:
+                        data = market_data[0] if not isinstance(market_data[0], list) else market_data[0][0]
+                        if isinstance(data, dict):
+                            mark_price = data.get('mark_price')
+                            if mark_price and float(mark_price) > 0:
+                                trade_obj['market_price_at_alert'] = float(mark_price)
+                            else:
+                                bid = float(data.get('bid_price', 0) or 0)
+                                ask = float(data.get('ask_price', 0) or 0)
+                                trade_obj['market_price_at_alert'] = (bid + ask) / 2 if bid > 0 and ask > 0 else 0.05
+                    log_func(f"📊 Market price captured for {action} tracking: ${trade_obj.get('market_price_at_alert', 0):.2f}")
+                except Exception as e:
+                    log_func(f"⚠️ Could not capture market price for {action}: {e}")
+                    trade_obj['market_price_at_alert'] = 0.05
+                
+                # Apply padding for realistic tracking price
+                sell_padding = config.get("sell_padding", DEFAULT_SELL_PRICE_PADDING)
+                padded_price = trade_obj['market_price_at_alert'] * (1 - sell_padding)
+                trade_obj['price'] = trader.round_to_tick(padded_price, symbol, round_up_for_buy=False, expiration=expiration)
+                
+                return False, f"Channel tracking only: {action} at ${trade_obj['price']:.2f} (Market: ${trade_obj.get('market_price_at_alert', 0):.2f})"
+            
             # PRE-CANCEL existing orders (non-blocking for speed)
             print(f"🚫 Cancelling existing orders for {symbol}...")
             try:
@@ -707,9 +805,9 @@ class TradeExecutor:
                     market_price = 0.05  # Absolute minimum
                     print(f"🚨 Minimum price: ${market_price:.2f}")
             
-            # OPTIMIZED: Apply padding and use trader's enhanced rounding
+            # OPTIMIZED: Apply padding and use trader's enhanced rounding (include expiration for SPX 0DTE detection)
             padded_price = market_price * (1 - sell_padding)
-            final_price = trader.round_to_tick(padded_price, symbol, round_up_for_buy=False)
+            final_price = trader.round_to_tick(padded_price, symbol, round_up_for_buy=False, expiration=expiration)
             trade_obj['price'] = final_price
             
             # ========== PRE-EXECUTION VALIDATION (SAFETY CHECK) ==========
@@ -820,7 +918,7 @@ class TradeExecutor:
                 trailing_stop_candidate = current_market_price * (1 - trailing_stop_pct)
                 new_stop_price = max(trailing_stop_candidate, purchase_price)
                 
-                new_stop_price_rounded = trader.round_to_tick(new_stop_price, symbol, round_up_for_buy=False)
+                new_stop_price_rounded = trader.round_to_tick(new_stop_price, symbol, round_up_for_buy=False, expiration=expiration)
                 
                 log_func(f"📊 Placing trailing stop for remaining {remaining_qty} contracts @ ${new_stop_price_rounded:.2f}")
                 

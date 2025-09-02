@@ -437,9 +437,22 @@ class EnhancedRobinhoodTrader:
                     except Exception as e:
                         logger.debug(f"Could not get option quotes for {broker_symbol}: {e}")
                     
-                    # Fallback based on symbol recognition
-                    if broker_symbol.upper() in ['SPY', 'QQQ', 'IWM', 'SPX', 'SPXW']:
-                        return 0.05  # Conservative for major symbols
+                    # Enhanced fallback based on symbol recognition with 0DTE special handling
+                    if broker_symbol.upper() in ['SPX', 'SPXW']:
+                        # Special handling for SPX 0DTE options
+                        try:
+                            from datetime import datetime
+                            today = datetime.now().strftime('%Y-%m-%d')
+                            if expiration == today:
+                                # For SPX 0DTE options: smaller tick size for better pricing
+                                print(f"📊 SPX 0DTE detected for {broker_symbol} - using enhanced tick size")
+                                return 0.05  # More aggressive for 0DTE 
+                            else:
+                                return 0.05  # Standard SPX tick
+                        except:
+                            return 0.05
+                    elif broker_symbol.upper() in ['SPY', 'QQQ', 'IWM']:
+                        return 0.05  # Conservative for major ETF symbols
                     else:
                         return 0.10  # Conservative for other symbols
                         
@@ -448,15 +461,49 @@ class EnhancedRobinhoodTrader:
             
         return None  # Could not determine
 
-    def round_to_tick(self, price: float, symbol: str, round_up_for_buy: bool = False) -> float:
-        """ENHANCED: Round price to valid tick with buy/sell logic"""
+    def get_instrument_tick_size_with_expiration(self, symbol: str, expiration: str = None) -> float:
+        """ENHANCED: Get tick size with SPX 0DTE special handling"""
+        if not symbol:
+            return 0.05
+        
+        # Normalize symbol for broker
+        broker_symbol = self.normalize_symbol_for_broker(symbol)
+        
+        # Special handling for SPX 0DTE options
+        if broker_symbol.upper() in ['SPX', 'SPXW'] and expiration:
+            try:
+                from datetime import datetime
+                today = datetime.now().strftime('%Y-%m-%d')
+                if expiration == today:
+                    print(f"🚀 SPX 0DTE detected for {broker_symbol} - using optimized tick size (0.05)")
+                    return 0.05  # Optimized for 0DTE execution
+            except Exception as e:
+                print(f"⚠️ Date comparison failed: {e}")
+        
+        # Fallback to regular tick size logic
+        try:
+            # Try to get from cache or API
+            tick_size = self._get_options_tick_size(broker_symbol, None)
+            if tick_size and tick_size > 0:
+                return tick_size
+        except Exception as e:
+            print(f"⚠️ Could not get tick size for {symbol}: {e}")
+        
+        # Final fallback based on symbol
+        if broker_symbol.upper() in ['SPX', 'SPXW', 'SPY', 'QQQ', 'IWM']:
+            return 0.05
+        else:
+            return 0.10
+
+    def round_to_tick(self, price: float, symbol: str, round_up_for_buy: bool = False, expiration: str = None) -> float:
+        """ENHANCED: Round price to valid tick with buy/sell logic and SPX 0DTE support"""
         try:
             if price <= 0:
                 print(f"❌ Invalid price for rounding: ${price}")
                 return 0.05
             
-            # Get LIVE tick size from Robinhood API
-            tick_size = self.get_instrument_tick_size(symbol)
+            # Get LIVE tick size from Robinhood API with expiration for SPX 0DTE detection
+            tick_size = self.get_instrument_tick_size_with_expiration(symbol, expiration)
             if tick_size is None or tick_size <= 0:
                 tick_size = 0.05
                 print(f"⚠️ Using fallback tick size: ${tick_size}")
@@ -1158,8 +1205,22 @@ class EnhancedSimulatedTrader:
         print(f"🚨 [SIMULATED] Using fallback tick size for {symbol}: $0.05")
         return 0.05
 
-    def round_to_tick(self, price: float, symbol: str, round_up_for_buy: bool = False) -> float:
-        tick_size = self.get_instrument_tick_size(symbol)
+    def round_to_tick(self, price: float, symbol: str, round_up_for_buy: bool = False, expiration: str = None) -> float:
+        # For simulated trading, use SPX 0DTE special handling
+        if symbol and symbol.upper() in ['SPX', 'SPXW'] and expiration:
+            try:
+                from datetime import datetime
+                today = datetime.now().strftime('%Y-%m-%d')
+                if expiration == today:
+                    print(f"🚀 [SIMULATED] SPX 0DTE detected for {symbol} - using optimized tick size (0.05)")
+                    tick_size = 0.05
+                else:
+                    tick_size = self.get_instrument_tick_size(symbol)
+            except:
+                tick_size = self.get_instrument_tick_size(symbol)
+        else:
+            tick_size = self.get_instrument_tick_size(symbol)
+        
         if tick_size == 0:
             tick_size = 0.05
         

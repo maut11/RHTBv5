@@ -88,6 +88,7 @@ CHANNELS_CONFIG = {
         "test_id": 1396011198343811102,  # ryan simulation channel
         "parser": "RyanParser",
         "multiplier": 1.0,
+        "min_trade_contracts": 1,  # Minimum contracts to trade (0 = no trading)
         "initial_stop_loss": 0.5,  # 35% stop loss for Ryan
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 5% padding for buys
@@ -111,6 +112,7 @@ CHANNELS_CONFIG = {
         "test_id": 1399289540484530247,  # eva simulation channel
         "parser": "EvaParser",
         "multiplier": 1.0,
+        "min_trade_contracts": 0,  # Minimum contracts to trade (0 = no trading)
         "initial_stop_loss": 0.5,  # 30% stop loss for Eva
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding for buys
@@ -127,6 +129,7 @@ CHANNELS_CONFIG = {
         "test_id": 1398211580470235176,  # sean simulation channel
         "parser": "SeanParser",
         "multiplier": 1.0,
+        "min_trade_contracts": 0,  # Minimum contracts to trade (0 = no trading)
         "initial_stop_loss": 0.50,  # 50% stop loss for Sean
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding
@@ -143,6 +146,7 @@ CHANNELS_CONFIG = {
         "test_id": 1398585430617886720,  # will simulation channel
         "parser": "WillParser",
         "multiplier": 0.5,
+        "min_trade_contracts": 0,  # Minimum contracts to trade (0 = no trading)
         "initial_stop_loss": 0.5,  # 30% stop loss for Will
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding
@@ -159,6 +163,7 @@ CHANNELS_CONFIG = {
         "test_id": 1402850612995031090,  # fifi simulation channel
         "parser": "FiFiParser",
         "multiplier": 1.0,
+        "min_trade_contracts": 0,  # Minimum contracts to trade (0 = no trading)
         "initial_stop_loss": 0.50,  # 50% stop loss for FiFi
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding
