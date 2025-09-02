@@ -40,16 +40,44 @@ class ChannelAwareFeedbackLogger:
                             "Latency (ms)",
                             "Timestamp",
                             "Trader Symbol",
-                            "Broker Symbol"
+                            "Broker Symbol",
+                            "API Mark Price",
+                            "API Bid Price",
+                            "API Ask Price",
+                            "API Last Price"
                         ])
 
-    def log(self, channel_name, original_message, parsed_message_json, latency=0):
-        """Log parse result with symbol mapping information"""
+    def log(self, channel_name, original_message, parsed_message_json, latency=0, trader=None):
+        """Log parse result with symbol mapping and API price information"""
         with self.lock:
             try:
                 # Extract symbol information
                 trader_symbol = parsed_message_json.get('ticker', '')
                 broker_symbol = get_broker_symbol(trader_symbol) if trader_symbol else ''
+                
+                # Get API price data if we have complete contract info and trader
+                mark_price = bid_price = ask_price = last_price = ""
+                
+                if (trader and trader_symbol and 
+                    parsed_message_json.get('strike') and 
+                    parsed_message_json.get('type') and 
+                    parsed_message_json.get('expiration')):
+                    
+                    try:
+                        market_data = trader.get_option_market_data(
+                            trader_symbol,
+                            parsed_message_json.get('strike'),
+                            parsed_message_json.get('expiration'),
+                            parsed_message_json.get('type')
+                        )
+                        
+                        if market_data:
+                            mark_price = f"{market_data.get('mark_price', '')}"
+                            bid_price = f"{market_data.get('bid_price', '')}"
+                            ask_price = f"{market_data.get('ask_price', '')}"
+                            last_price = f"{market_data.get('last_trade_price', '')}"
+                    except Exception as price_error:
+                        print(f"⚠️ Could not fetch API price for {trader_symbol}: {price_error}")
                 
                 with open(self.filename, 'a', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
@@ -60,7 +88,11 @@ class ChannelAwareFeedbackLogger:
                         f"{latency:.2f}",
                         datetime.now(timezone.utc).isoformat(),
                         trader_symbol,
-                        broker_symbol
+                        broker_symbol,
+                        mark_price,
+                        bid_price,
+                        ask_price,
+                        last_price
                     ])
             except Exception as e:
                 print(f"❌ Failed to write to feedback log: {e}")
@@ -214,8 +246,9 @@ class TradeExecutor:
                 
                 if parsed_results:
                     for parsed_obj in parsed_results:
-                        # Log with CHANNEL-SPECIFIC feedback including symbol mapping
-                        self.feedback_logger.log(handler.name, raw_msg, parsed_obj, latency_ms)
+                        # Log with CHANNEL-SPECIFIC feedback including symbol mapping and API prices
+                        # Use live_trader for API price data regardless of sim mode for tracking purposes
+                        self.feedback_logger.log(handler.name, raw_msg, parsed_obj, latency_ms, self.live_trader)
                 
                 if not parsed_results:
                     log_func(f"⚠️ No parsed results from {handler.name}")
@@ -616,8 +649,11 @@ class TradeExecutor:
             
             # Check minimum trade contracts threshold for channel
             min_contracts = config.get("min_trade_contracts", 1)
-            if contracts < min_contracts:
-                log_func(f"⚠️ Channel {trade_obj.get('channel', 'Unknown')} disabled: Calculated {contracts} contracts < min threshold {min_contracts}")
+            if min_contracts == 0 or contracts < min_contracts:
+                if min_contracts == 0:
+                    log_func(f"📊 Channel {trade_obj.get('channel', 'Unknown')} tracking only: Trading disabled (min_trade_contracts=0)")
+                else:
+                    log_func(f"⚠️ Channel {trade_obj.get('channel', 'Unknown')} disabled: Calculated {contracts} contracts < min threshold {min_contracts}")
                 # Still perform all processing and API calls for tracking
                 # But don't actually execute the trade
                 trade_obj['quantity'] = 0  # Set to 0 for tracking
@@ -634,7 +670,10 @@ class TradeExecutor:
                     log_func(f"⚠️ Could not capture market price: {e}")
                     trade_obj['market_price_at_alert'] = final_price
                 
-                return False, f"Channel tracking only: {contracts} contracts < min {min_contracts} threshold (Market: ${trade_obj.get('market_price_at_alert', final_price):.2f})"
+                if min_contracts == 0:
+                    return False, f"Channel tracking only: Trading disabled (Market: ${trade_obj.get('market_price_at_alert', final_price):.2f})"
+                else:
+                    return False, f"Channel disabled: {contracts} contracts < min {min_contracts} threshold (Market: ${trade_obj.get('market_price_at_alert', final_price):.2f})"
             
             # ENHANCED: Show size calculation details
             print(f"💰 SIZE CALCULATION BREAKDOWN:")

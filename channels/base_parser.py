@@ -213,33 +213,52 @@ class BaseParser(ABC):
         if date_str.lower() in ['0dte', 'today']:
             return datetime.now(timezone.utc).strftime('%Y-%m-%d')
             
-        # Try to parse MM-DD or M/D format
+        # Try to parse various date formats
         date_patterns = [
-            r'^(\d{1,2})-(\d{1,2})$',     # MM-DD or M-D
-            r'^(\d{1,2})/(\d{1,2})$',     # MM/DD or M/D  
+            # Full date formats with year
+            (r'^(\d{1,2})/(\d{1,2})/(\d{4})$', 'MDY'),      # MM/DD/YYYY or M/D/YYYY
+            (r'^(\d{1,2})-(\d{1,2})-(\d{4})$', 'MDY'),      # MM-DD-YYYY or M-D-YYYY
+            (r'^(\d{4})-(\d{1,2})-(\d{1,2})$', 'YMD'),      # YYYY-MM-DD (already correct)
+            # Date formats without year  
+            (r'^(\d{1,2})-(\d{1,2})$', 'MD'),               # MM-DD or M-D
+            (r'^(\d{1,2})/(\d{1,2})$', 'MD'),               # MM/DD or M/D
         ]
         
-        for pattern in date_patterns:
+        for pattern_info in date_patterns:
+            pattern, format_type = pattern_info
             match = re.match(pattern, date_str)
             if match:
-                month, day = int(match.group(1)), int(match.group(2))
-                
-                # Get current date info
-                now = datetime.now(timezone.utc)
-                current_year = now.year
-                
                 try:
-                    # Try to create date for current year
-                    target_date = datetime(current_year, month, day, tzinfo=timezone.utc)
+                    if format_type == 'YMD':
+                        # YYYY-MM-DD format - already correct
+                        year, month, day = int(match.group(1)), int(match.group(2)), int(match.group(3))
+                        return f"{year}-{month:02d}-{day:02d}"
                     
-                    # If the date has already passed this year, assume next year
-                    if target_date.date() < now.date():
-                        target_date = datetime(current_year + 1, month, day, tzinfo=timezone.utc)
-                        logger(f"🗓️ [{self.name}] Date {date_str} has passed in {current_year}, using {current_year + 1}")
-                    else:
-                        logger(f"🗓️ [{self.name}] Date {date_str} is future in {current_year}, using {current_year}")
+                    elif format_type == 'MDY':
+                        # MM/DD/YYYY or MM-DD-YYYY format
+                        month, day, year = int(match.group(1)), int(match.group(2)), int(match.group(3))
+                        target_date = datetime(year, month, day, tzinfo=timezone.utc)
+                        return target_date.strftime('%Y-%m-%d')
+                    
+                    elif format_type == 'MD':
+                        # MM/DD or MM-DD format (no year) - use smart year detection
+                        month, day = int(match.group(1)), int(match.group(2))
                         
-                    return target_date.strftime('%Y-%m-%d')
+                        # Get current date info
+                        now = datetime.now(timezone.utc)
+                        current_year = now.year
+                        
+                        # Try to create date for current year
+                        target_date = datetime(current_year, month, day, tzinfo=timezone.utc)
+                        
+                        # If the date has already passed this year, assume next year
+                        if target_date.date() < now.date():
+                            target_date = datetime(current_year + 1, month, day, tzinfo=timezone.utc)
+                            logger(f"🗓️ [{self.name}] Date {date_str} has passed in {current_year}, using {current_year + 1}")
+                        else:
+                            logger(f"🗓️ [{self.name}] Date {date_str} is future in {current_year}, using {current_year}")
+                            
+                        return target_date.strftime('%Y-%m-%d')
                     
                 except ValueError:
                     # Invalid date (e.g., Feb 30), return as-is
@@ -249,18 +268,94 @@ class BaseParser(ABC):
         # If no pattern matched, return as-is
         return date_str
 
+    def _parse_monthly_expiration(self, expiration_str: str, logger) -> str:
+        """
+        Parse monthly expiration dates (e.g., "JAN 2026", "Jan 2026", "January 2026")
+        to the third Friday of that month in YYYY-MM-DD format.
+        """
+        if not expiration_str:
+            return expiration_str
+            
+        # Already in proper format
+        if re.match(r'\d{4}-\d{2}-\d{2}', expiration_str):
+            return expiration_str
+            
+        # Monthly expiration patterns
+        month_patterns = [
+            r'^(Jan|January|JAN)\s+(\d{4})$',
+            r'^(Feb|February|FEB)\s+(\d{4})$',
+            r'^(Mar|March|MAR)\s+(\d{4})$',
+            r'^(Apr|April|APR)\s+(\d{4})$',
+            r'^(May|MAY)\s+(\d{4})$',
+            r'^(Jun|June|JUN)\s+(\d{4})$',
+            r'^(Jul|July|JUL)\s+(\d{4})$',
+            r'^(Aug|August|AUG)\s+(\d{4})$',
+            r'^(Sep|September|SEP)\s+(\d{4})$',
+            r'^(Oct|October|OCT)\s+(\d{4})$',
+            r'^(Nov|November|NOV)\s+(\d{4})$',
+            r'^(Dec|December|DEC)\s+(\d{4})$'
+        ]
+        
+        month_map = {
+            'jan': 1, 'january': 1,
+            'feb': 2, 'february': 2,
+            'mar': 3, 'march': 3,
+            'apr': 4, 'april': 4,
+            'may': 5,
+            'jun': 6, 'june': 6,
+            'jul': 7, 'july': 7,
+            'aug': 8, 'august': 8,
+            'sep': 9, 'september': 9,
+            'oct': 10, 'october': 10,
+            'nov': 11, 'november': 11,
+            'dec': 12, 'december': 12
+        }
+        
+        # Check for monthly patterns
+        for pattern in month_patterns:
+            match = re.match(pattern, expiration_str.strip(), re.IGNORECASE)
+            if match:
+                month_str = match.group(1).lower()
+                year = int(match.group(2))
+                month = month_map.get(month_str)
+                
+                if month:
+                    # Calculate third Friday of the month
+                    import calendar
+                    cal = calendar.monthcalendar(year, month)
+                    fridays = [week[4] for week in cal if week[4] != 0]  # Friday is index 4
+                    
+                    if len(fridays) >= 3:
+                        third_friday = fridays[2]  # Third Friday (0-indexed)
+                        result = f"{year}-{month:02d}-{third_friday:02d}"
+                        logger(f"🗓️ [{self.name}] Monthly expiration parsed: '{expiration_str}' → '{result}'")
+                        return result
+                    else:
+                        logger(f"⚠️ [{self.name}] Could not calculate third Friday for {month_str} {year}")
+        
+        # Not a monthly expiration, return as-is for other date parsing
+        return expiration_str
+
     def _normalize_entry(self, entry: dict) -> dict:
         """
         Optional hook for subclasses to perform custom normalization.
         By default, it applies smart year detection to expiration dates.
         Subclasses can override this to add channel-specific logic.
         """
-        # Apply smart year detection to expiration field
+        # Apply expiration date parsing to expiration field
         if 'expiration' in entry and entry['expiration']:
             original_exp = entry['expiration']
-            smart_exp = self._smart_year_detection(original_exp, print)
-            if smart_exp != original_exp:
-                entry['expiration'] = smart_exp
+            
+            # First try monthly expiration parsing (e.g., "JAN 2026")
+            parsed_exp = self._parse_monthly_expiration(original_exp, print)
+            
+            # If not a monthly expiration, try regular date parsing
+            if parsed_exp == original_exp:
+                parsed_exp = self._smart_year_detection(original_exp, print)
+            
+            # Update if we successfully parsed it
+            if parsed_exp != original_exp:
+                entry['expiration'] = parsed_exp
                 
         return entry
 
