@@ -641,6 +641,7 @@ class EnhancedDiscordClient(discord.Client):
                     "name": "🔄 Connection",
                     "value": f"""
 **Discord:** Connected
+**Robinhood:** {await self._check_robinhood_connection()}
 **Disconnections:** {self.connection_lost_count}
 **Session Age:** {(datetime.now(timezone.utc) - self.start_time).total_seconds() / 3600:.1f}h
                     """,
@@ -651,6 +652,34 @@ class EnhancedDiscordClient(discord.Client):
         }
         
         await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [status_embed]}, "command_response")
+
+    async def _check_robinhood_connection(self):
+        """Check Robinhood connection status"""
+        try:
+            if SIM_MODE:
+                return "🟢 SIMULATED"
+            
+            # Test connection by getting portfolio value
+            portfolio_value = await self._get_portfolio_async()
+            if portfolio_value is not None:
+                return f"🟢 Connected (${portfolio_value:,.2f})"
+            else:
+                return "🔴 Failed"
+        except Exception as e:
+            return f"🔴 Error: {str(e)[:20]}..."
+
+    async def _get_portfolio_async(self):
+        """Get portfolio value asynchronously"""
+        try:
+            # Use thread pool to avoid blocking
+            loop = asyncio.get_event_loop()
+            portfolio_value = await loop.run_in_executor(
+                None, 
+                self.live_trader.get_portfolio_value
+            )
+            return portfolio_value
+        except Exception:
+            return None
 
     async def _handle_alert_health_command(self):
         """Handle alert health command"""

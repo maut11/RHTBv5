@@ -116,7 +116,7 @@ Your ONLY job is to extract the specified fields and return a single JSON object
 3.  `strike`: The strike price (number).
 4.  `type`: The option type ("call" or "put"). 'C' is "call", 'P' is "put".
 5.  `price`: The execution price (number). If "BE", return the string "BE".
-6.  `expiration`: The expiration date in MM-DD format (or "0dte" for same-day trades).
+6.  `expiration`: The raw expiration text as mentioned in the message (e.g., "Sep 19", "1/16", "0dte").
 7.  `size`: The position size (e.g., "small", "lotto", "full"). Default to "full" ONLY if no other size is mentioned.
 
 Messages come from a trader named Ryan and are embedded alerts with one of the following titles: ENTRY, TRIM, EXIT, or COMMENT.
@@ -141,9 +141,10 @@ The trading system will automatically fill in missing contract details from rece
 
 --- DATE RULES ---
 1.  Today's date is {today_str}.
-2.  For expiration dates, return them in MM-DD format (e.g., "01-16", "09-19"). Do NOT add years.
+2.  For expiration dates, extract and return exactly what is mentioned in the message.
 3.  If no expiration is mentioned at all, it is a 0DTE trade. Return "0dte" as the expiration value.
-4.  Examples: "1/16" → "01-16", "Sep 19" → "09-19", "0dte" → "0dte"
+4.  Examples: "1/16" → "1/16", "Sep 19" → "Sep 19", "0dte" → "0dte"
+5.  Do NOT interpret or convert dates - just extract the raw expiration text from the message.
 
 --- ENHANCED EXAMPLES ---
 **ENTRY Example:**
@@ -182,8 +183,17 @@ Description: "{description.strip()}"
 """
 
     def _normalize_entry(self, entry: dict) -> dict:
-        title, description = self._current_message_meta if isinstance(self._current_message_meta, tuple) else ("UNKNOWN", self._current_message_meta)
-        title_upper = title.strip().upper()
+        # First call BaseParser's normalization for date handling
+        entry = super()._normalize_entry(entry)
+        
+        # Get message metadata safely
+        if self._current_message_meta:
+            title, description = self._current_message_meta if isinstance(self._current_message_meta, tuple) else ("UNKNOWN", self._current_message_meta)
+            title_upper = title.strip().upper() if title else "UNKNOWN"
+            description = description or ""
+        else:
+            title_upper = "UNKNOWN"
+            description = ""
 
         # Map title to action
         if title_upper == "ENTRY":
@@ -196,7 +206,7 @@ Description: "{description.strip()}"
             entry["action"] = "null"
 
         # Check for averaging indicators
-        if "avg" in description.lower() or "average" in description.lower() or "adding" in description.lower():
+        if description and ("avg" in description.lower() or "average" in description.lower() or "adding" in description.lower()):
             entry["averaging"] = True
 
         # Enhanced 0DTE logic - only add expiration for BUY actions if missing

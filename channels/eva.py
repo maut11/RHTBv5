@@ -22,14 +22,15 @@ Your ONLY job is to extract the specified fields and return a single JSON object
 3.  `strike`: The strike price (number).
 4.  `type`: The option type ("call" or "put"). 'C' is "call", 'P' is "put".
 5.  `price`: The execution price (number). If "BE", return the string "BE".
-6.  `expiration`: The expiration date in MM-DD format (or "0dte" for same-day trades).
+6.  `expiration`: The raw expiration text as mentioned in the message (e.g., "Sep 19", "1/16", "0dte").
 7.  `size`: The position size (e.g., "small", "lotto", "full"). Default to "full" ONLY if no other size is mentioned.
 
 --- DATE RULES ---
 1.  Today's date is {today_str}.
-2.  For expiration dates, return them in MM-DD format (e.g., "01-16", "09-19"). Do NOT add years.
+2.  For expiration dates, extract and return exactly what is mentioned in the message.
 3.  If the message mentions "0dte", return "0dte" as the expiration value.
-4.  Examples: "1/16" → "01-16", "Sep 19" → "09-19", "0dte" → "0dte"
+4.  Examples: "1/16" → "1/16", "Sep 19" → "Sep 19", "0dte" → "0dte"
+5.  Do NOT interpret or convert dates - just extract the raw expiration text from the message.
 
 --- ACTION RULES ---
 1.  If Title is "OPEN", the action is "buy", return the stickern strick pricem type, price expiration, size
@@ -70,7 +71,8 @@ Description: "{description.strip()}"
 """
 
     def _normalize_entry(self, entry: dict) -> dict:
-        # This function is now much simpler as the prompt is more direct.
+        # First call BaseParser's normalization for date handling
+        entry = super()._normalize_entry(entry)
         
         # --- CRITICAL: Stricter Type Handling ---
         entry_type = str(entry.get("type", "")).upper()
