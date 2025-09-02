@@ -888,7 +888,7 @@ class EnhancedDiscordClient(discord.Client):
 
             parsed_contract = self.price_parser.parse_query(query, parser_logger)
 
-            if not parsed_contract:
+            if not parsed_contract or not isinstance(parsed_contract, dict):
                 return {"error": "Could not understand the contract details."}
 
             ticker = parsed_contract.get('ticker')
