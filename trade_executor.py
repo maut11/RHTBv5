@@ -666,11 +666,8 @@ class TradeExecutor:
             
             # Check minimum trade contracts threshold for channel
             min_contracts = config.get("min_trade_contracts", 1)
-            if min_contracts == 0 or contracts < min_contracts:
-                if min_contracts == 0:
-                    log_func(f"📊 Channel {trade_obj.get('channel', 'Unknown')} tracking only: Trading disabled (min_trade_contracts=0)")
-                else:
-                    log_func(f"⚠️ Channel {trade_obj.get('channel', 'Unknown')} disabled: Calculated {contracts} contracts < min threshold {min_contracts}")
+            if min_contracts == 0:
+                log_func(f"📊 Channel {trade_obj.get('channel', 'Unknown')} tracking only: Trading disabled (min_trade_contracts=0)")
                 # Still perform all processing and API calls for tracking
                 # But don't actually execute the trade
                 trade_obj['quantity'] = 0  # Set to 0 for tracking
@@ -685,15 +682,11 @@ class TradeExecutor:
                     # Handle different market_data formats
                     if market_data:
                         if isinstance(market_data, dict):
-                            # Direct dict response
                             current_price = market_data.get('mark_price') or market_data.get('last_trade_price') or final_price
                         elif isinstance(market_data, list) and len(market_data) > 0:
-                            # List response - get first element
                             data = market_data[0]
                             if isinstance(data, dict):
                                 current_price = data.get('mark_price') or data.get('last_trade_price') or final_price
-                            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
-                                current_price = data[0].get('mark_price') or data[0].get('last_trade_price') or final_price
                     
                     trade_obj['market_price_at_alert'] = float(current_price)
                     log_func(f"📊 Market price captured for tracking: ${float(current_price):.2f}")
@@ -701,10 +694,10 @@ class TradeExecutor:
                     log_func(f"⚠️ Could not capture market price: {e}")
                     trade_obj['market_price_at_alert'] = final_price
                 
-                if min_contracts == 0:
-                    return False, f"Channel tracking only: Trading disabled (Market: ${float(trade_obj.get('market_price_at_alert', final_price)):.2f})"
-                else:
-                    return False, f"Channel disabled: {contracts} contracts < min {min_contracts} threshold (Market: ${float(trade_obj.get('market_price_at_alert', final_price)):.2f})"
+                return False, f"Channel tracking only: Trading disabled (Market: ${float(trade_obj.get('market_price_at_alert', final_price)):.2f})"
+            elif contracts < min_contracts:
+                log_func(f"📈 Channel {trade_obj.get('channel', 'Unknown')}: Enforcing minimum {min_contracts} contracts (calculated: {contracts})")
+                contracts = min_contracts  # Enforce minimum purchase amount
             
             # ENHANCED: Show size calculation details
             print(f"💰 SIZE CALCULATION BREAKDOWN:")
