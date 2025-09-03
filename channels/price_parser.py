@@ -46,6 +46,9 @@ Year: {current_year}
 
 --- EXAMPLES ---
 - Query: "$APLD 15c Sep 19" -> {{"ticker": "APLD", "strike": 15, "type": "call", "expiration": "09-19"}}
+- Query: "EOSE JAN 17 2026 $10 call" -> {{"ticker": "EOSE", "strike": 10, "type": "call", "expiration": "01-17"}}
+- Query: "SPY January 15 2025 $500 put" -> {{"ticker": "SPY", "strike": 500, "type": "put", "expiration": "01-15"}}
+- Query: "TSLA 900c 02/28/2025" -> {{"ticker": "TSLA", "strike": 900, "type": "call", "expiration": "02-28"}}
 - Query: "SPY 500 put this friday" -> (You would calculate the date for the upcoming Friday and format it as MM-DD)
 - Query: "TSLA 900 weekly call" -> (You would calculate the date for the upcoming Friday and format it as MM-DD)
 - Query: "QQQ 450p 10/20/25" -> {{"ticker": "QQQ", "strike": 450, "type": "put", "expiration": "10-20"}}
