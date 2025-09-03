@@ -695,8 +695,8 @@ class TradeExecutor:
                             elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
                                 current_price = data[0].get('mark_price') or data[0].get('last_trade_price') or final_price
                     
-                    trade_obj['market_price_at_alert'] = current_price
-                    log_func(f"📊 Market price captured for tracking: ${current_price:.2f}")
+                    trade_obj['market_price_at_alert'] = float(current_price)
+                    log_func(f"📊 Market price captured for tracking: ${float(current_price):.2f}")
                 except Exception as e:
                     log_func(f"⚠️ Could not capture market price: {e}")
                     trade_obj['market_price_at_alert'] = final_price
