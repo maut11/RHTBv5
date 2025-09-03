@@ -702,9 +702,9 @@ class TradeExecutor:
                     trade_obj['market_price_at_alert'] = final_price
                 
                 if min_contracts == 0:
-                    return False, f"Channel tracking only: Trading disabled (Market: ${trade_obj.get('market_price_at_alert', final_price):.2f})"
+                    return False, f"Channel tracking only: Trading disabled (Market: ${float(trade_obj.get('market_price_at_alert', final_price)):.2f})"
                 else:
-                    return False, f"Channel disabled: {contracts} contracts < min {min_contracts} threshold (Market: ${trade_obj.get('market_price_at_alert', final_price):.2f})"
+                    return False, f"Channel disabled: {contracts} contracts < min {min_contracts} threshold (Market: ${float(trade_obj.get('market_price_at_alert', final_price)):.2f})"
             
             # ENHANCED: Show size calculation details
             print(f"💰 SIZE CALCULATION BREAKDOWN:")
@@ -810,7 +810,7 @@ class TradeExecutor:
                                     trade_obj['market_price_at_alert'] = bid
                                 # else: keep fallback 0.05
                     
-                    log_func(f"📊 Market price captured for {action} tracking: ${trade_obj.get('market_price_at_alert', 0):.2f}")
+                    log_func(f"📊 Market price captured for {action} tracking: ${float(trade_obj.get('market_price_at_alert', 0)):.2f}")
                 except Exception as e:
                     log_func(f"⚠️ Could not capture market price for {action}: {e}")
                     trade_obj['market_price_at_alert'] = 0.05
@@ -820,7 +820,7 @@ class TradeExecutor:
                 padded_price = trade_obj['market_price_at_alert'] * (1 - sell_padding)
                 trade_obj['price'] = trader.round_to_tick(padded_price, symbol, round_up_for_buy=False, expiration=expiration)
                 
-                return False, f"Channel tracking only: {action} at ${trade_obj['price']:.2f} (Market: ${trade_obj.get('market_price_at_alert', 0):.2f})"
+                return False, f"Channel tracking only: {action} at ${trade_obj['price']:.2f} (Market: ${float(trade_obj.get('market_price_at_alert', 0)):.2f})"
             
             # PRE-CALCULATE position quantity (for real trading mode)
             if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
