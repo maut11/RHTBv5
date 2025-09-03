@@ -779,22 +779,6 @@ class TradeExecutor:
             opt_type = trade_obj['type']
             action = trade_obj.get('action', 'exit')
             
-            # PRE-CALCULATE position quantity
-            if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
-                total_quantity = 10
-            else:
-                # SPEED OPTIMIZATION: Get positions once
-                all_positions = trader.get_open_option_positions()
-                position = trader.find_open_option_position(all_positions, symbol, strike, expiration, opt_type)
-                if not position:
-                    print(f"❌ No position found for {symbol}")
-                    return False, "No position found"
-                total_quantity = int(float(position.get('quantity', 0)))
-            
-            # Determine quantity
-            sell_quantity = max(1, total_quantity // 2) if action == "trim" else total_quantity
-            trade_obj['quantity'] = sell_quantity
-            
             # Check minimum trade contracts threshold for channel (for tracking mode)
             min_contracts = config.get("min_trade_contracts", 1)
             if min_contracts == 0:
@@ -824,6 +808,22 @@ class TradeExecutor:
                 trade_obj['price'] = trader.round_to_tick(padded_price, symbol, round_up_for_buy=False, expiration=expiration)
                 
                 return False, f"Channel tracking only: {action} at ${trade_obj['price']:.2f} (Market: ${trade_obj.get('market_price_at_alert', 0):.2f})"
+            
+            # PRE-CALCULATE position quantity (for real trading mode)
+            if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
+                total_quantity = 10
+            else:
+                # SPEED OPTIMIZATION: Get positions once
+                all_positions = trader.get_open_option_positions()
+                position = trader.find_open_option_position(all_positions, symbol, strike, expiration, opt_type)
+                if not position:
+                    print(f"❌ No position found for {symbol}")
+                    return False, "No position found"
+                total_quantity = int(float(position.get('quantity', 0)))
+            
+            # Determine quantity
+            sell_quantity = max(1, total_quantity // 2) if action == "trim" else total_quantity
+            trade_obj['quantity'] = sell_quantity
             
             # PRE-CANCEL existing orders (non-blocking for speed)
             print(f"🚫 Cancelling existing orders for {symbol}...")
