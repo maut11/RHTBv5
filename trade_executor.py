@@ -66,8 +66,8 @@ class ChannelAwareFeedbackLogger:
                     try:
                         market_data = trader.get_option_market_data(
                             trader_symbol,
-                            parsed_message_json.get('strike'),
                             parsed_message_json.get('expiration'),
+                            parsed_message_json.get('strike'),
                             parsed_message_json.get('type')
                         )
                         
@@ -679,7 +679,7 @@ class TradeExecutor:
                 
                 # Get current market price for tracking purposes
                 try:
-                    market_data = trader.get_option_market_data(symbol, strike, expiration, opt_type)
+                    market_data = trader.get_option_market_data(symbol, expiration, strike, opt_type)
                     current_price = final_price
                     
                     # Handle different market_data formats
@@ -786,7 +786,15 @@ class TradeExecutor:
                 # Still get market data for tracking purposes but don't execute
                 trade_obj['is_tracking_only'] = True
                 try:
-                    market_data = trader.get_option_market_data(symbol, strike, expiration, opt_type)
+                    # Initialize with fallback price to ensure key always exists
+                    trade_obj['market_price_at_alert'] = 0.05
+                    
+                    # Debug: Log the parameters being used for market data fetch
+                    log_func(f"🔍 Fetching market data: {symbol} ${strike} {opt_type} {expiration}")
+                    
+                    market_data = trader.get_option_market_data(symbol, expiration, strike, opt_type)
+                    log_func(f"🔍 Market data response: {market_data}")
+                    
                     if market_data and len(market_data) > 0:
                         data = market_data[0] if not isinstance(market_data[0], list) else market_data[0][0]
                         if isinstance(data, dict):
@@ -796,7 +804,12 @@ class TradeExecutor:
                             else:
                                 bid = float(data.get('bid_price', 0) or 0)
                                 ask = float(data.get('ask_price', 0) or 0)
-                                trade_obj['market_price_at_alert'] = (bid + ask) / 2 if bid > 0 and ask > 0 else 0.05
+                                if bid > 0 and ask > 0:
+                                    trade_obj['market_price_at_alert'] = (bid + ask) / 2
+                                elif bid > 0:
+                                    trade_obj['market_price_at_alert'] = bid
+                                # else: keep fallback 0.05
+                    
                     log_func(f"📊 Market price captured for {action} tracking: ${trade_obj.get('market_price_at_alert', 0):.2f}")
                 except Exception as e:
                     log_func(f"⚠️ Could not capture market price for {action}: {e}")
