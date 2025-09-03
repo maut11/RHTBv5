@@ -141,6 +141,11 @@ You will receive:
 
 --- ENHANCED ACTION RULES ---
 1. **ENTRY**: Represents a new trade. Must include Ticker, Strike, Option Type, and Entry Price.
+   - **TICKER INFERENCE**: If no ticker is explicitly mentioned in an ENTRY/BUY alert:
+     - Ryan primarily trades SPX and NQ
+     - Strike prices 5000-7000+ typically indicate SPX
+     - Strike prices 15000-22000+ typically indicate NQ  
+     - When in doubt, default to SPX
 2. **TRIM**: Represents a partial take-profit. EXTRACT ANY AVAILABLE INFO and let the system fill in missing details.
 3. **EXIT**: Represents a full close of the position. EXTRACT ANY AVAILABLE INFO and let the system fill in missing details.
 4. **COMMENT**: Not a trade instruction. Return {{"action": "null"}}.
@@ -161,10 +166,18 @@ The trading system will automatically fill in missing contract details from rece
 5.  Do NOT interpret or convert dates - just extract the raw expiration text from the message.
 
 --- ENHANCED EXAMPLES ---
-**ENTRY Example:**
+**ENTRY Examples:**
 Title: "ENTRY"
 Description: "$SPX 6405c @ 2.8 small"
 → {{"action": "buy", "ticker": "SPX", "strike": 6405, "type": "call", "price": 2.8, "size": "small", "expiration": "{today_str}"}}
+
+Title: "ENTRY"  
+Description: "Chase why not 6425c @ 2.65 lotto"
+→ {{"action": "buy", "ticker": "SPX", "strike": 6425, "type": "call", "price": 2.65, "size": "lotto", "expiration": "{today_str}"}}
+
+Title: "ENTRY"
+Description: "18500c @ 45.0 small"  
+→ {{"action": "buy", "ticker": "NQ", "strike": 18500, "type": "call", "price": 45.0, "size": "small", "expiration": "{today_str}"}}
 
 **TRIM Example (FIXED):**
 Title: "TRIM"  
