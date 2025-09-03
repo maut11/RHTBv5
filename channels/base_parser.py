@@ -222,6 +222,9 @@ class BaseParser(ABC):
             # Date formats without year  
             (r'^(\d{1,2})-(\d{1,2})$', 'MD'),               # MM-DD or M-D
             (r'^(\d{1,2})/(\d{1,2})$', 'MD'),               # MM/DD or M/D
+            # Month name formats
+            (r'^([A-Za-z]{3,})\s+(\d{1,2})\s+(\d{4})$', 'MonDY'),  # "January 16 2026"
+            (r'^([A-Za-z]{3,})\s+(\d{1,2})$', 'MonD'),             # "Jan 16"
         ]
         
         for pattern_info in date_patterns:
@@ -254,6 +257,34 @@ class BaseParser(ABC):
                         # If the date has already passed this year, assume next year
                         if target_date.date() < now.date():
                             target_date = datetime(current_year + 1, month, day, tzinfo=timezone.utc)
+                            logger(f"🗓️ [{self.name}] Date {date_str} has passed in {current_year}, using {current_year + 1}")
+                        else:
+                            logger(f"🗓️ [{self.name}] Date {date_str} is future in {current_year}, using {current_year}")
+                            
+                        return target_date.strftime('%Y-%m-%d')
+                    
+                    elif format_type == 'MonDY':
+                        # "January 16 2026" format
+                        month_name, day, year = match.group(1), int(match.group(2)), int(match.group(3))
+                        month_num = datetime.strptime(month_name[:3], '%b').month
+                        target_date = datetime(year, month_num, day, tzinfo=timezone.utc)
+                        return target_date.strftime('%Y-%m-%d')
+                    
+                    elif format_type == 'MonD':
+                        # "Jan 16" format (no year) - use smart year detection
+                        month_name, day = match.group(1), int(match.group(2))
+                        month_num = datetime.strptime(month_name[:3], '%b').month
+                        
+                        # Get current date info
+                        now = datetime.now(timezone.utc)
+                        current_year = now.year
+                        
+                        # Try to create date for current year
+                        target_date = datetime(current_year, month_num, day, tzinfo=timezone.utc)
+                        
+                        # If the date has already passed this year, assume next year
+                        if target_date.date() < now.date():
+                            target_date = datetime(current_year + 1, month_num, day, tzinfo=timezone.utc)
                             logger(f"🗓️ [{self.name}] Date {date_str} has passed in {current_year}, using {current_year + 1}")
                         else:
                             logger(f"🗓️ [{self.name}] Date {date_str} is future in {current_year}, using {current_year}")
