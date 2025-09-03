@@ -466,6 +466,10 @@ class TradeExecutor:
                             trader, trade_obj, config, log_func, active_position
                         )
                         
+                        # Log the calculated market price (after _execute_sell_order updates trade_obj['price'])
+                        calculated_price = trade_obj.get('price', 0)
+                        log_func(f"💰 Calculated {action} price: ${calculated_price:.2f} (with market data + padding)")
+                        
                         # Handle tracking and performance updates for both real trades and tracking-only
                         if (execution_success and trade_id) or trade_obj.get('is_tracking_only'):
                             # ========== ASYNC NON-BLOCKING UPDATES (AFTER TRADE OR TRACKING) ==========
