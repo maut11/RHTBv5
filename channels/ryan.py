@@ -11,9 +11,12 @@ class RyanParser(BaseParser):
         self.trim_exit_patterns = {
             'price': re.compile(r'\$?([0-9]+\.?[0-9]*)', re.IGNORECASE),  # Price like $3.3, 3.3
             'percentage': re.compile(r'\+?([0-9]+)%', re.IGNORECASE),      # +18%, 32%
-            'ticker': re.compile(r'\$?([A-Z]{1,5})', re.IGNORECASE),      # $SPX, SPX
+            'explicit_ticker': re.compile(r'\$([A-Z]{1,5})', re.IGNORECASE),  # $SPX only (with $ prefix)
             'be_pattern': re.compile(r'\b(BE|break.?even)\b', re.IGNORECASE)  # BE, breakeven
         }
+        
+        # Ryan's common tickers for validation
+        self.ryan_common_tickers = ['SPX', 'SPXW', 'NQ', 'ES', 'SPY', 'QQQ']
         
         print(f"✅ [{self.name}] Optimized Ryan parser initialized with fast regex patterns")
 
@@ -30,10 +33,21 @@ class RyanParser(BaseParser):
             'action': 'trim' if title_upper == 'TRIM' else 'exit'
         }
         
-        # Extract ticker (optional)
-        ticker_match = self.trim_exit_patterns['ticker'].search(description)
-        if ticker_match:
-            result['ticker'] = ticker_match.group(1).upper().replace('$', '')
+        # Extract ticker using smart logic for sequential trading
+        extracted_ticker = None
+        
+        # 1. Look for explicit ticker with $ prefix (e.g., "$SPX")
+        explicit_match = self.trim_exit_patterns['explicit_ticker'].search(description)
+        if explicit_match:
+            extracted_ticker = explicit_match.group(1).upper()
+            print(f"📊 [{self.name}] Found explicit ticker: {extracted_ticker}")
+        
+        # 2. If no explicit ticker, this is sequential trading - leave ticker None
+        # The trading system will fill it from recent positions
+        if extracted_ticker:
+            result['ticker'] = extracted_ticker
+        else:
+            print(f"📈 [{self.name}] No explicit ticker found - using sequential trading logic")
         
         # Check for BE (break even)
         if self.trim_exit_patterns['be_pattern'].search(description):
