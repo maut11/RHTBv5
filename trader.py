@@ -472,6 +472,70 @@ class EnhancedRobinhoodTrader:
             
         return None  # Could not determine
 
+    def _get_optimal_buy_price(self, broker_symbol: str, strike: float, expiration: str, opt_type: str, fallback_price: float) -> float:
+        """Get optimal buy price from market data with exchange-compliant pricing"""
+        try:
+            print(f"🔍 Fetching pre-rounded buy price from market data for {broker_symbol}...")
+            market_data = r.get_option_market_data(broker_symbol, expiration, strike, opt_type)
+            
+            if market_data and len(market_data) > 0:
+                data = market_data[0]
+                
+                # Preference order for buy prices (most likely to fill)
+                buy_price_options = [
+                    ('high_fill_rate_buy_price', 'high fill rate'),
+                    ('ask_price', 'ask'),
+                    ('mark_price', 'mark')
+                ]
+                
+                for price_field, price_name in buy_price_options:
+                    if price_field in data and data[price_field]:
+                        price = float(data[price_field])
+                        if price > 0:
+                            print(f"✅ Using {price_name} price: ${price:.2f} (exchange-compliant)")
+                            return price
+                
+                print(f"⚠️ No valid buy prices in market data, using fallback")
+            else:
+                print(f"⚠️ No market data available for {broker_symbol}, using fallback")
+                
+        except Exception as e:
+            print(f"⚠️ Error fetching optimal buy price: {e}")
+            
+        return None  # Will use fallback tick calculation
+    
+    def _get_optimal_sell_price(self, broker_symbol: str, strike: float, expiration: str, opt_type: str, fallback_price: float) -> float:
+        """Get optimal sell price from market data with exchange-compliant pricing"""
+        try:
+            print(f"🔍 Fetching pre-rounded sell price from market data for {broker_symbol}...")
+            market_data = r.get_option_market_data(broker_symbol, expiration, strike, opt_type)
+            
+            if market_data and len(market_data) > 0:
+                data = market_data[0]
+                
+                # Preference order for sell prices (most likely to fill)
+                sell_price_options = [
+                    ('high_fill_rate_sell_price', 'high fill rate'),
+                    ('bid_price', 'bid'),
+                    ('mark_price', 'mark')
+                ]
+                
+                for price_field, price_name in sell_price_options:
+                    if price_field in data and data[price_field]:
+                        price = float(data[price_field])
+                        if price > 0:
+                            print(f"✅ Using {price_name} price: ${price:.2f} (exchange-compliant)")
+                            return price
+                
+                print(f"⚠️ No valid sell prices in market data, using fallback")
+            else:
+                print(f"⚠️ No market data available for {broker_symbol}, using fallback")
+                
+        except Exception as e:
+            print(f"⚠️ Error fetching optimal sell price: {e}")
+            
+        return None  # Will use fallback tick calculation
+
     def get_instrument_tick_size_with_expiration(self, symbol: str, expiration: str = None) -> float:
         """ENHANCED: Get tick size with SPX 0DTE special handling"""
         if not symbol:
@@ -596,7 +660,7 @@ class EnhancedRobinhoodTrader:
             return False
 
     def place_option_buy_order(self, symbol, strike, expiration, opt_type, quantity, limit_price):
-        """Enhanced buy order with symbol mapping"""
+        """Enhanced buy order with symbol mapping and pre-rounded pricing"""
         try:
             if not self.ensure_connection():
                 return {"error": "Connection to Robinhood failed"}
@@ -604,8 +668,9 @@ class EnhancedRobinhoodTrader:
             # Normalize symbol for broker
             broker_symbol = self.normalize_symbol_for_broker(symbol)
 
-            # Round to proper tick size (round UP for buy orders to ensure execution)
-            rounded_price = self.round_to_tick(limit_price, broker_symbol, round_up_for_buy=True)
+            # NEW: Try to get pre-rounded price from market data first
+            optimal_price = self._get_optimal_buy_price(broker_symbol, strike, expiration, opt_type, limit_price)
+            rounded_price = optimal_price if optimal_price else self.round_to_tick(limit_price, broker_symbol, round_up_for_buy=True)
 
             print(f"🔍 Preparing buy order: {symbol} (broker: {broker_symbol}) ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
             logger.info(f"Buy order preparation: {symbol}/{broker_symbol} ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
@@ -652,7 +717,7 @@ class EnhancedRobinhoodTrader:
             return {"error": str(e)}
 
     def place_option_sell_order(self, symbol, strike, expiration, opt_type, quantity, limit_price=None, sell_padding=None):
-        """Enhanced sell order with symbol mapping and intelligent market pricing"""
+        """Enhanced sell order with symbol mapping and pre-rounded pricing"""
         try:
             if not self.ensure_connection():
                 return {"error": "Connection to Robinhood failed"}
@@ -664,33 +729,40 @@ class EnhancedRobinhoodTrader:
             if sell_padding is None:
                 sell_padding = DEFAULT_SELL_PRICE_PADDING
 
-            # ALWAYS get current market price
-            print(f"📊 Fetching current market price for {symbol}/{broker_symbol} ${strike}{opt_type[0].upper()}...")
-            logger.info(f"Fetching market price for sell order: {symbol}/{broker_symbol}")
+            # NEW: Try to get pre-rounded optimal sell price first
+            if limit_price and limit_price > 0:
+                optimal_price = self._get_optimal_sell_price(broker_symbol, strike, expiration, opt_type, limit_price)
+                if optimal_price:
+                    final_price = optimal_price
+                    price_source = "optimal_pre_rounded"
+                else:
+                    # Fallback to existing market data logic
+                    print(f"📊 Fetching current market price for {symbol}/{broker_symbol} ${strike}{opt_type[0].upper()}...")
+                    logger.info(f"Fetching market price for sell order: {symbol}/{broker_symbol}")
 
-            market_data_list = self.get_option_market_data(broker_symbol, expiration, strike, opt_type)
+                    market_data_list = self.get_option_market_data(broker_symbol, expiration, strike, opt_type)
 
-            final_price = None
-            price_source = "unknown"
+                    final_price = None
+                    price_source = "unknown"
 
-            # Enhanced price discovery
-            if market_data_list and len(market_data_list) > 0:
-                data = market_data_list[0]
-                if isinstance(data, list) and len(data) > 0:
-                    data = data[0]
+                    # Enhanced price discovery
+                    if market_data_list and len(market_data_list) > 0:
+                        data = market_data_list[0]
+                        if isinstance(data, list) and len(data) > 0:
+                            data = data[0]
 
-                if isinstance(data, dict):
-                    mark_price = data.get('mark_price')
-                    bid_price = float(data.get('bid_price', 0) or 0)
-                    ask_price = float(data.get('ask_price', 0) or 0)
+                        if isinstance(data, dict):
+                            mark_price = data.get('mark_price')
+                            bid_price = float(data.get('bid_price', 0) or 0)
+                            ask_price = float(data.get('ask_price', 0) or 0)
 
-                    # Priority 1: Mark price (most accurate)
-                    if mark_price and float(mark_price) > 0:
-                        final_price = float(mark_price)
-                        price_source = "mark"
-                        print(f"✅ Using mark price: ${final_price:.2f}")
-                        logger.debug(f"Using mark price: ${final_price:.2f}")
-                    # Priority 2: Bid/Ask midpoint
+                            # Priority 1: Mark price (most accurate)
+                            if mark_price and float(mark_price) > 0:
+                                final_price = float(mark_price)
+                                price_source = "mark"
+                                print(f"✅ Using mark price: ${final_price:.2f}")
+                                logger.debug(f"Using mark price: ${final_price:.2f}")
+                            # Priority 2: Bid/Ask midpoint
                     elif bid_price > 0 and ask_price > 0:
                         final_price = (bid_price + ask_price) / 2
                         price_source = "midpoint"
@@ -1079,9 +1151,38 @@ class EnhancedRobinhoodTrader:
             "message": f"Order monitoring timeout after {elapsed_time:.1f}s"
         }
 
-    def place_option_sell_order_with_retry(self, symbol, strike, expiration, opt_type, quantity, 
-                                         limit_price=None, sell_padding=None, max_retries=3):
-        """Enhanced sell order with retry logic and better tick size handling"""
+    def place_option_sell_order_with_timeout_retry(self, symbol, strike, expiration, opt_type, quantity, 
+                                                 limit_price=None, sell_padding=None, timeout_seconds=60, max_retries=3):
+        """Enhanced sell order with timeout monitoring, fresh market data, and progressive pricing"""
+        import time
+        
+        for attempt in range(max_retries):
+            # Get fresh market data for each attempt
+            try:
+                broker_symbol = self.normalize_symbol_for_broker(symbol)
+                fresh_optimal_price = self._get_optimal_sell_price(broker_symbol, strike, expiration, opt_type, limit_price or 0)
+                
+                # Progressive aggressiveness: move closer to bid/ask with each retry
+                if fresh_optimal_price and attempt > 0:
+                    market_data = r.get_option_market_data(broker_symbol, expiration, strike, opt_type)
+                    if market_data and len(market_data) > 0:
+                        data = market_data[0]
+                        bid_price = float(data.get('bid_price', 0) or 0)
+                        
+                        if bid_price > 0:
+                            # Move 20% closer to bid with each retry
+                            aggressiveness = attempt * 0.2
+                            adjusted_price = fresh_optimal_price - (fresh_optimal_price - bid_price) * aggressiveness
+                            fresh_optimal_price = adjusted_price
+                            print(f"🎯 Retry {attempt + 1}: Moving {aggressiveness*100:.0f}% toward bid: ${fresh_optimal_price:.2f}")
+                
+                # Use fresh price if available, otherwise fall back
+                retry_limit_price = fresh_optimal_price if fresh_optimal_price else limit_price
+                
+            except Exception as e:
+                print(f"⚠️ Error getting fresh market data on retry {attempt + 1}: {e}")
+                retry_limit_price = limit_price
+        
         for attempt in range(max_retries):
             try:
                 print(f"📤 Sell attempt {attempt + 1}/{max_retries} for {symbol} ${strike}{opt_type.upper()}")
