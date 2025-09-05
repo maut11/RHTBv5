@@ -100,13 +100,14 @@ Messages without an explicit trade directive (e.g. "all cash", "still holding", 
 2.  **Extract Details**: If it is an explicit command, extract `ticker`, `strike`, `type`, `price`, `expiration`, and `size`.
 3.  **Action Words**:
     * "BTO", "buy", "long", "long swing" → "buy"
+    * **PORTFOLIO UPDATE FILTER**: If message contains portfolio status, performance updates, or general commentary about positions, return {{"action": "null"}}.
     * "Trim", "scale out", "taking some off", "selling half" → "trim"
     * "STC", "sell", "exit", "close", "out", "stopped out", "stop hit" → "exit"
     * **"SOLD TO OPEN"** → "exit" (this is FiFi's selling pattern)
 4.  **DIRECT ORDER RECOGNITION**: If a message contains ticker + strike + type + expiration + price but no action words, treat as "buy"
 5.  **SOLD TO OPEN RECOGNITION**: If message contains "SOLD TO OPEN" pattern, treat as "exit"
 6.  **DO NOT GUESS**: If any field is missing, omit the key from the JSON.
-7.  **Breakeven (BE)**: If the message mentions exiting at "BE", return "BE" as the value for the "price" field.
+7.  **Breakeven (BE)**: If the message mentions exiting at "BE", return "BE" as the value for the "price" field for immediate exits only.
 8.  **Stop Loss** If the message mentions "Stop Loss" or "SL" this is a stop loss indicator and not a Ticker, Do not assume a SL is a ticker, return null for the ticker and the trading boths fallback logic will fill it in  
 
 --- PREMIUM COLLECTION DETECTION ---

@@ -5,6 +5,30 @@ class EvaParser(BaseParser):
     def __init__(self, openai_client, channel_id, config):
         super().__init__(openai_client, channel_id, config)
 
+    def parse_message(self, message_meta, received_ts, log_func):
+        """Pre-filter UPDATE alerts, then use OpenAI for OPEN/CLOSE"""
+        try:
+            # Store message meta for other methods
+            self._current_message_meta = message_meta
+            
+            title, description = message_meta if isinstance(message_meta, tuple) else ("UNKNOWN", message_meta)
+            title_upper = title.strip().upper()
+            
+            # ========== PRE-FILTERING ==========
+            # Filter UPDATE alerts - don't process or send to live feed
+            if title_upper == 'UPDATE':
+                print(f"🚫 [{self.name}] UPDATE alert filtered out: {description[:50]}...")
+                log_func(f"UPDATE alert filtered (not processed): {title}")
+                return [], 0  # Return empty result, don't process
+            
+            # Use OpenAI for OPEN/CLOSE processing
+            return super().parse_message(message_meta, received_ts, log_func)
+            
+        except Exception as e:
+            print(f"❌ [{self.name}] Parse error: {e}")
+            log_func(f"Parse error in {self.name}: {e}")
+            return super().parse_message(message_meta, received_ts, log_func)
+
     def build_prompt(self) -> str:
         today = datetime.now(timezone.utc)
         current_year = today.year
@@ -33,13 +57,15 @@ Your ONLY job is to extract the specified fields and return a single JSON object
 5.  Do NOT interpret or convert dates - just extract the raw expiration text from the message.
 
 --- ACTION RULES ---
-1.  If Title is "OPEN", the action is "buy", return the stickern strick pricem type, price expiration, size
+1.  If Title is "OPEN", the action is "buy", return the ticker, strike, price, type, price, expiration, size
+    - **PORTFOLIO UPDATE FILTER**: If message contains portfolio status, performance updates, or general commentary about positions, return {{"action": "null"}}.
 2.  For a "CLOSE" Title, the action depends on the Description:
     * If it contains "all out", "fully", or "remaining", "exit most here" the action is "exit".
     * If it contains "some", "scale out", or "partial", the action is "trim".
     * If unsure, default to "exit".
 3.  If Title is "UPDATE", the action is "null".
 4.  For both Exit and Trim actions you MUST return a contract price if it is present
+    - **BE (Breakeven) Logic**: Only return "BE" as price for immediate exits at breakeven.
 
 --- CRITICAL LOGIC RULES ---
 1.  **DO NOT ASSUME `type`:** "BTO" (Buy to Open) is NOT a valid type. If the message says "BTO" but does not explicitly mention "C", "P", "call", or "put", you MUST omit the `type` key.
