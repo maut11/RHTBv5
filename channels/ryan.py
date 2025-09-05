@@ -49,19 +49,14 @@ class RyanParser(BaseParser):
         else:
             print(f"📈 [{self.name}] No explicit ticker found - using sequential trading logic")
         
-        # Check for BE (break even)
-        if self.trim_exit_patterns['be_pattern'].search(description):
-            result['price'] = 'BE'
-            print(f"💹 [{self.name}] Detected BE (breakeven) exit")
-        else:
-            # Extract price
-            price_match = self.trim_exit_patterns['price'].search(description)
-            if price_match:
-                try:
-                    result['price'] = float(price_match.group(1))
-                    print(f"💰 [{self.name}] Extracted price: ${result['price']}")
-                except ValueError:
-                    pass
+        # Extract price (removed BE detection - OpenAI will handle context)
+        price_match = self.trim_exit_patterns['price'].search(description)
+        if price_match:
+            try:
+                result['price'] = float(price_match.group(1))
+                print(f"💰 [{self.name}] Extracted price: ${result['price']}")
+            except ValueError:
+                pass
         
         # Extract percentage (for logging/tracking)
         pct_match = self.trim_exit_patterns['percentage'].search(description)
@@ -73,13 +68,32 @@ class RyanParser(BaseParser):
         return result
     
     def parse_message(self, message_meta, received_ts, log_func):
-        """OPTIMIZED: Use fast regex for TRIM/EXIT, OpenAI only for BUY"""
+        """OPTIMIZED: Pre-filter alerts, use fast regex for TRIM/EXIT, OpenAI only for BUY"""
         try:
             # Store message meta for other methods
             self._current_message_meta = message_meta
             
             title, description = message_meta if isinstance(message_meta, tuple) else ("UNKNOWN", message_meta)
             title_upper = title.strip().upper()
+            
+            # ========== PRE-FILTERING ==========
+            # Filter COMMENT alerts - don't process or send to live feed
+            if title_upper == 'COMMENT':
+                print(f"🚫 [{self.name}] COMMENT alert filtered out: {description[:50]}...")
+                log_func(f"COMMENT alert filtered (not processed): {title}")
+                return [], 0  # Return empty result, don't process
+            
+            # Filter SL BE alerts - let internal stop loss system handle
+            if 'SL BE' in description.upper() or ('SL' in description.upper() and 'BE' in description.upper()):
+                print(f"🚫 [{self.name}] SL BE alert filtered - using internal stop loss: {description[:50]}...")
+                log_func(f"SL BE alert filtered (internal system handles): {title}")
+                return [], 0  # Return empty result, don't process
+            
+            # Filter NQ futures - Ryan only trades SPX
+            if 'NQ' in description.upper() and title_upper in ['ENTRY', 'BUY']:
+                print(f"🚫 [{self.name}] NQ alert filtered - Ryan SPX only: {description[:50]}...")
+                log_func(f"NQ alert filtered (SPX only): {title}")
+                return [], 0  # Return empty result, don't process
             
             # ========== SPEED OPTIMIZATION ==========
             # For TRIM/EXIT: Use fast regex parsing (skip OpenAI)
@@ -103,7 +117,7 @@ class RyanParser(BaseParser):
                     return [normalized_result], latency_ms
             
             # ========== FALLBACK TO OPENAI ==========
-            # For BUY (ENTRY) and COMMENT: Use OpenAI (accuracy needed)
+            # For BUY (ENTRY): Use OpenAI (accuracy needed)
             print(f"🤖 [{self.name}] Using OpenAI for {title_upper} (accuracy needed)")
             return super().parse_message(message_meta, received_ts, log_func)
             
@@ -146,8 +160,10 @@ You will receive:
      - Strike prices 5000-7000+ typically indicate SPX
      - Strike prices 15000-22000+ typically indicate NQ  
      - When in doubt, default to SPX
+   - **PORTFOLIO UPDATE FILTER**: If message contains portfolio status, performance updates, or general commentary about positions, return {{"action": "null"}}.
 2. **TRIM**: Represents a partial take-profit. EXTRACT ANY AVAILABLE INFO and let the system fill in missing details.
 3. **EXIT**: Represents a full close of the position. EXTRACT ANY AVAILABLE INFO and let the system fill in missing details.
+   - **BE (Breakeven) Logic**: Only return "BE" as price for immediate exits at breakeven. SL BE alerts are filtered out before reaching this parser.
 4. **COMMENT**: Not a trade instruction. Return {{"action": "null"}}.
 
 --- CRITICAL ENHANCEMENT FOR TRIM/EXIT ---
@@ -185,8 +201,8 @@ Description: "$SPX 3.3! +18%"
 → {{"action": "trim", "ticker": "SPX", "price": 3.3}}
 
 **EXIT Example (FIXED):**
-Title: "EXIT"
-Description: "SL BE, nice scalp +32% Done til afternoon"
+Title: "EXIT"  
+Description: "EXIT at BE, small profit"
 → {{"action": "exit", "price": "BE"}}
 
 --- CRITICAL INSTRUCTION ---
@@ -198,7 +214,7 @@ Return only the valid JSON object. Do not include explanations or markdown forma
 ACTION VALUES (CRITICAL - USE EXACTLY THESE):
 - Use "buy" for any new position entry
 - Use "trim" for any partial exit
-- Use "exit" for any full position close
+- Use "exit" for any immediate full position close
 - Use "null" for non-actionable messages
 
 NEVER use variations like "entry", "ENTRY", "BTO", etc. - ALWAYS use the exact values above.
