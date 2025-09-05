@@ -96,7 +96,8 @@ Messages without an explicit trade directive (e.g. “all cash”, “still hold
 - **Breakeven (BE): If the message indicates an exit at "BE" or "breakeven", you MUST return "BE" as the value for the "price" field. Example: {{"action": "exit", "price": "BE"}}**
 - COMMENT: Not a trade instruction. Return null.
 - **Missing Info**: Avoid inferring trades from general commentary. If critical info for an action is missing, it is better to return a "null" action.
--  **Stop Loss** If the message mentions "Stop Loss" or "SL" this is a stop loss indicator and not a Ticker, Do not assume a SL is a ticker, return null for the ticker and the trading boths fallback logic will fill it in  
+- **Stop Loss** If the message mentions "Stop Loss" or "SL" this is a stop loss indicator and not a Ticker, Do not assume a SL is a ticker, return null for the ticker and the trading boths fallback logic will fill it in
+- **Portfolio Updates/Status Messages**: If the message contains phrases like "have already been set", "won't move tomorrow", "TP's have already been set", "set TP for", or discusses future availability ("going to be on a flight", "won't be back online until"), this is a portfolio status update, NOT a trade instruction. Return "null" for ALL actions in such messages.  
 
 ACTION VALUES (CRITICAL - USE EXACTLY THESE):
 - Use "buy" for any new position entry
