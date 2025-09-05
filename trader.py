@@ -419,8 +419,16 @@ class EnhancedRobinhoodTrader:
                                     if ask_price and bid_price:
                                         avg_price = (float(ask_price) + float(bid_price)) / 2
                                         
-                                        # Standard options tick size rules
-                                        if avg_price < 3.00:
+                                        # Enhanced tick size rules with SPX-specific logic
+                                        if broker_symbol.upper() in ['SPX', 'SPXW']:
+                                            # SPX has special tick size rules
+                                            if avg_price < 3.00:
+                                                return 0.05
+                                            elif avg_price < 5.00:
+                                                return 0.05
+                                            else:
+                                                return 0.10  # Critical fix: SPX options over $5.00 use $0.10 ticks
+                                        elif avg_price < 3.00:
                                             if broker_symbol.upper() in ['SPY', 'QQQ', 'IWM']:  # Major ETFs in Penny Pilot
                                                 return 0.01
                                             else:
@@ -439,18 +447,21 @@ class EnhancedRobinhoodTrader:
                     
                     # Enhanced fallback based on symbol recognition with 0DTE special handling
                     if broker_symbol.upper() in ['SPX', 'SPXW']:
-                        # Special handling for SPX 0DTE options
+                        # Special handling for SPX options with proper tick sizing
                         try:
                             from datetime import datetime
                             today = datetime.now().strftime('%Y-%m-%d')
                             if expiration == today:
-                                # For SPX 0DTE options: smaller tick size for better pricing
-                                print(f"📊 SPX 0DTE detected for {broker_symbol} - using enhanced tick size")
-                                return 0.05  # More aggressive for 0DTE 
+                                # For SPX 0DTE options: still need proper tick size based on price
+                                print(f"📊 SPX 0DTE detected for {broker_symbol} - using price-based tick size")
+                                return 0.05  # Conservative for 0DTE when we can't determine price
                             else:
-                                return 0.05  # Standard SPX tick
+                                # For regular SPX options, we need to be more conservative
+                                # Since we can't determine price here, use 0.10 to avoid tick errors
+                                print(f"📊 SPX regular options for {broker_symbol} - using conservative tick size")
+                                return 0.10  # Conservative for regular SPX when price unknown
                         except:
-                            return 0.05
+                            return 0.10  # Most conservative fallback
                     elif broker_symbol.upper() in ['SPY', 'QQQ', 'IWM']:
                         return 0.05  # Conservative for major ETF symbols
                     else:
@@ -620,15 +631,17 @@ class EnhancedRobinhoodTrader:
 
             execution_time = time.time() - start_time
 
-            if result and result.get('id'):
+            # Check for success: must have ID AND no error field
+            if result and result.get('id') and not result.get('error'):
                 print(f"✅ LIVE buy order placed: {result['id']} (execution: {execution_time:.2f}s)")
                 logger.info(f"Buy order placed successfully: {result['id']} for {symbol}/{broker_symbol}")
 
                 # Log order details for tracking
                 print(f"📋 Order details: {quantity}x {symbol}/{broker_symbol} ${strike}{opt_type.upper()} @ ${rounded_price:.2f}")
             else:
-                print(f"❌ Buy order failed: {result}")
-                logger.error(f"Buy order failed: {result}")
+                error_info = result.get('error', result) if result else 'No response'
+                print(f"❌ Buy order failed: {error_info}")
+                logger.error(f"Buy order failed: {error_info}")
 
             return result
 
@@ -732,12 +745,14 @@ class EnhancedRobinhoodTrader:
 
             execution_time = time.time() - start_time
 
-            if result and result.get('id'):
+            # Check for success: must have ID AND no error field
+            if result and result.get('id') and not result.get('error'):
                 print(f"✅ LIVE sell order placed: {result['id']} @ ${sell_price:.2f} (execution: {execution_time:.2f}s)")
                 logger.info(f"Sell order placed successfully: {result['id']} for {symbol}/{broker_symbol}")
             else:
-                print(f"❌ Sell order failed: {result}")
-                logger.error(f"Sell order failed: {result}")
+                error_info = result.get('error', result) if result else 'No response'
+                print(f"❌ Sell order failed: {error_info}")
+                logger.error(f"Sell order failed: {error_info}")
 
             return result
 
@@ -1079,7 +1094,7 @@ class EnhancedRobinhoodTrader:
                 if result and result.get('error'):
                     error_message = str(result['error']).lower()
                     if 'tick' in error_message or 'min tick' in error_message:
-                        print(f"🔧 Tick size error detected, recalculating with fresh data...")
+                        print(f"🔧 Tick size error detected on attempt {attempt + 1}, trying enhanced retry logic...")
                         
                         # Clear tick cache for this symbol
                         broker_symbol = self.normalize_symbol_for_broker(symbol)
@@ -1087,21 +1102,54 @@ class EnhancedRobinhoodTrader:
                         if cache_key in self.tick_size_cache:
                             del self.tick_size_cache[cache_key]
                         
-                        # Get fresh tick size and try with a slightly higher price
-                        fresh_tick_size = self.get_instrument_tick_size(symbol)
-                        
-                        if limit_price:
-                            # Round to fresh tick size with small buffer
-                            buffer_price = limit_price * 1.02  # 2% buffer
-                            adjusted_price = self.round_to_tick(buffer_price, symbol, round_up_for_buy=False)
-                            print(f"🎯 Adjusted price: ${limit_price:.2f} → ${adjusted_price:.2f} (tick: ${fresh_tick_size})")
+                        # For SPX options, try multiple tick size strategies
+                        if broker_symbol.upper() in ['SPX', 'SPXW'] and limit_price:
+                            retry_prices = []
                             
-                            # Retry with adjusted price
-                            result = self.place_option_sell_order(symbol, strike, expiration, opt_type, quantity, 
-                                                                adjusted_price, sell_padding)
+                            # Strategy 1: Use conservative 0.10 tick size for SPX over $5
+                            if limit_price >= 5.0:
+                                conservative_price = round(limit_price / 0.10) * 0.10
+                                retry_prices.append((conservative_price, "SPX $0.10 tick"))
+                            
+                            # Strategy 2: Round down to nearest 0.05
+                            rounded_05 = round(limit_price / 0.05) * 0.05
+                            retry_prices.append((rounded_05, "$0.05 tick"))
+                            
+                            # Strategy 3: Round up slightly with small buffer
+                            buffer_price = limit_price * 1.01  # 1% buffer
+                            fresh_tick_size = self.get_instrument_tick_size(symbol)
+                            if fresh_tick_size > 0:
+                                buffered_price = round(buffer_price / fresh_tick_size) * fresh_tick_size
+                                retry_prices.append((buffered_price, f"${fresh_tick_size} fresh tick"))
+                            
+                            # Try each strategy
+                            for retry_price, strategy in retry_prices:
+                                if retry_price > 0:
+                                    print(f"🎯 Retry strategy: ${limit_price:.2f} → ${retry_price:.2f} ({strategy})")
+                                    result = self.place_option_sell_order(symbol, strike, expiration, opt_type, quantity, 
+                                                                        retry_price, sell_padding)
+                                    
+                                    # If successful, break out of retry loop
+                                    if result and result.get('id') and not result.get('error'):
+                                        print(f"✅ Tick size retry successful with {strategy}")
+                                        break
+                                    else:
+                                        print(f"❌ Retry with {strategy} failed: {result.get('error', 'Unknown error') if result else 'No response'}")
+                        
+                        else:
+                            # Standard retry for non-SPX symbols
+                            fresh_tick_size = self.get_instrument_tick_size(symbol)
+                            if limit_price and fresh_tick_size > 0:
+                                # Round to fresh tick size
+                                adjusted_price = round(limit_price / fresh_tick_size) * fresh_tick_size
+                                print(f"🎯 Standard adjusted price: ${limit_price:.2f} → ${adjusted_price:.2f} (tick: ${fresh_tick_size})")
+                                
+                                # Retry with adjusted price
+                                result = self.place_option_sell_order(symbol, strike, expiration, opt_type, quantity, 
+                                                                    adjusted_price, sell_padding)
                 
-                # If successful, return immediately
-                if result and not result.get('error'):
+                # If successful, return immediately (must have ID AND no error)
+                if result and result.get('id') and not result.get('error'):
                     print(f"✅ Sell order successful on attempt {attempt + 1}")
                     return result
                     

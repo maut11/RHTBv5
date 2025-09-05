@@ -697,6 +697,53 @@ class EnhancedPerformanceTracker:
             except Exception as e:
                 self.logger.error(f"Error getting open trades for channel {channel}: {e}")
                 return []
+
+    def close_all_channel_positions(self, channel: str, reason: str = "Manual clear") -> int:
+        """Close all open positions for a specific channel by setting their status to 'cleared'"""
+        with self.lock:
+            try:
+                with self._get_connection() as conn:
+                    cursor = conn.cursor()
+                    
+                    # First, get the count of positions that will be cleared
+                    cursor.execute("""
+                        SELECT COUNT(*) FROM trades 
+                        WHERE channel = ? AND status IN ('open', 'partially_trimmed')
+                    """, (channel,))
+                    
+                    count_before = cursor.fetchone()[0]
+                    
+                    if count_before == 0:
+                        return 0
+                    
+                    # Update all open positions to 'cleared' status
+                    cursor.execute("""
+                        UPDATE trades 
+                        SET status = 'cleared',
+                            exit_time = CURRENT_TIMESTAMP,
+                            exit_price = 0.0,
+                            pnl_percent = 0.0,
+                            pnl_dollars = 0.0,
+                            notes = CASE 
+                                WHEN notes IS NULL OR notes = '' THEN ?
+                                ELSE notes || '; ' || ?
+                            END
+                        WHERE channel = ? AND status IN ('open', 'partially_trimmed')
+                    """, (reason, reason, channel))
+                    
+                    cleared_count = cursor.rowcount
+                    
+                    # Log the clearing action
+                    self.logger.info(f"Cleared {cleared_count} positions for channel {channel}: {reason}")
+                    
+                    # Force commit the changes
+                    conn.commit()
+                    
+                    return cleared_count
+                    
+            except Exception as e:
+                self.logger.error(f"Error closing all positions for channel {channel}: {e}")
+                return 0
     
     def cleanup_old_trades(self, days: int = 90):
         """Archive old closed trades to keep database performant"""
