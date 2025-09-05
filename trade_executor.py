@@ -17,6 +17,7 @@ from config import (
     get_broker_symbol, get_trader_symbol, get_all_symbol_variants,
     SYMBOL_NORMALIZATION_CONFIG
 )
+from portfolio_update_filter import filter_portfolio_updates
 
 class ChannelAwareFeedbackLogger:
     """Enhanced feedback logger with symbol mapping support"""
@@ -256,6 +257,15 @@ class TradeExecutor:
             # Parse the message
             try:
                 parsed_results, latency_ms = handler.parse_message(message_meta, received_ts, log_func)
+                
+                # Apply portfolio update filter to prevent false trade executions
+                if parsed_results:
+                    original_count = len([r for r in parsed_results if r.get('action') != 'null'])
+                    parsed_results = filter_portfolio_updates(parsed_results, raw_msg, handler.name)
+                    filtered_count = len([r for r in parsed_results if r.get('action') != 'null'])
+                    
+                    if original_count > filtered_count:
+                        log_func(f"🛡️ Portfolio update filter: {original_count - filtered_count} trades filtered out")
                 
                 if parsed_results:
                     for parsed_obj in parsed_results:
