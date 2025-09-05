@@ -598,6 +598,15 @@ class EnhancedDiscordClient(discord.Client):
                     await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {
                         "content": "Usage: `!mintick <ticker symbol>`\nExample: `!mintick SPY` or `!mintick TSLA`"
                     }, "command_response")
+            
+            elif command == "!clear":
+                channel_arg = content[len("!clear"):].strip()
+                if channel_arg:
+                    await self._handle_clear_command(channel_arg)
+                else:
+                    await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {
+                        "content": "Usage: `!clear <channel_name>`\nExample: `!clear ryan` or `!clear eva`\nClears fallback position history for the specified channel."
+                    }, "command_response")
                       
             else:
                 await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {
@@ -860,6 +869,7 @@ class EnhancedDiscordClient(discord.Client):
 **Trading:**
 `!getprice <query>` - Get option market price
 `!mintick <symbol>` - Get minimum tick size for symbol
+`!clear <channel>` - Clear fallback position history for channel
 `!positions` - Show current positions
 `!portfolio` - Show portfolio value
 `!trades` - Recent trade performance
@@ -1100,53 +1110,142 @@ class EnhancedDiscordClient(discord.Client):
         else:
             symbol = result['symbol']
             tick_size = result['tick_size']
-            info = result.get('info', {})
+            broker_symbol = result.get('broker_symbol', symbol)
             
             # Create embed with tick size information
             embed = {
-                "title": f"📏 Minimum Tick Size - {symbol}",
+                "title": f"🎯 Minimum Tick Size: {symbol}",
                 "description": f"**Minimum tick size:** ${tick_size:.4f}".rstrip('0').rstrip('.'),
-                "color": 0x00ff00,
-                "fields": [
-                    {
-                        "name": "Tick Size Details",
-                        "value": f"""
-**Symbol:** {symbol}
-**Min Tick:** ${tick_size:.4f}
-**Decimal Places:** {len(str(tick_size).split('.')[-1])}
-                        """.strip(),
-                        "inline": True
-                    }
-                ],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "footer": {"text": "Tick size determines minimum price increments for trading"}
+                "color": 3447003,  # Blue
+                "fields": []
             }
             
             # Add additional info if available
-            if info.get('name'):
-                embed["fields"].append({
-                    "name": "Instrument Info",
-                    "value": f"""
-**Name:** {info.get('name', 'N/A')}
-**Tradeable:** {info.get('tradeable', 'Unknown')}
-**Type:** {info.get('type', 'Unknown')}
-                    """.strip(),
-                    "inline": True
-                })
+            if result.get('info'):
+                info = result['info']
+                embed["fields"].extend([
+                    {"name": "Instrument Name", "value": info.get('name', 'N/A'), "inline": True},
+                    {"name": "Tradeable", "value": str(info.get('tradeable', 'Unknown')), "inline": True},
+                    {"name": "Type", "value": info.get('type', 'Unknown'), "inline": True}
+                ])
             
-            # Add usage examples
-            trader = self.live_trader if not SIM_MODE else self.sim_trader
-            example_prices = []
-            for base_price in [10.00, 50.00, 100.00]:
-                rounded_up = trader.round_to_tick(base_price + tick_size/2, symbol, round_up_for_buy=True)
-                rounded_down = trader.round_to_tick(base_price + tick_size/2, symbol, round_up_for_buy=False)
-                example_prices.append(f"${base_price:.2f} → ↑${rounded_up:.4f}".rstrip('0').rstrip('.') + f" ↓${rounded_down:.4f}".rstrip('0').rstrip('.'))
+            # Add basic details
+            content = f"""**Symbol:** {symbol} (Broker: {broker_symbol})
+**Min Tick:** ${tick_size:.4f}
+**Decimal Places:** {len(str(tick_size).split('.')[-1])}
+
+**Practical Examples:**
+"""
             
-            embed["fields"].append({
-                "name": "Price Rounding Examples",
-                "value": "\n".join(example_prices[:2]),
-                "inline": False
-            })
+            # Add examples of rounding
+            if result.get('success'):
+                try:
+                    trader = self.live_trader if not SIM_MODE else self.sim_trader
+                    base_price = tick_size * 10  # Example base price
+                    rounded_up = trader.round_to_tick(base_price + tick_size/2, symbol, round_up_for_buy=True)
+                    rounded_down = trader.round_to_tick(base_price + tick_size/2, symbol, round_up_for_buy=False)
+                    
+                    content += f"• ${base_price + tick_size/2:.4f} rounds to ${rounded_up:.4f} (buy)\n"
+                    content += f"• ${base_price + tick_size/2:.4f} rounds to ${rounded_down:.4f} (sell)"
+                except Exception as e:
+                    logger.debug(f"Error creating examples: {e}")
+                    content += "Examples not available"
+            
+            embed["description"] = content
+            
+            await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [embed]}, "command_response")
+    
+    async def _handle_clear_command(self, channel_name: str):
+        """Handle clear command to close all open positions for a channel"""
+        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, 
+                                            {"content": f"⏳ Clearing fallback positions for channel: `{channel_name}`..."}, 
+                                            "command_response")
+
+        def clear_channel_positions():
+            try:
+                # Normalize channel name
+                channel_name_normalized = channel_name.lower().strip()
+                
+                # Map channel names to their identifiers in the database
+                channel_mapping = {
+                    'ryan': 'Ryan',
+                    'eva': 'Eva', 
+                    'will': 'Will',
+                    'fifi': 'Fifi',
+                    'sean': 'Sean'
+                }
+                
+                if channel_name_normalized not in channel_mapping:
+                    return {"error": f"Unknown channel: {channel_name}. Available channels: {', '.join(channel_mapping.keys())}"}
+                
+                channel_db_name = channel_mapping[channel_name_normalized]
+                
+                # Get current open positions
+                open_trades = self.performance_tracker.get_open_trades_for_channel(channel_db_name)
+                
+                if not open_trades:
+                    return {
+                        "success": True,
+                        "channel": channel_db_name,
+                        "message": "No open positions found to clear",
+                        "cleared_count": 0
+                    }
+                
+                # Close all open positions by updating their status to 'cleared'
+                cleared_count = self.performance_tracker.close_all_channel_positions(channel_db_name, reason="Manual clear command")
+                
+                return {
+                    "success": True,
+                    "channel": channel_db_name,
+                    "message": f"Successfully cleared {cleared_count} open positions",
+                    "cleared_count": cleared_count,
+                    "trades": [{"symbol": t.get("trader_symbol"), "trade_id": t.get("trade_id")} for t in open_trades[:5]]  # Show first 5
+                }
+                
+            except Exception as e:
+                logger.error(f"Error clearing positions for channel {channel_name}: {e}", exc_info=True)
+                return {"error": f"Error clearing positions: {str(e)}"}
+
+        result = await self.loop.run_in_executor(None, clear_channel_positions)
+
+        if "error" in result:
+            await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": f"❌ {result['error']}"}, "command_response")
+        else:
+            channel = result['channel']
+            cleared_count = result['cleared_count']
+            message = result['message']
+            
+            # Create embed with clear results
+            embed = {
+                "title": f"🧹 Channel Positions Cleared: {channel}",
+                "description": message,
+                "color": 65280 if cleared_count > 0 else 16776960,  # Green if cleared, yellow if none
+                "fields": [
+                    {"name": "Channel", "value": channel, "inline": True},
+                    {"name": "Positions Cleared", "value": str(cleared_count), "inline": True}
+                ]
+            }
+            
+            # Add list of cleared trades if any
+            if result.get('trades') and cleared_count > 0:
+                trades_list = []
+                for trade in result['trades']:
+                    trades_list.append(f"• {trade['symbol']} (ID: {trade['trade_id']})")
+                
+                if len(trades_list) > 0:
+                    trades_text = "\n".join(trades_list)
+                    if cleared_count > 5:
+                        trades_text += f"\n... and {cleared_count - 5} more positions"
+                    
+                    embed["fields"].append({
+                        "name": "Cleared Positions", 
+                        "value": trades_text, 
+                        "inline": False
+                    })
+            
+            embed["footer"] = {
+                "text": "Fallback logic will no longer reference these positions for incomplete trade signals."
+            }
             
             await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [embed]}, "command_response")
 
