@@ -161,6 +161,14 @@ You will receive:
      - Strike prices 15000-22000+ typically indicate NQ  
      - When in doubt, default to SPX
    - **PORTFOLIO UPDATE FILTER**: If message contains portfolio status, performance updates, or general commentary about positions, return {{"action": "null"}}.
+
+--- WEEKLY TRADE PLAN FILTERING ---
+**CRITICAL**: If the message contains weekly trade planning content, return {{"action": "null"}}. Detect these patterns:
+- "Weekly Trade Plan", "Week Trade Plan", "Trading Plan for", "Weekly Plan", "Trade Plan:"
+- Messages discussing future trade setups without immediate execution prices
+- Planning messages that list multiple tickers with targets but no entry prices
+- Example: "9/8 Weekly Trade Plan: $DOCS - Taking 9/19 70C or 10/17 70C over 69.8 targeting 73.14" → {{"action": "null"}}
+
 2. **TRIM**: Represents a partial take-profit. EXTRACT ANY AVAILABLE INFO and let the system fill in missing details.
 3. **EXIT**: Represents a full close of the position. EXTRACT ANY AVAILABLE INFO and let the system fill in missing details.
    - **BE (Breakeven) Logic**: Only return "BE" as price for immediate exits at breakeven. SL BE alerts are filtered out before reaching this parser.

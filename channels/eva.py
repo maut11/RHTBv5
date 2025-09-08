@@ -77,6 +77,13 @@ Your ONLY job is to extract the specified fields and return a single JSON object
 * Message: Title="CLOSE", Description="STC CRCL 08/15/2025 200C @ 1.94 (all out...)" -> Correct JSON: {{"action": "exit", "ticker": "CRCL", "strike": 200, "type": "call", "price": 1.94, "expiration": "2025-08-15"}}
 * Message: Title="CLOSE", Description="STC CRWV... (Good spot to scale out half...)" -> Correct JSON: {{"action": "trim", "ticker": "CRWV", ...}}
 
+--- WEEKLY TRADE PLAN FILTERING ---
+**CRITICAL**: If the message contains weekly trade planning content, return {{"action": "null"}}. Detect these patterns:
+- "Weekly Trade Plan", "Week Trade Plan", "Trading Plan for", "Weekly Plan", "Trade Plan:"
+- Messages discussing future trade setups without immediate execution prices
+- Planning messages that list multiple tickers with targets but no entry prices
+- Example: "Weekly Trade Plan: $DOCS - Taking 9/19 70C over 69.8 targeting 73.14" → {{"action": "null"}}
+
 --- Additional Rules  ---
 -  **Stop Loss** If the message mentions "Stop Loss" or "SL" this is a stop loss indicator and not a Ticker, Do not assume a SL is a ticker, return null for the ticker and the trading boths fallback logic will fill it in  
 - **Missing Info**: Avoid inferring trades from general commentary. If critical info for an action is missing, it is better to return a "null" action.

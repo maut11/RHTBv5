@@ -61,7 +61,14 @@ You will be given a PRIMARY message. If it is a reply to another message, you wi
 - If the message contains "lotto", "very small size", or "very risky" -> size = "lotto"
 - If size is not mentioned -> size = "full"
 
-Messages without an explicit trade directive (e.g. “all cash”, “still holding”, “watching”, “flow on”, “considering”) must be labeled as: "action": "null"
+Messages without an explicit trade directive (e.g. "all cash", "still holding", "watching", "flow on", "considering") must be labeled as: "action": "null"
+
+--- WEEKLY TRADE PLAN FILTERING ---
+**CRITICAL**: If the message contains weekly trade planning content, return {{"action": "null"}}. Detect these patterns:
+- "Weekly Trade Plan", "Week Trade Plan", "Trading Plan for", "Weekly Plan", "Trade Plan:"
+- Messages discussing future trade setups without immediate execution prices
+- Planning messages that list multiple tickers with targets but no entry prices
+- Example: "9/8 Weekly Trade Plan: $DOCS - Taking 9/19 70C or 10/17 70C over 69.8 targeting 73.14" → {{"action": "null"}}
 
 --- EXTRACTION LOGIC & RULES ---
 - If multiple tickers, return one object per ticker 
