@@ -905,7 +905,7 @@ class TradeExecutor:
             start_time = time.time()
             
             # Use enhanced sell order with retry logic
-            sell_response = trader.place_option_sell_order_with_retry(
+            sell_response = trader.place_option_sell_order_with_timeout_retry(
                 symbol, strike, expiration, opt_type, sell_quantity, 
                 limit_price=final_price, sell_padding=sell_padding, max_retries=3
             )
