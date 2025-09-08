@@ -478,8 +478,8 @@ class EnhancedRobinhoodTrader:
             print(f"🔍 Fetching pre-rounded buy price from market data for {broker_symbol}...")
             market_data = r.get_option_market_data(broker_symbol, expiration, strike, opt_type)
             
-            if market_data and len(market_data) > 0:
-                data = market_data[0]
+            if market_data and len(market_data) > 0 and len(market_data[0]) > 0:
+                data = market_data[0][0]  # Fix: API returns [[data]], not [data]
                 
                 # Preference order for buy prices (most likely to fill)
                 buy_price_options = [
