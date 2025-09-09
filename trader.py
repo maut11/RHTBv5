@@ -1286,6 +1286,14 @@ class EnhancedRobinhoodTrader:
         logger.debug(f"Session info: {info}")
         return info
 
+    def place_option_sell_order_with_retry(self, symbol, strike, expiration, opt_type, quantity, 
+                                         limit_price=None, sell_padding=None, max_retries=3):
+        """Compatibility method that calls place_option_sell_order_with_timeout_retry"""
+        return self.place_option_sell_order_with_timeout_retry(
+            symbol, strike, expiration, opt_type, quantity,
+            limit_price=limit_price, sell_padding=sell_padding, max_retries=max_retries
+        )
+
 
 class EnhancedSimulatedTrader:
     """Enhanced simulated trader with symbol mapping support"""
