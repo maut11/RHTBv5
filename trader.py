@@ -1291,7 +1291,7 @@ class EnhancedRobinhoodTrader:
         """Compatibility method that calls place_option_sell_order_with_timeout_retry"""
         return self.place_option_sell_order_with_timeout_retry(
             symbol, strike, expiration, opt_type, quantity,
-            limit_price=limit_price, sell_padding=sell_padding, max_retries=max_retries
+            limit_price=limit_price, sell_padding=sell_padding, timeout_seconds=60, max_retries=max_retries
         )
 
 
