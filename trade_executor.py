@@ -314,8 +314,14 @@ class TradeExecutor:
                         # FIRST: Try position manager with symbol variants
                         active_position = self.position_manager.find_position(trade_obj['channel_id'], trade_obj) or {}
                         
-                        # SECOND: Try performance tracker with symbol variants
-                        if not active_position and trade_obj.get('ticker'):
+                        # If we found a position, UPDATE trade_obj with the original trade_id
+                        # This ensures proper position tracking and linking
+                        if active_position and active_position.get('trade_id'):
+                            trade_obj['trade_id'] = active_position['trade_id']
+                            log_func(f"✅ Linked to original position: {active_position['trade_id']}")
+                        
+                        # SECOND: Try performance tracker with symbol variants (fallback)
+                        elif not active_position and trade_obj.get('ticker'):
                             # Pass the original ticker, performance tracker should handle variants
                             trade_id = self.performance_tracker.find_open_trade_by_ticker(
                                 trade_obj['ticker'], handler.name
@@ -323,6 +329,7 @@ class TradeExecutor:
                             if trade_id:
                                 log_func(f"🔍 Found open trade by ticker in {handler.name}: {trade_id}")
                                 active_position = {'trade_id': trade_id}
+                                trade_obj['trade_id'] = trade_id
 
                     # Fill in missing contract details with symbol mapping support
                     symbol = trade_obj.get("ticker") or (active_position.get("trader_symbol") or active_position.get("symbol") if active_position else None)
