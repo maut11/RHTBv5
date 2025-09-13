@@ -359,6 +359,22 @@ class TradeExecutor:
                             expiration = expiration or recent_parse.get('expiration') 
                             opt_type = opt_type or recent_parse.get('type')
                             log_func(f"✅ Found previous parse in {handler.name}: {symbol} ${strike}{opt_type} {expiration}")
+                        
+                        # If CSV fallback still didn't provide complete info, try Robinhood API fallback
+                        if not all([strike, expiration, opt_type]) and action in ["trim", "stop"]:
+                            log_func(f"🔍 CSV fallback incomplete, trying Robinhood API fallback for {symbol}...")
+                            try:
+                                from robinhood_positions import get_contract_info_for_ticker
+                                rh_contract = get_contract_info_for_ticker(symbol, trader, handler.name)
+                                if rh_contract:
+                                    strike = strike or rh_contract.get('strike')
+                                    expiration = expiration or rh_contract.get('expiration')
+                                    opt_type = opt_type or rh_contract.get('type')
+                                    log_func(f"✅ Robinhood API fallback found: {symbol} ${strike}{opt_type} {expiration}")
+                                else:
+                                    log_func(f"⚠️ No matching position found in Robinhood for {symbol}")
+                            except Exception as e:
+                                log_func(f"❌ Robinhood API fallback failed: {str(e)}", "ERROR")
                     
                     trade_obj.update({
                         'ticker': symbol, 
