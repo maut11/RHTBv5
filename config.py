@@ -178,7 +178,7 @@ CHANNELS_CONFIG = {
 }
 
 # Performance tracking configuration
-PERFORMANCE_DB_FILE = "performance_tracking.db"
+PERFORMANCE_DB_FILE = "logs/performance_tracking.db"
 PERFORMANCE_CSV_BACKUP = "performance_backup.csv"
 
 # Enhanced performance metrics to track
