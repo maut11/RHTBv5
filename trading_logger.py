@@ -17,9 +17,12 @@ class TradingSystemLogger:
     def setup_loggers(self, log_level):
         """Setup structured logging with separate channels"""
         
-        # Create logs directory if it doesn't exist
+        # Create logs directory and subdirectories if they don't exist
         logs_dir = Path("logs")
         logs_dir.mkdir(exist_ok=True)
+        (logs_dir / "trading").mkdir(exist_ok=True)
+        (logs_dir / "errors").mkdir(exist_ok=True)
+        (logs_dir / "debug").mkdir(exist_ok=True)
         
         # 1. Main trading logger (filtered, less noise)
         self.main_logger = logging.getLogger("trading_main")
@@ -34,9 +37,9 @@ class TradingSystemLogger:
             datefmt='%Y-%m-%d %H:%M:%S'
         )
         
-        # Main log file handler (with rotation)
+        # Main log file handler (with rotation) - organized structure
         main_handler = logging.handlers.RotatingFileHandler(
-            logs_dir / "trading_main.log",
+            logs_dir / "trading" / "trading_main.log",
             maxBytes=50*1024*1024,  # 50MB
             backupCount=5
         )
@@ -57,7 +60,7 @@ class TradingSystemLogger:
         self.critical_logger.setLevel(logging.WARNING)
         
         critical_handler = logging.handlers.RotatingFileHandler(
-            logs_dir / "critical_events.log",
+            logs_dir / "errors" / "critical_events.log",
             maxBytes=10*1024*1024,  # 10MB
             backupCount=3
         )
@@ -73,7 +76,7 @@ class TradingSystemLogger:
         self.debug_logger.setLevel(logging.DEBUG)
         
         debug_handler = logging.handlers.RotatingFileHandler(
-            logs_dir / "debug_full.log",
+            logs_dir / "debug" / "debug_full.log",
             maxBytes=100*1024*1024,  # 100MB
             backupCount=2
         )

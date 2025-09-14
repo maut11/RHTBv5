@@ -33,7 +33,7 @@ class EnhancedPerformanceTracker:
     Each trade is associated with a specific channel for proper attribution.
     """
     
-    def __init__(self, db_file: str = "performance_tracking.db"):
+    def __init__(self, db_file: str = "logs/performance_tracking.db"):
         self.db_file = db_file
         self.lock = Lock()
         self._connection_pool = {}

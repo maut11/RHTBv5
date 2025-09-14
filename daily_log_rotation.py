@@ -96,13 +96,20 @@ class DailyRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
 
 def setup_daily_rotating_logging(log_dir="logs"):
     """
-    Setup daily rotating logging system with automatic cleanup
+    Setup daily rotating logging system with organized folder structure and automatic cleanup
     
     Returns:
         logging.Logger: Configured main logger
     """
     log_dir = Path(log_dir)
     log_dir.mkdir(exist_ok=True, parents=True)
+    
+    # Create organized subdirectories
+    (log_dir / "debug").mkdir(exist_ok=True)
+    (log_dir / "errors").mkdir(exist_ok=True)
+    (log_dir / "alert_manager").mkdir(exist_ok=True)
+    (log_dir / "trading").mkdir(exist_ok=True)
+    (log_dir / "parsing_feedback").mkdir(exist_ok=True)
     
     # Get main logger
     main_logger = logging.getLogger('main')
@@ -117,14 +124,14 @@ def setup_daily_rotating_logging(log_dir="logs"):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
-    # Daily rotating debug handler
-    debug_handler = DailyRotatingFileHandler(log_dir, 'debug', retention_days=30)
+    # Daily rotating debug handler (organized into debug folder)
+    debug_handler = DailyRotatingFileHandler(log_dir / "debug", 'debug', retention_days=30)
     debug_handler.setLevel(logging.DEBUG)
     debug_handler.setFormatter(detailed_formatter)
     main_logger.addHandler(debug_handler)
     
-    # Daily rotating error handler
-    error_handler = DailyRotatingFileHandler(log_dir, 'errors', retention_days=30)
+    # Daily rotating error handler (organized into errors folder)
+    error_handler = DailyRotatingFileHandler(log_dir / "errors", 'errors', retention_days=30)
     error_handler.setLevel(logging.ERROR)
     error_handler.setFormatter(detailed_formatter)
     main_logger.addHandler(error_handler)
@@ -140,21 +147,127 @@ def setup_daily_rotating_logging(log_dir="logs"):
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
     
-    # Add daily rotating handler to root logger
-    root_debug_handler = DailyRotatingFileHandler(log_dir, 'debug', retention_days=30)
+    # Add daily rotating handler to root logger for debug folder
+    root_debug_handler = DailyRotatingFileHandler(log_dir / "debug", 'debug', retention_days=30)
     root_debug_handler.setLevel(logging.DEBUG)
     root_debug_handler.setFormatter(detailed_formatter)
     root_logger.addHandler(root_debug_handler)
     
+    # Filter out broker API noise from debug logs
+    _filter_broker_noise(main_logger, root_logger)
+    
+    # Setup specialized loggers
+    _setup_specialized_loggers(log_dir, detailed_formatter)
+    
+    # Setup backward compatibility
+    setup_backward_compatible_logging(log_dir)
+    
     current_date = datetime.now().strftime('%Y-%m-%d')
     main_logger.info("="*50)
-    main_logger.info("Daily rotating logging system initialized")
-    main_logger.info(f"Debug log: {log_dir}/{current_date}_debug.log")
-    main_logger.info(f"Error log: {log_dir}/{current_date}_errors.log")
+    main_logger.info("Enhanced daily rotating logging system initialized")
+    main_logger.info(f"Debug log: {log_dir}/debug/{current_date}_debug.log")
+    main_logger.info(f"Error log: {log_dir}/errors/{current_date}_errors.log")
+    main_logger.info(f"Trading log: {log_dir}/trading/{current_date}_trading.log")
+    main_logger.info(f"Alert Manager log: {log_dir}/alert_manager/{current_date}_alert_manager.log")
     main_logger.info(f"Retention: {30} days with automatic cleanup")
     main_logger.info("="*50)
     
     return main_logger
+
+
+def _filter_broker_noise(main_logger, root_logger):
+    """
+    Filter out RobinStocks and broker API noise by setting their loggers to WARNING level
+    """
+    robinstocks_api_loggers = [
+        'robin_stocks',
+        'robin_stocks.robinhood',
+        'robin_stocks.authentication',
+        'robin_stocks.orders',
+        'robin_stocks.options',
+        'requests.packages.urllib3',
+        'urllib3.connectionpool',
+        'urllib3',
+        'requests',
+        'pyotp',
+        'discord',
+        'openai'
+    ]
+    
+    for logger_name in robinstocks_api_loggers:
+        noisy_logger = logging.getLogger(logger_name)
+        noisy_logger.setLevel(logging.WARNING)
+        main_logger.info(f"RobinStocks logger '{logger_name}' filtered to WARNING level")
+
+
+def _setup_specialized_loggers(log_dir, detailed_formatter):
+    """
+    Setup specialized loggers for different components with organized folder structure
+    """
+    # Trading-specific logger
+    trading_logger = logging.getLogger('trading')
+    trading_logger.setLevel(logging.INFO)
+    trading_handler = DailyRotatingFileHandler(log_dir / "trading", 'trading', retention_days=30)
+    trading_handler.setLevel(logging.INFO)
+    trading_handler.setFormatter(detailed_formatter)
+    trading_logger.addHandler(trading_handler)
+    
+    # Alert manager logger
+    alert_logger = logging.getLogger('alert_manager')
+    alert_logger.setLevel(logging.INFO)
+    alert_handler = DailyRotatingFileHandler(log_dir / "alert_manager", 'alert_manager', retention_days=30)
+    alert_handler.setLevel(logging.INFO)
+    alert_handler.setFormatter(detailed_formatter)
+    alert_logger.addHandler(alert_handler)
+
+
+def get_organized_logger(component_name):
+    """
+    Get a logger for a specific component that will write to the organized structure
+    
+    Args:
+        component_name: Name of the component (trading, alert_manager, etc.)
+        
+    Returns:
+        logging.Logger: Logger configured for the component
+    """
+    return logging.getLogger(component_name)
+
+
+def setup_backward_compatible_logging(log_dir="logs"):
+    """
+    Maintain backward compatibility with existing log file references
+    Creates symlinks from old flat structure to new organized structure
+    
+    Args:
+        log_dir: Base log directory
+    """
+    log_dir = Path(log_dir)
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    # Create backward compatibility symlinks for existing code
+    compatibility_mappings = {
+        f"{current_date}_debug.log": f"debug/{current_date}_debug.log",
+        f"{current_date}_errors.log": f"errors/{current_date}_errors.log",
+        "trading_main.log": f"trading/{current_date}_trading.log",
+        "alert_manager.log": f"alert_manager/{current_date}_alert_manager.log"
+    }
+    
+    for old_path, new_path in compatibility_mappings.items():
+        old_file = log_dir / old_path
+        new_file = log_dir / new_path
+        
+        # Remove existing symlink if it exists
+        if old_file.is_symlink():
+            old_file.unlink()
+        
+        # Create symlink if target exists (only create links to existing files)
+        if new_file.exists() and not old_file.exists():
+            try:
+                old_file.symlink_to(new_path)
+            except OSError:
+                # On systems that don't support symlinks, copy the file instead
+                pass
 
 
 if __name__ == "__main__":
