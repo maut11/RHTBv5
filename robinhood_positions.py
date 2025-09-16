@@ -65,10 +65,10 @@ class RobinhoodPositionFallback:
                 self._cache_positions(positions)
                 logger.info(f"📊 Found {len(positions)} open positions in Robinhood account")
             
-            # Search for matching ticker
+            # Search for matching ticker using correct field name
             matching_positions = []
             for position in positions:
-                pos_ticker = position.get('symbol', '').upper()
+                pos_ticker = position.get('chain_symbol', '').upper()
                 if pos_ticker == ticker.upper():
                     matching_positions.append(position)
             
@@ -85,20 +85,23 @@ class RobinhoodPositionFallback:
                 matching_positions.sort(key=lambda p: float(p.get('quantity', 0)), reverse=True)
                 best_position = matching_positions[0]
             
-            # Extract contract information
-            contract_info = {
-                'strike': best_position.get('strike_price'),
-                'expiration': best_position.get('expiration_date'),
-                'type': self._normalize_option_type(best_position.get('type', ''))
-            }
-            
-            # Clean up the data
-            if contract_info['strike']:
-                contract_info['strike'] = float(contract_info['strike'])
-            
-            # Convert expiration to expected format if needed
-            if contract_info['expiration']:
-                contract_info['expiration'] = self._format_expiration_date(contract_info['expiration'])
+            # Get contract details using second API call (like !positions command)
+            try:
+                instrument_data = self.trader.get_option_instrument_data(best_position['option'])
+                if not instrument_data:
+                    logger.warning(f"Could not get instrument data for {ticker}")
+                    return None
+                
+                # Extract contract information from instrument data
+                contract_info = {
+                    'strike': float(instrument_data['strike_price']),
+                    'expiration': self._format_expiration_date(instrument_data['expiration_date']),
+                    'type': self._normalize_option_type(instrument_data['type'])
+                }
+                
+            except Exception as e:
+                logger.error(f"Error getting instrument data for {ticker}: {e}")
+                return None
             
             logger.info(f"✅ Found position fallback for {ticker}: ${contract_info['strike']}{contract_info['type']} {contract_info['expiration']}")
             return contract_info

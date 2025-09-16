@@ -209,6 +209,28 @@ class TradeExecutor:
         
         print("✅ Trade Executor initialized with symbol mapping support")
     
+    def _normalize_market_data(self, market_data) -> dict:
+        """Normalize market data response to handle [[data]] vs [data] inconsistency"""
+        try:
+            if not market_data or len(market_data) == 0:
+                return None
+            
+            # Handle [[data]] format (nested array)
+            if isinstance(market_data[0], list):
+                if len(market_data[0]) > 0 and isinstance(market_data[0][0], dict):
+                    return market_data[0][0]
+                else:
+                    return None
+            
+            # Handle [data] format (single array)
+            elif isinstance(market_data[0], dict):
+                return market_data[0]
+            
+            return None
+            
+        except (IndexError, TypeError):
+            return None
+    
     async def process_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id=None, is_edit=False, event_loop=None):
         """Main trade processing entry point with proper async support"""
         
@@ -816,7 +838,7 @@ class TradeExecutor:
                     log_func(f"🔍 Market data response: {market_data}")
                     
                     if market_data and len(market_data) > 0:
-                        data = market_data[0] if not isinstance(market_data[0], list) else market_data[0][0]
+                        data = self._normalize_market_data(market_data)
                         if isinstance(data, dict):
                             mark_price = data.get('mark_price')
                             if mark_price and float(mark_price) > 0:
@@ -880,7 +902,7 @@ class TradeExecutor:
                 try:
                     market_data = trader.get_option_market_data(symbol, expiration, strike, opt_type)
                     if market_data and len(market_data) > 0:
-                        data = market_data[0] if not isinstance(market_data[0], list) else market_data[0][0]
+                        data = self._normalize_market_data(market_data)
                         if isinstance(data, dict):
                             # Priority order for speed: mark -> midpoint -> bid
                             mark_price = data.get('mark_price')
