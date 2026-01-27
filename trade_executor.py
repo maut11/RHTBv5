@@ -414,19 +414,6 @@ class TradeExecutor:
                     result_summary = ""
 
                     if action == "buy":
-                        # ========== NON-SEQUENTIAL TRADE DETECTION (RYAN'S CHANNEL) ==========
-                        if handler.name == "Ryan":
-                            # Check for existing open positions for Ryan's channel
-                            existing_trades = self.performance_tracker.get_open_trades_for_channel(handler.name)
-                            if existing_trades and len(existing_trades) > 0:
-                                log_func(f"⚠️ Ryan non-sequential trade detected: {len(existing_trades)} open position(s) exist")
-                                print(f"📊 EXISTING POSITIONS for {handler.name}:")
-                                for i, trade in enumerate(existing_trades, 1):
-                                    print(f"  {i}. {trade.get('ticker', 'Unknown')} ${trade.get('strike', 'N/A')}{trade.get('option_type', 'N/A')} {trade.get('expiration', 'N/A')} - Entry: ${trade.get('entry_price', 0):.2f}")
-                                
-                                # For Ryan, we'll proceed but with a warning
-                                log_func(f"🔄 Proceeding with new Ryan position (non-sequential pattern detected)")
-                                
                         # ========== TRADE-FIRST WORKFLOW ==========
                         print(f"⚡ EXECUTING TRADE FIRST: {action.upper()} {symbol}")
                         execution_success, result_summary = self._execute_buy_order(

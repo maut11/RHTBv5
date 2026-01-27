@@ -83,50 +83,9 @@ HEARTBEAT_WEBHOOK = "https://discord.com/api/webhooks/1408908444794224880/ABAosR
 
 # Enhanced Channel Configuration with Strict Isolation
 CHANNELS_CONFIG = {
-    "Ryan": {
-        "live_id": 1072559822366576780,  # ryan-alerts
-        "test_id": 1396011198343811102,  # ryan simulation channel
-        "parser": "RyanParser",
-        "multiplier": 1.0,
-        "min_trade_contracts": 1,  # Minimum contracts to trade (0 = no trading)
-        "initial_stop_loss": 0.5,  # 35% stop loss for Ryan
-        "trailing_stop_loss_pct": 0.20,
-        "buy_padding": 0.025,  # 5% padding for buys
-        "sell_padding": 0.01,  # 2.5% padding for sells
-        "model": "gpt-4o-2024-08-06",
-        "color": 3447003,  # Blue
-        "description": "Ryan's scalping alerts with tight risk management",
-        "risk_level": "medium",
-        "typical_hold_time": "5-30 minutes",
-        # Symbol remapping specific to Ryan's channel
-        "symbol_remapping": {
-            "SPX": "SPXW"  # Ryan often uses SPX which trades as SPXW
-        },
-        # SPEED OPTIMIZATIONS for Ryan's sequential trading style
-        "fast_parsing_enabled": True,  # Use regex for TRIM/EXIT
-        "trade_first_mode": True,     # Execute trades before alerts
-        "use_robinhood_tick_api": True  # Always use live tick sizes
-    },
-    "Eva": {
-        "live_id": 1072556084662902846,  # evas-plays
-        "test_id": 1399289540484530247,  # eva simulation channel
-        "parser": "EvaParser",
-        "multiplier": 1.0,
-        "min_trade_contracts": 1,  # Minimum contracts to trade (0 = no trading)
-        "initial_stop_loss": 0.5,  # 30% stop loss for Eva
-        "trailing_stop_loss_pct": 0.20,
-        "buy_padding": 0.025,  # 2.5% padding for buys
-        "sell_padding": 0.01,  # 2.5% padding for sells
-        "model": "gpt-4o-2024-08-06",
-        "color": 10181046,  # Purple
-        "description": "Eva's swing trades with momentum focus",
-        "risk_level": "medium",
-        "typical_hold_time": "30 minutes - 2 hours",
-        "trade_first_mode": True     # Execute trades before alerts
-    },
     "Sean": {
         "live_id": 1072555808832888945,  # seans-plays
-        "test_id": 1398211580470235176,  # sean simulation channel
+        "test_id": 1400001270072475740,  # sean simulation channel
         "parser": "SeanParser",
         "multiplier": 1.0,
         "min_trade_contracts": 1,  # Minimum contracts to trade (0 = no trading)
@@ -139,40 +98,6 @@ CHANNELS_CONFIG = {
         "description": "Sean's technical analysis based trades",
         "risk_level": "medium-high",
         "typical_hold_time": "1-4 hours",
-        "trade_first_mode": True     # Execute trades before alerts
-    },
-    "Will": {
-        "live_id": 1257442835465244732,  # will-alerts
-        "test_id": 1398585430617886720,  # will simulation channel
-        "parser": "WillParser",
-        "multiplier": 0.5,
-        "min_trade_contracts": 0,  # Minimum contracts to trade (0 = no trading)
-        "initial_stop_loss": 0.5,  # 30% stop loss for Will
-        "trailing_stop_loss_pct": 0.20,
-        "buy_padding": 0.025,  # 2.5% padding
-        "sell_padding": 0.01,   # 2.5% padding
-        "model": "gpt-4o-2024-08-06",
-        "color": 15105642,  # Orange
-        "description": "Will's day trading strategies",
-        "risk_level": "high",
-        "typical_hold_time": "15 minutes - 1 hour",
-        "trade_first_mode": True     # Execute trades before alerts
-    },
-    "FiFi": {
-        "live_id": 1368713891072315483,  # fifi-alerts
-        "test_id": 1402850612995031090,  # fifi simulation channel
-        "parser": "FiFiParser",
-        "multiplier": 1.0,
-        "min_trade_contracts": 0,  # Minimum contracts to trade (0 = no trading)
-        "initial_stop_loss": 0.50,  # 50% stop loss for FiFi
-        "trailing_stop_loss_pct": 0.20,
-        "buy_padding": 0.025,  # 2.5% padding
-        "sell_padding": 0.01,  # 2.5% padding
-        "model": "gpt-4o-2024-08-06",
-        "color": 15277667,  # Pink
-        "description": "FiFi's swing and momentum trades",
-        "risk_level": "medium",
-        "typical_hold_time": "30 minutes - 4 hours",
         "trade_first_mode": True     # Execute trades before alerts
     }
 }

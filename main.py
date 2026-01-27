@@ -19,12 +19,8 @@ from performance_tracker import EnhancedPerformanceTracker
 from position_manager import EnhancedPositionManager
 from trader import EnhancedRobinhoodTrader, EnhancedSimulatedTrader
 
-# Import all channel parsers
+# Import channel parsers
 from channels.sean import SeanParser
-from channels.will import WillParser
-from channels.eva import EvaParser
-from channels.ryan import RyanParser
-from channels.fifi import FiFiParser
 from channels.price_parser import PriceParser
 
 # Load Environment
