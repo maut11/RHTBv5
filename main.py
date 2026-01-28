@@ -23,6 +23,9 @@ from trader import EnhancedRobinhoodTrader, EnhancedSimulatedTrader
 from channels.sean import SeanParser
 from channels.price_parser import PriceParser
 
+# Import AI logging system
+from ai_logging import setup_ai_logging
+
 # Load Environment
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_USER_TOKEN")
@@ -41,102 +44,9 @@ MAX_RESTART_ATTEMPTS = 5
 restart_count = 0
 last_restart_time = None
 
-# ============= ENHANCED LOGGING SETUP =============
-class LoggingPrintRedirect:
-    """Redirects print statements to both console and log file"""
-    def __init__(self, logger, level=logging.INFO):
-        self.logger = logger
-        self.level = level
-        self.terminal = sys.stdout
-        self.line_buffer = ""
-        
-    def write(self, message):
-        # Write to terminal
-        self.terminal.write(message)
-        
-        # Buffer until we have a complete line
-        self.line_buffer += message
-        
-        # If we have a newline, log the complete line
-        if '\n' in self.line_buffer:
-            lines = self.line_buffer.split('\n')
-            # Log all complete lines
-            for line in lines[:-1]:
-                if line.strip():  # Don't log empty lines
-                    self.logger.log(self.level, line.strip())
-            # Keep any incomplete line in the buffer
-            self.line_buffer = lines[-1]
-    
-    def flush(self):
-        if self.line_buffer.strip():
-            self.logger.log(self.level, self.line_buffer.strip())
-            self.line_buffer = ""
-        if hasattr(self.terminal, 'flush'):
-            self.terminal.flush()
-
-def setup_comprehensive_logging():
-    """Setup comprehensive logging that captures everything"""
-    # Create logs directory if it doesn't exist
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True)
-    
-    # Setup main logger
-    main_logger = logging.getLogger('main')
-    main_logger.setLevel(logging.DEBUG)
-    
-    # Clear existing handlers
-    main_logger.handlers.clear()
-    
-    # Create formatters
-    detailed_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    
-    # File handler for debug.log (everything)
-    debug_handler = logging.FileHandler(log_dir / "debug.log", encoding='utf-8')
-    debug_handler.setLevel(logging.DEBUG)
-    debug_handler.setFormatter(detailed_formatter)
-    main_logger.addHandler(debug_handler)
-    
-    # File handler for errors.log (errors only)
-    error_handler = logging.FileHandler(log_dir / "errors.log", encoding='utf-8')
-    error_handler.setLevel(logging.ERROR)
-    error_handler.setFormatter(detailed_formatter)
-    main_logger.addHandler(error_handler)
-    
-    # Console handler (for immediate visibility)
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.INFO)
-    simple_formatter = logging.Formatter('%(levelname)s - %(message)s')
-    console_handler.setFormatter(simple_formatter)
-    main_logger.addHandler(console_handler)
-    
-    # Setup root logger to catch everything
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
-    
-    # Add file handler to root logger to catch all module logs
-    root_debug_handler = logging.FileHandler(log_dir / "debug.log", encoding='utf-8')
-    root_debug_handler.setLevel(logging.DEBUG)
-    root_debug_handler.setFormatter(detailed_formatter)
-    root_logger.addHandler(root_debug_handler)
-    
-    # Redirect print statements to logger
-    sys.stdout = LoggingPrintRedirect(main_logger, logging.INFO)
-    sys.stderr = LoggingPrintRedirect(main_logger, logging.ERROR)
-    
-    main_logger.info("="*50)
-    main_logger.info("Comprehensive logging system initialized")
-    main_logger.info(f"Debug log: {log_dir / 'debug.log'}")
-    main_logger.info(f"Error log: {log_dir / 'errors.log'}")
-    main_logger.info("="*50)
-    
-    return main_logger
-
-# Initialize logging before anything else
-logger = setup_comprehensive_logging()
-
+# ============= AI-READABLE LOGGING SETUP =============
+# Initialize AI logging system (JSONL format with daily rotation)
+logger = setup_ai_logging(log_dir="logs", retention_days=14)
 # ============= END LOGGING SETUP =============
 
 class MessageEditTracker:
