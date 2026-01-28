@@ -2,6 +2,7 @@
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from typing import Dict, List, Optional, Tuple, Union
 from openai import OpenAI
 import re
 
@@ -71,7 +72,7 @@ class BaseParser(ABC):
             print(f"⚠️ [{self.name}] Unrecognized action: '{action}' - returning as-is")
             return action_lower
 
-    def _call_openai(self, prompt: str, logger) -> tuple[dict | list | None, float]:
+    def _call_openai(self, prompt: str, logger) -> Tuple[Optional[Union[Dict, List]], float]:
         """Makes the API call to OpenAI and parses the JSON response."""
         start_time = datetime.now(timezone.utc)
         try:
@@ -128,7 +129,7 @@ class BaseParser(ABC):
             logger(f"❌ [{self.name}] OpenAI API error: {e}")
             return None, 0
 
-    def parse_message(self, message_meta, received_ts: datetime, logger) -> tuple[list[dict], float]:
+    def parse_message(self, message_meta, received_ts: datetime, logger) -> Tuple[List[Dict], float]:
         """
         Main parsing method to be called by the bot.
         It orchestrates the prompt building, API call, normalization, and action standardization.

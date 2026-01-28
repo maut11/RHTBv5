@@ -85,7 +85,7 @@ HEARTBEAT_WEBHOOK = "https://discord.com/api/webhooks/1408908444794224880/ABAosR
 CHANNELS_CONFIG = {
     "Sean": {
         "live_id": 1072555808832888945,  # seans-plays
-        "test_id": 1400001270072475740,  # sean simulation channel
+        "test_id": 1398211580470235176,  # sean simulation channel
         "parser": "SeanParser",
         "multiplier": 1.0,
         "min_trade_contracts": 1,  # Minimum contracts to trade (0 = no trading)
