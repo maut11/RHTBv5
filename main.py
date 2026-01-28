@@ -1164,10 +1164,6 @@ class EnhancedDiscordClient(discord.Client):
                 
                 # Map channel names to their identifiers in the database
                 channel_mapping = {
-                    'ryan': 'Ryan',
-                    'eva': 'Eva', 
-                    'will': 'Will',
-                    'fifi': 'Fifi',
                     'sean': 'Sean'
                 }
                 
