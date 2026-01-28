@@ -4,3 +4,4 @@ openai
 python-dotenv
 aiohttp
 robin-stocks
+pydantic>=2.0

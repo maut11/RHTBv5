@@ -408,19 +408,25 @@ class EnhancedDiscordClient(discord.Client):
             handler = self.channel_manager.get_handler(message.channel.id)
             if handler:
                 logger.info(f"Message received from {handler.name}: {message.content[:100]}...")
-                
+
                 # Extract message content
                 message_meta, raw_msg = self._extract_message_content(message, handler)
-                
+
                 if raw_msg:
+                    # Fetch recent message history for context (last 5 messages)
+                    message_history = await self.get_channel_message_history(
+                        message.channel, limit=5, exclude_message_id=message.id
+                    )
+                    logger.debug(f"Fetched {len(message_history)} messages for context")
+
                     # Log to live feed
                     await self._send_live_feed_alert(handler, raw_msg)
-                    
+
                     # Process trade with proper async context
                     received_ts = datetime.now(timezone.utc)
                     await self.trade_executor.process_trade(
-                        handler, message_meta, raw_msg, SIM_MODE, received_ts, 
-                        str(message.id), False, self.loop
+                        handler, message_meta, raw_msg, SIM_MODE, received_ts,
+                        str(message.id), False, self.loop, message_history
                     )
                     
         except Exception as e:
@@ -428,68 +434,172 @@ class EnhancedDiscordClient(discord.Client):
             await self.alert_manager.send_error_alert(f"Message handling error: {e}")
 
     async def on_message_edit(self, before, after):
-        """Handle message edits"""
+        """Handle message edits - log only, no trade execution to avoid duplicates"""
         try:
             if before.content == after.content and before.embeds == after.embeds:
                 return
-                
+
             handler = self.channel_manager.get_handler(after.channel.id)
             if handler:
-                logger.info(f"Message edit detected in {handler.name}")
-                
-                processed_info = await self.edit_tracker.get_processed_info(str(after.id))
-                if processed_info:
-                    message_meta, raw_msg = self._extract_message_content(after, handler)
-                    
-                    if raw_msg:
-                        received_ts = datetime.now(timezone.utc)
-                        await self.trade_executor.process_trade(
-                            handler, message_meta, raw_msg, SIM_MODE, received_ts, 
-                            str(after.id), True, self.loop
-                        )
-                        
+                logger.info(f"Message edit detected in {handler.name} - logging only (no trade action)")
+
+                # Extract original content (before edit)
+                original_content = ""
+                if before.embeds:
+                    embed = before.embeds[0]
+                    original_content = f"{embed.title or ''}: {embed.description or ''}".strip(': ')
+                else:
+                    original_content = before.content or ""
+
+                # Extract edited content (after edit)
+                edited_content = ""
+                if after.embeds:
+                    embed = after.embeds[0]
+                    edited_content = f"{embed.title or ''}: {embed.description or ''}".strip(': ')
+                else:
+                    edited_content = after.content or ""
+
+                # Send notification embed showing original vs edited
+                edit_embed = {
+                    "title": f"📝 Message Edit Detected - {handler.name}",
+                    "description": "**⚠️ No trade action taken** - Edit logged for visibility only",
+                    "color": 0xFFA500,  # Orange color
+                    "fields": [
+                        {
+                            "name": "📜 Original Message",
+                            "value": f"```{original_content[:1000]}```" if original_content else "*Empty*",
+                            "inline": False
+                        },
+                        {
+                            "name": "✏️ Edited Message",
+                            "value": f"```{edited_content[:1000]}```" if edited_content else "*Empty*",
+                            "inline": False
+                        }
+                    ],
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "footer": {"text": f"Message ID: {after.id}"}
+                }
+
+                await self.alert_manager.add_alert(
+                    COMMANDS_WEBHOOK,
+                    {"embeds": [edit_embed]},
+                    "edit_notification"
+                )
+                logger.info(f"Edit notification sent for message {after.id}")
+
         except Exception as e:
             logger.error(f"Edit handling error: {e}", exc_info=True)
 
     def _extract_message_content(self, message, handler):
-        """Extract message content for processing"""
+        """Extract message content for processing, including replies and forwards"""
         try:
             current_embed_title = ""
             current_embed_desc = ""
-            
+
             if message.embeds:
                 embed = message.embeds[0]
                 current_embed_title = embed.title or ""
                 current_embed_desc = embed.description or ""
-            
+
             current_content = message.content or ""
             current_full_text = f"Title: {current_embed_title}\nDesc: {current_embed_desc}" if current_embed_title else current_content
-            
+
+            # Check for forwarded message (Discord forwards have message_snapshots attribute)
+            is_forward = False
+            forwarded_content = ""
+            if hasattr(message, 'message_snapshots') and message.message_snapshots:
+                is_forward = True
+                # Extract forwarded message content
+                for snapshot in message.message_snapshots:
+                    if hasattr(snapshot, 'content') and snapshot.content:
+                        forwarded_content = snapshot.content
+                        break
+                    elif hasattr(snapshot, 'embeds') and snapshot.embeds:
+                        fwd_embed = snapshot.embeds[0]
+                        forwarded_content = f"Title: {fwd_embed.title or ''}\nDesc: {fwd_embed.description or ''}"
+                        break
+                logger.info(f"Forwarded message detected from {handler.name}")
+
+            # Handle forwards
+            if is_forward and forwarded_content:
+                # For forwards, the forwarded content is the main content to parse
+                # Current content (if any) is like a comment on the forward
+                if current_content:
+                    message_meta = (current_content, forwarded_content)
+                    raw_msg = f"Comment: '{current_content}'\nForwarded: '{forwarded_content}'"
+                else:
+                    message_meta = forwarded_content
+                    raw_msg = f"Forwarded: '{forwarded_content}'"
             # Handle replies
-            if message.reference and isinstance(message.reference.resolved, discord.Message):
+            elif message.reference and isinstance(message.reference.resolved, discord.Message):
                 original_msg = message.reference.resolved
                 original_embed_title = ""
                 original_embed_desc = ""
-                
+
                 if original_msg.embeds:
                     orig_embed = original_msg.embeds[0]
                     original_embed_title = orig_embed.title or ""
                     original_embed_desc = orig_embed.description or ""
-                
+
                 original_content = original_msg.content or ""
                 original_full_text = f"Title: {original_embed_title}\nDesc: {original_embed_desc}" if original_embed_title else original_content
-                
+
                 message_meta = (current_full_text, original_full_text)
                 raw_msg = f"Reply: '{current_full_text}'\nOriginal: '{original_full_text}'"
             else:
                 message_meta = (current_embed_title, current_embed_desc) if current_embed_title else current_content
                 raw_msg = current_full_text
-            
+
             return message_meta, raw_msg
-            
+
         except Exception as e:
             logger.error(f"Content extraction error: {e}", exc_info=True)
             return None, ""
+
+    async def get_channel_message_history(self, channel, limit=5, exclude_message_id=None):
+        """
+        Fetch recent message history from a channel for context.
+        Returns messages in chronological order (oldest first).
+
+        Args:
+            channel: Discord channel object
+            limit: Number of messages to fetch (default 5)
+            exclude_message_id: Message ID to exclude (usually the current message)
+
+        Returns:
+            List of formatted message strings in chronological order
+        """
+        try:
+            history = []
+            async for msg in channel.history(limit=limit + 1):  # +1 in case we need to exclude current
+                # Skip the message we're currently processing
+                if exclude_message_id and msg.id == exclude_message_id:
+                    continue
+
+                # Extract content from message
+                content = ""
+                if msg.embeds:
+                    embed = msg.embeds[0]
+                    title = embed.title or ""
+                    desc = embed.description or ""
+                    content = f"{title}: {desc}" if title else desc
+                else:
+                    content = msg.content or ""
+
+                if content:
+                    # Format with timestamp for context
+                    timestamp = msg.created_at.strftime("%H:%M:%S")
+                    history.append(f"[{timestamp}] {content[:200]}")  # Truncate long messages
+
+                if len(history) >= limit:
+                    break
+
+            # Reverse to chronological order (oldest first)
+            return history[::-1]
+
+        except Exception as e:
+            logger.error(f"Error fetching message history: {e}", exc_info=True)
+            return []
 
     async def _send_live_feed_alert(self, handler, content):
         """Send message to live feed"""

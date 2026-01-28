@@ -231,54 +231,54 @@ class TradeExecutor:
         except (IndexError, TypeError):
             return None
     
-    async def process_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id=None, is_edit=False, event_loop=None):
+    async def process_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id=None, is_edit=False, event_loop=None, message_history=None):
         """Main trade processing entry point with proper async support"""
-        
+
         # Store the event loop reference
         if event_loop:
             self.event_loop = event_loop
         else:
             self.event_loop = asyncio.get_running_loop()
-        
+
         def enhanced_log(msg, level="INFO"):
             print(f"ℹ️ {msg}")
-            
+
             # Use asyncio.run_coroutine_threadsafe to safely call async functions from sync context
             if level == "ERROR":
                 future = asyncio.run_coroutine_threadsafe(
-                    self.alert_manager.send_error_alert(msg), 
+                    self.alert_manager.send_error_alert(msg),
                     self.event_loop
                 )
             else:
                 future = asyncio.run_coroutine_threadsafe(
                     self.alert_manager.add_alert(
-                        ALL_NOTIFICATION_WEBHOOK, {"content": msg}, 
+                        ALL_NOTIFICATION_WEBHOOK, {"content": msg},
                         f"{level.lower()}_notification"
-                    ), 
+                    ),
                     self.event_loop
                 )
-            
+
             # Don't block on the result, just schedule it
             try:
                 future.result(timeout=0.1)  # Quick timeout to avoid blocking
             except:
                 pass  # Don't block if alert system is slow
-        
+
         # Run trade processing in thread pool to avoid blocking
         await self.event_loop.run_in_executor(
-            None, 
+            None,
             self._blocking_handle_trade,
-            handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id, is_edit, enhanced_log
+            handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id, is_edit, enhanced_log, message_history
         )
     
-    def _blocking_handle_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id, is_edit, log_func):
+    def _blocking_handle_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id, is_edit, log_func, message_history=None):
         """Blocking trade execution logic with symbol mapping"""
         try:
             log_func(f"🔄 Processing message from {handler.name}: {raw_msg[:100]}...")
-            
-            # Parse the message
+
+            # Parse the message with optional history context
             try:
-                parsed_results, latency_ms = handler.parse_message(message_meta, received_ts, log_func)
+                parsed_results, latency_ms = handler.parse_message(message_meta, received_ts, log_func, message_history)
                 
                 # Portfolio filtering now handled at channel level (pre-OpenAI)
                 # No additional filtering needed here
