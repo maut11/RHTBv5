@@ -1,7 +1,7 @@
 ---
 name: h-refactor-sean-channel-only
 branch: feature/sean-channel-only
-status: pending
+status: in-progress
 created: 2026-01-27
 ---
 
