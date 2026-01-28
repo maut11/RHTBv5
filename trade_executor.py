@@ -195,19 +195,23 @@ class DelayedStopLossManager:
 
 class TradeExecutor:
     """Channel-aware trade execution with symbol mapping support"""
-    
-    def __init__(self, live_trader, sim_trader, performance_tracker, position_manager, alert_manager):
+
+    def __init__(self, live_trader, sim_trader, performance_tracker, position_manager,
+                 alert_manager, position_ledger=None):
         self.live_trader = live_trader
         self.sim_trader = sim_trader
         self.performance_tracker = performance_tracker
         self.position_manager = position_manager
         self.alert_manager = alert_manager
-        
+        self.position_ledger = position_ledger
+
         # Enhanced feedback logger with symbol mapping
         self.feedback_logger = ChannelAwareFeedbackLogger()
         self.stop_loss_manager = DelayedStopLossManager()
-        
+
         print("✅ Trade Executor initialized with symbol mapping support")
+        if position_ledger:
+            print("✅ Position ledger integration enabled")
     
     def _normalize_market_data(self, market_data) -> dict:
         """Normalize market data response to handle [[data]] vs [data] inconsistency"""
@@ -332,17 +336,40 @@ class TradeExecutor:
                     
                     # Try to find active position for trim/exit actions
                     active_position = None
+                    ledger_position = None  # Track position from ledger for later use
                     if action in ("trim", "exit", "stop"):
-                        # FIRST: Try position manager with symbol variants
+                        # FIRST: Try position ledger with weighted matching
+                        if self.position_ledger and trade_obj.get('ticker'):
+                            hints = {
+                                'strike': trade_obj.get('strike'),
+                                'expiry': trade_obj.get('expiration'),
+                                'type': trade_obj.get('type'),
+                            }
+                            ledger_position = self.position_ledger.resolve_position(
+                                trade_obj['ticker'], hints
+                            )
+                            if ledger_position:
+                                log_func(f"📒 Ledger found position: {ledger_position.ccid}")
+                                # Fill in missing contract details from ledger
+                                if not trade_obj.get('strike'):
+                                    trade_obj['strike'] = ledger_position.strike
+                                if not trade_obj.get('expiration'):
+                                    trade_obj['expiration'] = ledger_position.expiration
+                                if not trade_obj.get('type'):
+                                    trade_obj['type'] = ledger_position.option_type
+                                # Store CCID for later ledger update
+                                trade_obj['ledger_ccid'] = ledger_position.ccid
+
+                        # SECOND: Try position manager with symbol variants
                         active_position = self.position_manager.find_position(trade_obj['channel_id'], trade_obj) or {}
-                        
+
                         # If we found a position, UPDATE trade_obj with the original trade_id
                         # This ensures proper position tracking and linking
                         if active_position and active_position.get('trade_id'):
                             trade_obj['trade_id'] = active_position['trade_id']
                             log_func(f"✅ Linked to original position: {active_position['trade_id']}")
-                        
-                        # SECOND: Try performance tracker with symbol variants (fallback)
+
+                        # THIRD: Try performance tracker with symbol variants (fallback)
                         elif not active_position and trade_obj.get('ticker'):
                             # Pass the original ticker, performance tracker should handle variants
                             trade_id = self.performance_tracker.find_open_trade_by_ticker(
@@ -469,6 +496,15 @@ class TradeExecutor:
                             self.performance_tracker.record_entry(trade_obj)
                             if not trade_obj.get('is_tracking_only'):
                                 self.position_manager.add_position(trade_obj['channel_id'], trade_obj)
+
+                            # Record in position ledger
+                            if self.position_ledger and not trade_obj.get('is_tracking_only'):
+                                try:
+                                    ccid = self.position_ledger.record_buy(trade_obj)
+                                    print(f"📒 Position ledger updated: {ccid}")
+                                except Exception as le:
+                                    print(f"⚠️ Ledger update failed (non-critical): {le}")
+
                             print(f"✅ Performance tracking updated")
                         except Exception as e:
                             print(f"⚠️ Performance tracking failed (non-critical): {e}")
@@ -561,11 +597,23 @@ class TradeExecutor:
                                         trade_record = {'status': 'tracking_only', 'action': action}
                                     else:
                                         trade_record = self.performance_tracker.record_exit(trade_id, exit_data)
-                                        
+
                                         if trade_record:
                                             self.position_manager.clear_position(trade_obj['channel_id'], trade_id)
                                             print(f"✅ Position cleared")
-                                
+
+                                # Update position ledger for trim/exit
+                                if self.position_ledger and trade_obj.get('ledger_ccid') and not trade_obj.get('is_tracking_only'):
+                                    try:
+                                        sell_qty = trade_obj.get('quantity', 1)
+                                        sell_price = trade_obj.get('price', 0)
+                                        self.position_ledger.record_sell(
+                                            trade_obj['ledger_ccid'], sell_qty, sell_price
+                                        )
+                                        print(f"📒 Ledger updated: sold {sell_qty} @ ${sell_price:.2f}")
+                                    except Exception as le:
+                                        print(f"⚠️ Ledger sell update failed (non-critical): {le}")
+
                                 print(f"✅ Performance tracking updated")
                                 
                             except Exception as e:

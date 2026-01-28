@@ -106,6 +106,12 @@ CHANNELS_CONFIG = {
 PERFORMANCE_DB_FILE = "logs/performance_tracking.db"
 PERFORMANCE_CSV_BACKUP = "performance_backup.csv"
 
+# Position ledger configuration
+POSITION_LEDGER_DB = "logs/position_ledger.db"
+LEDGER_SYNC_INTERVAL = 60  # Reconcile with Robinhood every N seconds
+LEDGER_HEURISTIC_STRATEGY = "fifo"  # Options: fifo, nearest, profit, largest
+LEDGER_LOCK_TIMEOUT = 60  # Lock timeout in seconds for pending exits
+
 # Enhanced performance metrics to track
 PERFORMANCE_METRICS = {
     "win_rate": "Percentage of profitable trades",

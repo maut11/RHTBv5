@@ -1,8 +1,9 @@
 ---
 name: m-implement-position-ledger
 branch: feature/position-ledger
-status: pending
+status: complete
 created: 2026-01-28
+completed: 2026-01-28
 ---
 
 # Implement Persistent Position Ledger
@@ -23,18 +24,18 @@ Build a persistent SQLite-backed position ledger that:
 5. Enables pre-flight validation before trade execution
 
 ## Success Criteria
-- [ ] Create `position_ledger.py` with SQLite-backed storage
-- [ ] Schema with CCID (Canonical Contract ID): `{TICKER}_{EXPIRY}_{STRIKE}_{TYPE}`
-- [ ] Sync from Robinhood: `sync_from_robinhood()` using `get_open_option_positions()`
-- [ ] Alert hint extraction: Parse strike, expiry, type, qty hints from alerts
-- [ ] Weighted matching: Score positions by hint matches, fallback to heuristic
-- [ ] Heuristics: FIFO (default), nearest-expiry (0dte priority), profit-first
-- [ ] Pre-flight validator: Block trades for non-existent positions
-- [ ] Lock mechanism: `pending_exit` status prevents double-sells
-- [ ] Integrate with `trade_executor.py`: ledger updates on buy/sell
-- [ ] Handle "Exit all $TICKER": close multiple positions
-- [ ] Handle averaging: lot-level tracking when adding to position
-- [ ] Periodic reconciliation (startup + 60s interval)
+- [x] Create `position_ledger.py` with SQLite-backed storage
+- [x] Schema with CCID (Canonical Contract ID): `{TICKER}_{EXPIRY}_{STRIKE}_{TYPE}`
+- [x] Sync from Robinhood: `sync_from_robinhood()` using `get_open_option_positions()`
+- [x] Alert hint extraction: Parse strike, expiry, type, qty hints from alerts
+- [x] Weighted matching: Score positions by hint matches, fallback to heuristic
+- [x] Heuristics: FIFO (default), nearest-expiry (0dte priority), profit-first
+- [x] Pre-flight validator: Block trades for non-existent positions
+- [x] Lock mechanism: `pending_exit` status prevents double-sells
+- [x] Integrate with `trade_executor.py`: ledger updates on buy/sell
+- [x] Handle "Exit all $TICKER": close multiple positions
+- [x] Handle averaging: lot-level tracking when adding to position
+- [x] Periodic reconciliation (startup + 60s interval)
 
 ## Context Manifest
 <!-- Added by context-gathering agent -->
@@ -460,5 +461,35 @@ LEDGER_SYNC_INTERVAL = 60  # Reconcile with RH every 60 seconds
 - Reduce redundant API calls via local state
 
 ## Work Log
-<!-- Updated as work progresses -->
-- [2026-01-28] Task created based on Gemini brainstorm session
+
+### 2026-01-28
+
+#### Completed
+- Created `position_ledger.py` with SQLite-backed storage
+- Implemented SQLite schema for positions and lots tables with CCID format
+- Implemented CRUD operations: `record_buy()`, `record_sell()`
+- Implemented `sync_from_robinhood()` with Robinhood API integration
+- Implemented `resolve_position()` with weighted matching algorithm
+- Implemented heuristics: FIFO (default), nearest-expiry (0DTE priority), profit-first, largest
+- Implemented lock mechanism (`pending_exit` status) to prevent double-sells
+- Added config values to `config.py`: `POSITION_LEDGER_DB`, `LEDGER_SYNC_INTERVAL`
+- Integrated into `main.py` with periodic sync task (startup + 60s interval)
+- Integrated into `trade_executor.py` for buy/sell tracking
+
+#### Code Review Fixes
+- Added thread locks for database operations (thread safety)
+- Fixed transaction isolation for concurrent access
+- Added random suffix to lot IDs for uniqueness
+- Added database integrity check on startup
+
+#### Documentation Updates
+- Updated `CLAUDE.md` with Position Ledger System section documenting:
+  - Core components (PositionLedger class, database tables)
+  - Key methods and their purposes
+  - Position resolution heuristics and scoring weights
+  - Integration points in main.py and trade_executor.py
+  - Configuration values from config.py
+- Enhanced module docstring in `position_ledger.py` with architecture overview
+- Updated line number references in OpenAI Parsing System section
+
+#### Task completed and marked as complete

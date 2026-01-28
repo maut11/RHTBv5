@@ -17,6 +17,7 @@ from alert_manager import ResilientAlertManager
 from trade_executor import TradeExecutor
 from performance_tracker import EnhancedPerformanceTracker
 from position_manager import EnhancedPositionManager
+from position_ledger import PositionLedger
 from trader import EnhancedRobinhoodTrader, EnhancedSimulatedTrader
 
 # Import channel parsers
@@ -116,7 +117,10 @@ class EnhancedDiscordClient(discord.Client):
             
             self.position_manager = EnhancedPositionManager("tracked_contracts_live.json")
             logger.info("Position manager initialized")
-            
+
+            self.position_ledger = PositionLedger(POSITION_LEDGER_DB)
+            logger.info("Position ledger initialized")
+
             # Initialize traders
             self.live_trader = EnhancedRobinhoodTrader()
             logger.info("Live trader initialized")
@@ -131,17 +135,19 @@ class EnhancedDiscordClient(discord.Client):
             
             # Initialize trade executor with proper event loop reference
             self.trade_executor = TradeExecutor(
-                self.live_trader, 
+                self.live_trader,
                 self.sim_trader,
                 self.performance_tracker,
                 self.position_manager,
-                self.alert_manager
+                self.alert_manager,
+                self.position_ledger
             )
             logger.info("Trade executor initialized")
             
             # System state
             self.start_time = datetime.now(timezone.utc)
             self.heartbeat_task = None
+            self.ledger_sync_task = None
             self.connection_lost_count = 0
             self.last_ready_time = None
             
@@ -164,12 +170,30 @@ class EnhancedDiscordClient(discord.Client):
             
             # Update channel handlers
             self.channel_manager.update_handlers(TESTING_MODE)
-            
+
+            # Sync position ledger with Robinhood
+            if self.live_trader and not TESTING_MODE:
+                logger.info("Syncing position ledger with Robinhood...")
+                loop = asyncio.get_event_loop()
+                sync_result = await loop.run_in_executor(
+                    None,
+                    self.position_ledger.sync_from_robinhood,
+                    self.live_trader
+                )
+                logger.info(f"Ledger sync complete: added={sync_result.positions_added}, "
+                           f"updated={sync_result.positions_updated}, orphaned={sync_result.positions_orphaned}")
+
             # Start heartbeat task
             if not self.heartbeat_task or self.heartbeat_task.done():
                 self.heartbeat_task = asyncio.create_task(self._heartbeat_task())
                 logger.info("Heartbeat task started")
-            
+
+            # Start ledger sync task (periodic reconciliation with Robinhood)
+            if not TESTING_MODE:
+                if not self.ledger_sync_task or self.ledger_sync_task.done():
+                    self.ledger_sync_task = asyncio.create_task(self._ledger_sync_task())
+                    logger.info("Ledger sync task started")
+
             # Send startup notification
             await self._send_startup_notification()
             
@@ -304,6 +328,36 @@ class EnhancedDiscordClient(discord.Client):
                 break
             except Exception as e:
                 logger.error(f"Heartbeat error: {e}", exc_info=True)
+                await asyncio.sleep(60)  # Wait a minute before retrying
+
+    async def _ledger_sync_task(self):
+        """Periodic reconciliation of position ledger with Robinhood."""
+        while True:
+            try:
+                await asyncio.sleep(LEDGER_SYNC_INTERVAL)
+
+                if self.live_trader and self.position_ledger:
+                    logger.debug("Running periodic ledger sync...")
+                    loop = asyncio.get_event_loop()
+                    sync_result = await loop.run_in_executor(
+                        None,
+                        self.position_ledger.sync_from_robinhood,
+                        self.live_trader
+                    )
+
+                    # Only log if changes occurred
+                    if sync_result.positions_added or sync_result.positions_updated or sync_result.positions_orphaned:
+                        logger.info(f"Ledger sync: added={sync_result.positions_added}, "
+                                   f"updated={sync_result.positions_updated}, orphaned={sync_result.positions_orphaned}")
+
+                    # Clean up expired locks
+                    self.position_ledger.cleanup_expired_locks(LEDGER_LOCK_TIMEOUT)
+
+            except asyncio.CancelledError:
+                logger.info("Ledger sync task cancelled")
+                break
+            except Exception as e:
+                logger.error(f"Ledger sync error: {e}", exc_info=True)
                 await asyncio.sleep(60)  # Wait a minute before retrying
 
     async def on_message(self, message):
@@ -1315,7 +1369,15 @@ class EnhancedDiscordClient(discord.Client):
                 await self.heartbeat_task
             except asyncio.CancelledError:
                 pass
-        
+
+        # Cancel ledger sync task
+        if self.ledger_sync_task and not self.ledger_sync_task.done():
+            self.ledger_sync_task.cancel()
+            try:
+                await self.ledger_sync_task
+            except asyncio.CancelledError:
+                pass
+
         # Stop alert manager
         await self.alert_manager.stop()
         
