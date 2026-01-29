@@ -148,6 +148,7 @@ class EnhancedDiscordClient(discord.Client):
             self.start_time = datetime.now(timezone.utc)
             self.heartbeat_task = None
             self.ledger_sync_task = None
+            self.fill_monitor_task = None  # Monitors pending buy orders for fills
             self.connection_lost_count = 0
             self.last_ready_time = None
             
@@ -193,6 +194,12 @@ class EnhancedDiscordClient(discord.Client):
                 if not self.ledger_sync_task or self.ledger_sync_task.done():
                     self.ledger_sync_task = asyncio.create_task(self._ledger_sync_task())
                     logger.info("Ledger sync task started")
+
+            # Start fill monitoring task (polls pending orders for fills)
+            if not TESTING_MODE:
+                if not self.fill_monitor_task or self.fill_monitor_task.done():
+                    self.fill_monitor_task = asyncio.create_task(self._fill_monitor_task())
+                    logger.info("Fill monitor task started")
 
             # Send startup notification
             await self._send_startup_notification()
@@ -359,6 +366,166 @@ class EnhancedDiscordClient(discord.Client):
             except Exception as e:
                 logger.error(f"Ledger sync error: {e}", exc_info=True)
                 await asyncio.sleep(60)  # Wait a minute before retrying
+
+    async def _fill_monitor_task(self):
+        """Monitor pending buy orders and transition positions when filled."""
+        while True:
+            try:
+                await asyncio.sleep(FILL_MONITORING_INTERVAL)
+
+                if not self.live_trader or not self.position_ledger:
+                    continue
+
+                # Get all positions in 'opening' status
+                opening_positions = self.position_ledger.get_opening_positions()
+
+                if not opening_positions:
+                    continue
+
+                logger.debug(f"Checking {len(opening_positions)} pending orders for fills...")
+
+                for position in opening_positions:
+                    try:
+                        order_id = position.order_id
+                        ccid = position.ccid
+
+                        if not order_id:
+                            logger.warning(f"Opening position {ccid} has no order_id - skipping")
+                            continue
+
+                        # Check order status with Robinhood
+                        loop = asyncio.get_event_loop()
+                        order_info = await loop.run_in_executor(
+                            None,
+                            self._get_order_status,
+                            order_id
+                        )
+
+                        if not order_info:
+                            logger.warning(f"Could not get order status for {order_id}")
+                            continue
+
+                        order_state = order_info.get('state', '').lower()
+
+                        # Handle different order states
+                        if order_state == 'filled':
+                            # Order filled - transition to 'open'
+                            fill_price = float(order_info.get('average_price', 0) or position.entry_price)
+                            fill_qty = int(float(order_info.get('cumulative_quantity', 0) or position.quantity))
+
+                            self.position_ledger.transition_to_open(ccid, fill_price)
+
+                            logger.info(f"✅ Order FILLED: {ccid} @ ${fill_price:.2f} x{fill_qty}")
+
+                            # Update position manager and performance tracker
+                            await self._handle_fill_complete(position, fill_price, fill_qty)
+
+                        elif order_state in ('cancelled', 'rejected', 'failed'):
+                            # Order failed - mark as cancelled
+                            reason = f"Order {order_state}: {order_info.get('reject_reason', 'Unknown')}"
+                            self.position_ledger.cancel_opening_position(ccid, reason)
+                            logger.warning(f"❌ Order {order_state}: {ccid} - {reason}")
+
+                        elif order_state in ('pending', 'queued', 'confirmed', 'partially_filled'):
+                            # Check for timeout
+                            created_at = position.created_at
+                            if created_at:
+                                age_seconds = (datetime.now(timezone.utc) - created_at).total_seconds()
+
+                                if age_seconds > FILL_TIMEOUT_SECONDS:
+                                    # Order timed out - attempt to cancel
+                                    logger.warning(f"⏰ Order timeout ({age_seconds:.0f}s): {ccid} - attempting cancel")
+
+                                    cancel_success = await loop.run_in_executor(
+                                        None,
+                                        self._cancel_order,
+                                        order_id
+                                    )
+
+                                    if cancel_success:
+                                        self.position_ledger.cancel_opening_position(ccid, f"Timeout after {age_seconds:.0f}s")
+                                        logger.info(f"🚫 Order cancelled due to timeout: {ccid}")
+                                    else:
+                                        logger.error(f"Failed to cancel timed-out order: {ccid}")
+
+                    except Exception as pe:
+                        logger.error(f"Error processing opening position {position.ccid}: {pe}", exc_info=True)
+
+            except asyncio.CancelledError:
+                logger.info("Fill monitor task cancelled")
+                break
+            except Exception as e:
+                logger.error(f"Fill monitor error: {e}", exc_info=True)
+                await asyncio.sleep(60)  # Wait a minute before retrying
+
+    def _get_order_status(self, order_id: str) -> dict:
+        """Get order status from Robinhood (blocking call)."""
+        try:
+            import robin_stocks.robinhood as r
+            order_info = r.orders.get_option_order_info(order_id)
+            return order_info if order_info else {}
+        except Exception as e:
+            logger.error(f"Error getting order status for {order_id}: {e}")
+            return {}
+
+    def _cancel_order(self, order_id: str) -> bool:
+        """Cancel an order on Robinhood (blocking call)."""
+        try:
+            import robin_stocks.robinhood as r
+            result = r.orders.cancel_option_order(order_id)
+            return result is not None
+        except Exception as e:
+            logger.error(f"Error cancelling order {order_id}: {e}")
+            return False
+
+    async def _handle_fill_complete(self, position, fill_price: float, fill_qty: int):
+        """Handle post-fill updates (position manager, performance tracker, alerts)."""
+        try:
+            # Build trade_obj from position data
+            trade_obj = {
+                'trade_id': position.trade_id,
+                'ticker': position.trader_symbol or position.symbol,
+                'symbol': position.symbol,
+                'strike': position.strike,
+                'type': position.option_type,
+                'expiration': position.expiration,
+                'price': fill_price,
+                'quantity': fill_qty,
+                'channel': position.channel,
+                'channel_id': position.channel_id,
+                'size': position.size,
+                'status': 'active'
+            }
+
+            # Update position manager
+            if self.position_manager:
+                self.position_manager.add_position(position.channel_id, trade_obj)
+
+            # Update performance tracker
+            if self.performance_tracker:
+                self.performance_tracker.record_entry(trade_obj)
+
+            # Send fill notification
+            fill_embed = {
+                "title": "✅ Order Filled",
+                "description": f"**{position.symbol}** ${position.strike} {position.option_type.upper()} {position.expiration}",
+                "color": 0x00ff00,
+                "fields": [
+                    {"name": "Fill Price", "value": f"${fill_price:.2f}", "inline": True},
+                    {"name": "Quantity", "value": str(fill_qty), "inline": True},
+                    {"name": "Channel", "value": position.channel or "Unknown", "inline": True}
+                ],
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+
+            await self.alert_manager.add_alert(
+                ALL_NOTIFICATION_WEBHOOK,
+                {"embeds": [fill_embed]},
+                "fill_notification"
+            )
+
+        except Exception as e:
+            logger.error(f"Error handling fill complete: {e}", exc_info=True)
 
     async def on_message(self, message):
         """Enhanced message handling with proper async context"""
@@ -1375,6 +1542,14 @@ class EnhancedDiscordClient(discord.Client):
             self.ledger_sync_task.cancel()
             try:
                 await self.ledger_sync_task
+            except asyncio.CancelledError:
+                pass
+
+        # Cancel fill monitor task
+        if self.fill_monitor_task and not self.fill_monitor_task.done():
+            self.fill_monitor_task.cancel()
+            try:
+                await self.fill_monitor_task
             except asyncio.CancelledError:
                 pass
 

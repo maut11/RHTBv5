@@ -1,23 +1,44 @@
 # config.py - Enhanced RHTB v4 Configuration with Channel Isolation and Symbol Mapping
 MAX_PCT_PORTFOLIO = 0.10
 MAX_DOLLAR_AMOUNT = 25000
-MIN_TRADE_QUANTITY = 1
+MIN_CONTRACTS = 2      # Minimum contracts per trade
+MAX_CONTRACTS = 20     # Maximum contracts per trade
 
 # Default paddings (can be overridden per channel)
 DEFAULT_BUY_PRICE_PADDING = 0.020
 DEFAULT_SELL_PRICE_PADDING = 0.01
 
-POSITION_SIZE_MULTIPLIERS = { 
-    "lotto": 0.10, 
-    "small": 0.25, 
-    "half": 0.50, 
-    "full": 1.00 
+POSITION_SIZE_MULTIPLIERS = {
+    "lotto": 0.10,
+    "small": 0.25,
+    "half": 0.50,
+    "full": 1.00
 }
 
 # Enhanced risk management settings
-STOP_LOSS_DELAY_SECONDS = 900  # 15 minutes
-DEFAULT_INITIAL_STOP_LOSS = 0.50  # 50% loss protection
+STOP_LOSS_DELAY_SECONDS = 300  # 5 minutes (changed from 15 minutes)
+DEFAULT_INITIAL_STOP_LOSS = 0.30  # 30% loss protection (changed from 50%)
 DEFAULT_TRAILING_STOP_PCT = 0.20  # 20% trailing stop
+TRIM_PERCENTAGE = 0.25  # Trim 25% of position (not 50%)
+
+# Fill monitoring settings
+FILL_MONITORING_INTERVAL = 10  # Seconds between fill checks
+FILL_TIMEOUT_SECONDS = 600     # 10 minute timeout for unfilled orders
+
+# Cascade sell configurations
+TRIM_CASCADE_STEPS = [
+    {'price_type': 'mark', 'multiplier': 1.0, 'wait_seconds': 60},
+    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 60},
+    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 60},
+    {'price_type': 'bid', 'multiplier': 0.97, 'wait_seconds': 0},  # Final step
+]
+
+EXIT_CASCADE_STEPS = [
+    {'price_type': 'mark', 'multiplier': 1.0, 'wait_seconds': 30},
+    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 30},
+    {'price_type': 'bid', 'multiplier': 0.97, 'wait_seconds': 30},
+    {'price_type': 'bid', 'multiplier': 0.95, 'wait_seconds': 0},  # Final step
+]
 
 # ========================================
 # SYMBOL MAPPING CONFIGURATION
@@ -88,8 +109,8 @@ CHANNELS_CONFIG = {
         "test_id": 1398211580470235176,  # sean simulation channel
         "parser": "SeanParser",
         "multiplier": 1.0,
-        "min_trade_contracts": 1,  # Minimum contracts to trade (0 = no trading)
-        "initial_stop_loss": 0.50,  # 50% stop loss for Sean
+        "min_trade_contracts": 2,  # Minimum contracts to trade (0 = no trading)
+        "initial_stop_loss": 0.30,  # 30% stop loss for Sean
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,  # 2.5% padding
         "sell_padding": 0.01,  # 2.5% padding
