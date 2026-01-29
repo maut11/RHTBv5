@@ -50,7 +50,17 @@ DEFAULT_DB_PATH = "logs/position_ledger.db"
 
 @dataclass
 class Position:
-    """Represents an open position in the ledger."""
+    """
+    Represents an open position in the ledger.
+
+    Status values:
+    - 'opening': Buy order placed but not yet filled
+    - 'open': Buy order filled, position is active
+    - 'trimmed': Partial exit completed, remaining contracts active
+    - 'pending_exit': Exit in progress (lock to prevent double-sells)
+    - 'closed': Position fully exited
+    - 'cancelled': Buy order was cancelled/timed out before fill
+    """
     ccid: str
     ticker: str
     strike: float
@@ -64,6 +74,7 @@ class Position:
     last_update_time: str
     pending_exit_since: Optional[str] = None
     notes: Optional[str] = None
+    order_id: Optional[str] = None  # Robinhood order ID for tracking pending orders
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -153,6 +164,7 @@ class PositionLedger:
             cursor = conn.cursor()
 
             # Positions table - main position tracking
+            # Status values: 'opening', 'open', 'trimmed', 'pending_exit', 'closed', 'cancelled'
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS positions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -169,9 +181,16 @@ class PositionLedger:
                     first_entry_time TEXT NOT NULL,
                     last_update_time TEXT NOT NULL,
                     notes TEXT,
+                    order_id TEXT,
                     UNIQUE(ticker, expiration, strike, option_type)
                 )
             ''')
+
+            # Add order_id column if it doesn't exist (for existing databases)
+            try:
+                cursor.execute('ALTER TABLE positions ADD COLUMN order_id TEXT')
+            except sqlite3.OperationalError:
+                pass  # Column already exists
 
             # Position lots table - individual entries for averaging
             cursor.execute('''
@@ -244,7 +263,8 @@ class PositionLedger:
             first_entry_time=row['first_entry_time'],
             last_update_time=row['last_update_time'],
             pending_exit_since=row['pending_exit_since'],
-            notes=row['notes']
+            notes=row['notes'],
+            order_id=row['order_id'] if 'order_id' in row.keys() else None
         )
 
     def _row_to_lot(self, row: sqlite3.Row) -> PositionLot:
@@ -1002,6 +1022,244 @@ class PositionLedger:
                 logger.error(f"Failed to close {pos.ccid}: {e}")
 
         return closed_ccids
+
+    # ==================== POSITION STATE MACHINE ====================
+
+    def create_opening_position(self, trade_data: dict, order_id: str) -> str:
+        """
+        Create a position in 'opening' status before buy order is confirmed filled.
+
+        This is called BEFORE placing the buy order. The position remains in 'opening'
+        status until the fill monitoring task confirms the order was filled, at which
+        point it transitions to 'open'.
+
+        Args:
+            trade_data: Dict with keys: ticker, strike, type, expiration, price, quantity, channel
+            order_id: Robinhood order ID for tracking
+
+        Returns:
+            CCID of the created position
+        """
+        with self.lock:
+            ticker = trade_data.get('ticker') or trade_data.get('trader_symbol')
+            strike = float(trade_data['strike'])
+            option_type = trade_data['type']
+            expiration = trade_data['expiration']
+            price = float(trade_data.get('price', 0))
+            quantity = int(trade_data.get('quantity', 1))
+            channel = trade_data.get('channel')
+
+            ccid = self.generate_ccid(ticker, expiration, strike, option_type)
+            now = datetime.now().isoformat()
+
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+
+                # Check if position already exists
+                cursor.execute('SELECT * FROM positions WHERE ccid = ?', (ccid,))
+                existing = cursor.fetchone()
+
+                if existing:
+                    # Position exists - update it if it's opening or closed
+                    if existing['status'] in ('opening', 'closed', 'cancelled'):
+                        cursor.execute('''
+                            UPDATE positions
+                            SET total_quantity = ?,
+                                avg_cost_basis = ?,
+                                status = 'opening',
+                                order_id = ?,
+                                last_update_time = ?
+                            WHERE ccid = ?
+                        ''', (quantity, price, order_id, now, ccid))
+                        logger.info(f"Reopened position {ccid} in 'opening' status")
+                    else:
+                        # Position is active - average into it
+                        old_qty = existing['total_quantity']
+                        old_cost = existing['avg_cost_basis'] or 0
+                        new_total_qty = old_qty + quantity
+                        new_avg_cost = ((old_qty * old_cost) + (quantity * price)) / new_total_qty
+
+                        cursor.execute('''
+                            UPDATE positions
+                            SET total_quantity = ?,
+                                avg_cost_basis = ?,
+                                order_id = ?,
+                                last_update_time = ?
+                            WHERE ccid = ?
+                        ''', (new_total_qty, new_avg_cost, order_id, now, ccid))
+                        logger.info(f"Added to existing position {ccid}: +{quantity} @ ${price:.2f}")
+                else:
+                    # Create new position in 'opening' status
+                    normalized_ticker = get_trader_symbol(ticker.upper())
+                    cursor.execute('''
+                        INSERT INTO positions
+                        (ccid, ticker, strike, option_type, expiration, total_quantity,
+                         avg_cost_basis, status, channel, first_entry_time, last_update_time, order_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 'opening', ?, ?, ?, ?)
+                    ''', (ccid, normalized_ticker, strike, option_type, expiration,
+                          quantity, price, channel, now, now, order_id))
+
+                    logger.info(f"Created position {ccid} in 'opening' status: {quantity} @ ${price:.2f}")
+
+            return ccid
+
+    def transition_to_open(self, ccid: str, fill_price: Optional[float] = None) -> bool:
+        """
+        Transition a position from 'opening' to 'open' after fill confirmation.
+
+        Args:
+            ccid: Canonical Contract ID
+            fill_price: Actual fill price (updates avg_cost_basis if provided)
+
+        Returns:
+            True if transition successful, False otherwise
+        """
+        with self.lock:
+            now = datetime.now().isoformat()
+
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+
+                cursor.execute('SELECT * FROM positions WHERE ccid = ?', (ccid,))
+                position = cursor.fetchone()
+
+                if not position:
+                    logger.error(f"Cannot transition - position not found: {ccid}")
+                    return False
+
+                if position['status'] != 'opening':
+                    logger.warning(f"Position {ccid} is not in 'opening' status (current: {position['status']})")
+                    return False
+
+                # Update to 'open' status
+                if fill_price is not None:
+                    cursor.execute('''
+                        UPDATE positions
+                        SET status = 'open',
+                            avg_cost_basis = ?,
+                            last_update_time = ?
+                        WHERE ccid = ?
+                    ''', (fill_price, now, ccid))
+                else:
+                    cursor.execute('''
+                        UPDATE positions
+                        SET status = 'open',
+                            last_update_time = ?
+                        WHERE ccid = ?
+                    ''', (now, ccid))
+
+                logger.info(f"Position {ccid} transitioned to 'open' status")
+                return True
+
+    def transition_to_trimmed(self, ccid: str) -> bool:
+        """
+        Transition a position from 'open' to 'trimmed' after partial exit.
+
+        Args:
+            ccid: Canonical Contract ID
+
+        Returns:
+            True if transition successful, False otherwise
+        """
+        with self.lock:
+            now = datetime.now().isoformat()
+
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+
+                cursor.execute('SELECT * FROM positions WHERE ccid = ?', (ccid,))
+                position = cursor.fetchone()
+
+                if not position:
+                    logger.error(f"Cannot transition - position not found: {ccid}")
+                    return False
+
+                if position['status'] not in ('open', 'pending_exit'):
+                    logger.warning(f"Position {ccid} cannot be trimmed (current: {position['status']})")
+                    return False
+
+                cursor.execute('''
+                    UPDATE positions
+                    SET status = 'trimmed',
+                        pending_exit_since = NULL,
+                        last_update_time = ?
+                    WHERE ccid = ?
+                ''', (now, ccid))
+
+                logger.info(f"Position {ccid} transitioned to 'trimmed' status")
+                return True
+
+    def cancel_opening_position(self, ccid: str, reason: str = "Order timeout") -> bool:
+        """
+        Mark an unfilled 'opening' position as 'cancelled'.
+
+        Args:
+            ccid: Canonical Contract ID
+            reason: Reason for cancellation
+
+        Returns:
+            True if successful, False otherwise
+        """
+        with self.lock:
+            now = datetime.now().isoformat()
+
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+
+                cursor.execute('SELECT * FROM positions WHERE ccid = ?', (ccid,))
+                position = cursor.fetchone()
+
+                if not position:
+                    logger.error(f"Cannot cancel - position not found: {ccid}")
+                    return False
+
+                if position['status'] != 'opening':
+                    logger.warning(f"Position {ccid} is not in 'opening' status (current: {position['status']})")
+                    return False
+
+                cursor.execute('''
+                    UPDATE positions
+                    SET status = 'cancelled',
+                        notes = COALESCE(notes, '') || ' [Cancelled: ' || ? || ' at ' || ? || ']',
+                        last_update_time = ?
+                    WHERE ccid = ?
+                ''', (reason, now, now, ccid))
+
+                logger.info(f"Position {ccid} cancelled: {reason}")
+                return True
+
+    def get_opening_positions(self) -> List[Position]:
+        """
+        Get all positions in 'opening' status (pending fill confirmation).
+
+        Returns:
+            List of Position objects in 'opening' status
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM positions
+                WHERE status = 'opening'
+                ORDER BY first_entry_time ASC
+            ''')
+            rows = cursor.fetchall()
+            return [self._row_to_position(row) for row in rows]
+
+    def get_position_by_order_id(self, order_id: str) -> Optional[Position]:
+        """
+        Get a position by its Robinhood order ID.
+
+        Args:
+            order_id: Robinhood order ID
+
+        Returns:
+            Position if found, None otherwise
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM positions WHERE order_id = ?', (order_id,))
+            row = cursor.fetchone()
+            return self._row_to_position(row) if row else None
 
     # ==================== UTILITY METHODS ====================
 
