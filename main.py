@@ -639,13 +639,17 @@ class EnhancedDiscordClient(discord.Client):
             elif command == "!help":
                 await self._handle_help_command()
                 
-            elif command == "!getprice":
-                query = content[len("!getprice"):].strip()
+            elif command in ("!price", "!getprice"):
+                # Extract query - handle both !price and !getprice
+                if command == "!price":
+                    query = content[len("!price"):].strip()
+                else:
+                    query = content[len("!getprice"):].strip()
                 if query:
                     await self._handle_get_price(query)
                 else:
                     await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {
-                        "content": "Usage: `!getprice <options contract query>`\nExample: `!getprice $SPY 500c this friday`"
+                        "content": "Usage: `!price <options contract query>`\nExample: `!price SPY 600c 1/31` or `!price $TSLA 400p Feb 14`"
                     }, "command_response")
             
             elif command == "!positions":
@@ -656,7 +660,21 @@ class EnhancedDiscordClient(discord.Client):
                 
             elif command == "!trades":
                 await self._handle_trades_command()
-                
+
+            elif command == "!pnl":
+                # Parse optional days parameter (default 30)
+                days_arg = content[len("!pnl"):].strip()
+                days = 30
+                if days_arg:
+                    try:
+                        days = int(days_arg)
+                    except ValueError:
+                        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {
+                            "content": "Usage: `!pnl [days]`\nExample: `!pnl` (30 days) or `!pnl 7` (7 days)"
+                        }, "command_response")
+                        return
+                await self._handle_pnl_command(days)
+
             elif command == "!queue":
                 await self._handle_queue_command()
                 
@@ -1003,65 +1021,197 @@ class EnhancedDiscordClient(discord.Client):
         else:
             data = result['data']
             parsed = result['parsed']
-            
+
+            # Price data
             bid = float(data.get('bid_price', 0) or 0)
             ask = float(data.get('ask_price', 0) or 0)
             mark = float(data.get('mark_price', 0) or 0)
+            prev_close = float(data.get('previous_close_price', 0) or 0)
             volume = int(data.get('volume', 0) or 0)
             open_interest = int(data.get('open_interest', 0) or 0)
-            
+
+            # Greeks
+            delta = float(data.get('delta', 0) or 0)
+            gamma = float(data.get('gamma', 0) or 0)
+            theta = float(data.get('theta', 0) or 0)
+            vega = float(data.get('vega', 0) or 0)
+            rho = float(data.get('rho', 0) or 0)
+
+            # IV
+            iv = float(data.get('implied_volatility', 0) or 0)
+            iv_pct = iv * 100 if iv < 1 else iv  # Handle decimal vs percentage
+
+            # Price change
+            price_change = mark - prev_close if prev_close > 0 else 0
+            price_change_pct = (price_change / prev_close * 100) if prev_close > 0 else 0
+            change_emoji = "📈" if price_change >= 0 else "📉"
+            color = 0x00ff00 if price_change >= 0 else 0xff0000  # Green/Red based on change
+
+            # Format Greeks block
+            greeks_text = f"""```
+Δ Delta: {delta:+.4f}
+Γ Gamma: {gamma:.4f}
+Θ Theta: {theta:.4f}
+V Vega:  {vega:.4f}
+ρ Rho:   {rho:+.4f}
+```"""
+
             price_embed = {
                 "title": f"📊 {parsed.get('ticker').upper()} ${parsed.get('strike')} {parsed.get('type').upper()}",
-                "description": f"**Expiration:** {parsed.get('expiration')}",
-                "color": 15105642,
+                "description": f"**Expiration:** {parsed.get('expiration')}\n{change_emoji} **Change:** {price_change:+.2f} ({price_change_pct:+.1f}%)",
+                "color": color,
                 "fields": [
                     {"name": "Mark Price", "value": f"${mark:.2f}", "inline": True},
-                    {"name": "Bid Price", "value": f"${bid:.2f}", "inline": True},
-                    {"name": "Ask Price", "value": f"${ask:.2f}", "inline": True},
-                    {"name": "Spread", "value": f"${(ask - bid):.2f}", "inline": True},
+                    {"name": "Bid / Ask", "value": f"${bid:.2f} / ${ask:.2f}", "inline": True},
+                    {"name": "Spread", "value": f"${(ask - bid):.2f} ({((ask - bid) / mark * 100) if mark > 0 else 0:.1f}%)", "inline": True},
                     {"name": "Volume", "value": f"{volume:,}", "inline": True},
-                    {"name": "Open Interest", "value": f"{open_interest:,}", "inline": True}
+                    {"name": "Open Interest", "value": f"{open_interest:,}", "inline": True},
+                    {"name": "IV", "value": f"{iv_pct:.1f}%", "inline": True},
+                    {"name": "Greeks", "value": greeks_text, "inline": False},
+                    {"name": "Prev Close", "value": f"${prev_close:.2f}", "inline": True}
                 ],
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "footer": {"text": "Data from Robinhood API"}
             }
             await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [price_embed]}, "command_response")
 
     async def _handle_positions_command(self):
-        """Handle positions command"""
-        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": "⏳ Fetching live account positions..."}, "command_response")
-        
-        def get_positions_sync():
+        """Handle positions command - shows entry, current, and P&L per position"""
+        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": "⏳ Fetching positions with P&L..."}, "command_response")
+
+        def get_positions_with_pnl():
             try:
                 positions = self.live_trader.get_open_option_positions()
                 if not positions:
-                    return "No open option positions."
-                
-                holdings = []
+                    return {"positions": [], "total_value": 0, "total_pnl": 0}
+
+                position_data = []
+                total_value = 0
+                total_pnl = 0
+
                 for p in positions:
                     try:
+                        # Get instrument details
                         instrument_data = self.live_trader.get_option_instrument_data(p['option'])
-                        if instrument_data:
-                            holdings.append(f"• {p['chain_symbol']} {instrument_data['expiration_date']} {instrument_data['strike_price']}{instrument_data['type'].upper()[0]} x{int(float(p['quantity']))}")
+                        if not instrument_data:
+                            continue
+
+                        symbol = p.get('chain_symbol', '')
+                        strike = float(instrument_data.get('strike_price', 0))
+                        opt_type = instrument_data.get('type', 'call')
+                        expiration = instrument_data.get('expiration_date', '')
+                        quantity = int(float(p.get('quantity', 0)))
+                        entry_price = float(p.get('average_price', 0))
+
+                        # Get current market price
+                        market_data = self.live_trader.get_option_market_data(symbol, expiration, strike, opt_type)
+                        current_price = entry_price  # Default to entry if no market data
+
+                        if market_data:
+                            # Handle nested response [[{data}]] or [{data}]
+                            data = None
+                            if isinstance(market_data, list) and len(market_data) > 0:
+                                if isinstance(market_data[0], list) and len(market_data[0]) > 0:
+                                    data = market_data[0][0]
+                                elif isinstance(market_data[0], dict):
+                                    data = market_data[0]
+
+                            if data and data.get('mark_price'):
+                                current_price = float(data.get('mark_price', 0) or entry_price)
+
+                        # Calculate P&L (price per contract * quantity * 100 shares per contract)
+                        pnl_dollars = (current_price - entry_price) * quantity * 100
+                        pnl_percent = ((current_price - entry_price) / entry_price * 100) if entry_price > 0 else 0
+                        position_value = current_price * quantity * 100
+
+                        total_value += position_value
+                        total_pnl += pnl_dollars
+
+                        position_data.append({
+                            'symbol': symbol,
+                            'strike': strike,
+                            'type': opt_type[0].upper(),
+                            'expiration': expiration,
+                            'quantity': quantity,
+                            'entry_price': entry_price,
+                            'current_price': current_price,
+                            'pnl_dollars': pnl_dollars,
+                            'pnl_percent': pnl_percent,
+                            'value': position_value
+                        })
+
                     except Exception as e:
-                        logger.error(f"Could not process a position: {e}")
-                
-                return "\n".join(holdings) if holdings else "No processable option positions found."
+                        logger.error(f"Could not process position: {e}")
+                        continue
+
+                return {
+                    "positions": position_data,
+                    "total_value": total_value,
+                    "total_pnl": total_pnl
+                }
+
             except Exception as e:
-                logger.error(f"Error retrieving holdings: {e}", exc_info=True)
-                return f"Error retrieving holdings: {e}"
-        
-        pos_string = await self.loop.run_in_executor(None, get_positions_sync)
-        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": f"**Current Positions:**\n```\n{pos_string}\n```"}, "command_response")
+                logger.error(f"Error retrieving positions: {e}", exc_info=True)
+                return {"positions": [], "total_value": 0, "total_pnl": 0, "error": str(e)}
+
+        result = await self.loop.run_in_executor(None, get_positions_with_pnl)
+
+        if result.get("error"):
+            await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": f"❌ Error: {result['error']}"}, "command_response")
+            return
+
+        positions = result["positions"]
+        if not positions:
+            await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": "📭 No open option positions."}, "command_response")
+            return
+
+        # Build positions text
+        pos_lines = []
+        for pos in positions[:10]:  # Limit to 10 positions
+            pnl_emoji = "🟢" if pos['pnl_dollars'] >= 0 else "🔴"
+            pos_lines.append(
+                f"{pnl_emoji} **{pos['symbol']}** ${pos['strike']}{pos['type']} {pos['expiration']}\n"
+                f"   {pos['quantity']}x @ ${pos['entry_price']:.2f} → ${pos['current_price']:.2f} | "
+                f"**{pos['pnl_percent']:+.1f}%** (${pos['pnl_dollars']:+,.2f})"
+            )
+
+        # Total P&L color
+        color = 0x00ff00 if result["total_pnl"] >= 0 else 0xff0000
+
+        positions_embed = {
+            "title": f"📊 Open Positions ({len(positions)})",
+            "description": "\n\n".join(pos_lines),
+            "color": color,
+            "fields": [
+                {"name": "💰 Total Value", "value": f"${result['total_value']:,.2f}", "inline": True},
+                {"name": "📈 Total P&L", "value": f"${result['total_pnl']:+,.2f}", "inline": True}
+            ],
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "footer": {"text": "Entry → Current | P&L%"}
+        }
+        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [positions_embed]}, "command_response")
 
     async def _handle_portfolio_command(self):
-        """Handle portfolio command"""
-        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": "⏳ Fetching live account portfolio value..."}, "command_response")
-        
-        def get_portfolio_sync():
-            return self.live_trader.get_portfolio_value()
-        
-        portfolio_value = await self.loop.run_in_executor(None, get_portfolio_sync)
-        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": f"💰 **Total Portfolio Value:** ${portfolio_value:,.2f}"}, "command_response")
+        """Handle portfolio command - shows portfolio value and buying power"""
+        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": "⏳ Fetching account details..."}, "command_response")
+
+        def get_account_sync():
+            portfolio_value = self.live_trader.get_portfolio_value()
+            buying_power = self.live_trader.get_buying_power()
+            return portfolio_value, buying_power
+
+        portfolio_value, buying_power = await self.loop.run_in_executor(None, get_account_sync)
+
+        portfolio_embed = {
+            "title": "💰 Account Summary",
+            "color": 0x00ff00,
+            "fields": [
+                {"name": "Portfolio Value", "value": f"${portfolio_value:,.2f}", "inline": True},
+                {"name": "Buying Power", "value": f"${buying_power:,.2f}", "inline": True}
+            ],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [portfolio_embed]}, "command_response")
 
     async def _handle_trades_command(self):
         """Handle trades command"""
@@ -1087,6 +1237,84 @@ class EnhancedDiscordClient(discord.Client):
             }
         
         await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [trades_embed]}, "command_response")
+
+    async def _handle_pnl_command(self, days: int = 30):
+        """Handle P&L summary command"""
+        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": f"⏳ Calculating P&L for last {days} days..."}, "command_response")
+
+        def get_pnl_sync():
+            try:
+                # Get performance summary
+                summary = self.performance_tracker.get_performance_summary(days=days)
+
+                # Get trades for average hold time calculation
+                trades = self.performance_tracker.get_recent_trades(limit=1000)
+
+                # Calculate average hold time from closed trades with exit_time
+                hold_times = []
+                for trade in trades:
+                    if trade.get('exit_time') and trade.get('entry_time'):
+                        try:
+                            entry = datetime.fromisoformat(trade['entry_time'].replace('Z', '+00:00'))
+                            exit_t = datetime.fromisoformat(trade['exit_time'].replace('Z', '+00:00'))
+                            hold_minutes = (exit_t - entry).total_seconds() / 60
+                            if hold_minutes > 0:
+                                hold_times.append(hold_minutes)
+                        except:
+                            pass
+
+                avg_hold_minutes = sum(hold_times) / len(hold_times) if hold_times else 0
+
+                return {
+                    'total_pnl': summary.get('total_pnl', 0),
+                    'total_trades': summary.get('total_trades', 0),
+                    'winning_trades': summary.get('winning_trades', 0),
+                    'losing_trades': summary.get('losing_trades', 0),
+                    'win_rate': summary.get('win_rate', 0),
+                    'best_trade': summary.get('best_trade', 0),
+                    'worst_trade': summary.get('worst_trade', 0),
+                    'avg_hold_minutes': avg_hold_minutes,
+                    'days': days
+                }
+            except Exception as e:
+                logger.error(f"Error calculating P&L: {e}", exc_info=True)
+                return None
+
+        result = await self.loop.run_in_executor(None, get_pnl_sync)
+
+        if not result:
+            await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"content": "❌ Error calculating P&L summary"}, "command_response")
+            return
+
+        # Calculate average P&L per trade
+        avg_pnl = result['total_pnl'] / result['total_trades'] if result['total_trades'] > 0 else 0
+
+        # Format hold time
+        if result['avg_hold_minutes'] >= 60:
+            hold_str = f"{result['avg_hold_minutes'] / 60:.1f} hours"
+        else:
+            hold_str = f"{result['avg_hold_minutes']:.0f} mins"
+
+        # Color based on P&L
+        color = 0x00ff00 if result['total_pnl'] >= 0 else 0xff0000
+
+        pnl_embed = {
+            "title": f"📊 P&L Summary - Last {result['days']} Days",
+            "color": color,
+            "fields": [
+                {"name": "💰 Total P&L", "value": f"${result['total_pnl']:+,.2f}", "inline": True},
+                {"name": "📈 Total Trades", "value": str(result['total_trades']), "inline": True},
+                {"name": "🎯 Win Rate", "value": f"{result['win_rate']:.1f}%", "inline": True},
+                {"name": "✅ Winning", "value": str(result['winning_trades']), "inline": True},
+                {"name": "❌ Losing", "value": str(result['losing_trades']), "inline": True},
+                {"name": "📊 Avg P&L", "value": f"${avg_pnl:+,.2f}", "inline": True},
+                {"name": "🏆 Best Trade", "value": f"{result['best_trade']:+.1f}%", "inline": True},
+                {"name": "💔 Worst Trade", "value": f"{result['worst_trade']:+.1f}%", "inline": True},
+                {"name": "⏱️ Avg Hold", "value": hold_str, "inline": True}
+            ],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [pnl_embed]}, "command_response")
 
     async def _handle_queue_command(self):
         """Handle queue command"""
