@@ -1,7 +1,7 @@
 ---
 name: h-implement-trading-logic-overhaul
 branch: feature/trading-logic-overhaul
-status: pending
+status: completed
 created: 2026-01-28
 ---
 
@@ -23,33 +23,33 @@ Merge the robust trading logic from the old bot with RHTBv5's improved position 
 ## Success Criteria
 
 **Position State Machine:**
-- [ ] Position ledger schema includes `status` field with states: opening, open, trimmed, closed, cancelled
-- [ ] Buy orders create positions in "opening" status
-- [ ] Positions transition to "open" only after fill confirmation
+- [x] Position ledger schema includes `status` field with states: opening, open, trimmed, closed, cancelled
+- [x] Buy orders create positions in "opening" status
+- [x] Positions transition to "open" only after fill confirmation
 
 **Fill Validation:**
-- [ ] Trim/exit operations reject positions in "opening" status with clear error message
-- [ ] Fill monitoring background task polls order status every 10 seconds
-- [ ] Orders timeout and cancel after 10 minutes if unfilled
+- [x] Trim/exit operations reject positions in "opening" status with clear error message
+- [x] Fill monitoring background task polls order status every 10 seconds
+- [x] Orders timeout and cancel after 10 minutes if unfilled
 
 **Cascade Sell Mechanism:**
-- [ ] `cascade_sell_trim()` implemented with 60-second intervals (mark → midpoint → bid → bid×0.97)
-- [ ] `cascade_sell_exit()` implemented with 30-second intervals (mark → bid → bid×0.97 → bid×0.95)
-- [ ] Each cascade step fetches fresh market prices
+- [x] `cascade_sell_trim()` implemented with 60-second intervals (mark → midpoint → bid → bid×0.97)
+- [x] `cascade_sell_exit()` implemented with 30-second intervals (mark → bid → bid×0.97 → bid×0.95)
+- [x] Each cascade step fetches fresh market prices
 
 **Break-Even Stop:**
-- [ ] After successful trim, stop loss is placed at entry price (break-even)
-- [ ] Existing stop loss is cancelled before trim execution
+- [x] After successful trim, stop loss is placed at entry price (break-even)
+- [x] Existing stop loss is cancelled before trim execution
 
 **Risk Parameters:**
-- [ ] Stop loss default changed to -30% (from -50%)
-- [ ] Stop loss delay changed to 5 minutes (from 15)
-- [ ] Trim percentage changed to 25% (from 50%)
-- [ ] Contract limits enforced: min 2, max 20
+- [x] Stop loss default changed to -30% (from -50%)
+- [x] Stop loss delay changed to 5 minutes (from 15)
+- [x] Trim percentage changed to 25% (from 50%)
+- [x] Contract limits enforced: min 2, max 20
 
 **Integration:**
-- [ ] All existing tests pass
-- [ ] Bot successfully executes buy → trim → exit cycle with new logic
+- [x] All existing tests pass
+- [x] Bot successfully executes buy → trim → exit cycle with new logic
 
 ## Context Manifest
 <!-- Added by context-gathering agent -->
@@ -506,3 +506,19 @@ For fill monitoring, track these Robinhood order states:
 ## Work Log
 <!-- Updated as work progresses -->
 - [2026-01-28] Task created from trading logic comparison discussion
+
+### 2026-01-28 - Implementation Complete
+
+#### Completed
+- Added position state machine to position_ledger.py (opening→open→trimmed→closed)
+- Implemented fill monitoring background task in main.py (10s polling, 10min timeout)
+- Implemented cascade sell in trade_executor.py (patient 60s for trims, urgent 30s for exits)
+- Implemented break-even stop after trim
+- Updated config.py with new risk parameters (30% stop, 25% trim, min 2/max 20 contracts)
+- All code merged to main branch
+
+#### Files Modified
+- config.py - Risk parameters, cascade step configs
+- position_ledger.py - State machine methods, order_id tracking
+- trade_executor.py - Cascade sell, break-even stop, modified buy flow
+- main.py - Fill monitoring background task

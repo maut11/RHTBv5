@@ -17,7 +17,7 @@ The trading bot currently supports multiple Discord trading channels (Sean, Ryan
 - [x] Remove non-Sean channel imports from main.py
 - [x] Remove Ryan-specific logic from trade_executor.py
 - [x] Bot starts successfully with only Sean channel support
-- [ ] Sean channel alerts are processed correctly (test with simulation mode)
+- [x] Sean channel alerts are processed correctly (test with simulation mode)
 
 ## Context Manifest
 <!-- Added by context-gathering agent -->

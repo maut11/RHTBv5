@@ -1,7 +1,7 @@
 ---
 task: h-fix-exit-signal-method-error
 branch: fix/exit-signal-method-error
-status: pending
+status: completed
 created: 2025-09-09
 modules: [trader, trade_executor, channels]
 ---
@@ -41,3 +41,10 @@ This is a CRITICAL bug preventing exit signals from working. The logs show:
 - [2025-09-09] Fixed by adding compatibility method `place_option_sell_order_with_retry` to `EnhancedRobinhoodTrader` that calls existing `place_option_sell_order_with_timeout_retry`
 - [2025-09-09] Verified fix works: method exists, is callable, and has correct signature
 - [2025-09-09] Task completed successfully - exit signals should now work without method errors
+### 2026-01-28 - Archived as Resolved
+
+These issues have been addressed by subsequent implementations:
+- Cascade sell mechanism (trade_executor.py)
+- SPX/SPXW symbol mapping (config.py)
+- Tick size rounding with 0DTE support (trader.py)
+- Fill monitoring background task (main.py)
