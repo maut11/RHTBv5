@@ -124,3 +124,61 @@ When a message is edited:
 - Notification sent to commands webhook
 
 Implementation: `main.py` lines 400-455
+
+---
+
+## Discord Bot Commands
+
+The bot provides Discord commands for account monitoring, trading information, and system diagnostics. Commands are sent to the configured commands channel and responses are delivered via webhook.
+
+### Trading Commands
+
+| Command | Description |
+|---------|-------------|
+| `!price <query>` | Option price lookup with full Greeks, IV, and price change. Accepts natural language queries (e.g., `!price SPY 600c 1/31`). Alias: `!getprice` |
+| `!pnl [days]` | P&L summary for the last N days (default 30). Shows total P&L, win rate, trade count, best/worst trade, average hold time |
+| `!positions` | Open positions with entry price, current price, and P&L per position. Includes total portfolio P&L |
+| `!portfolio` | Account summary showing portfolio value and buying power |
+| `!trades` | Recent completed trades with P&L percentages |
+| `!mintick <symbol>` | Get minimum tick size for a symbol (useful for SPX 0DTE) |
+| `!clear <channel>` | Clear fallback position history for a channel |
+
+### System Commands
+
+| Command | Description |
+|---------|-------------|
+| `!status` | System status overview (mode, channels, connection status) |
+| `!heartbeat` | Detailed health check with recent trade activity |
+| `!sim on\|off` | Toggle simulation mode |
+| `!testing on\|off` | Toggle testing channel mode |
+
+### Alert System Commands
+
+| Command | Description |
+|---------|-------------|
+| `!alert_health` | Alert system diagnostics (processor status, circuit breaker) |
+| `!alert_restart` | Force restart alert processors |
+| `!alert_test` | Send test notification |
+| `!queue` | Alert queue status and metrics |
+| `!help` | Display all available commands |
+
+### Command Implementation
+
+Commands are handled in `main.py` within the `EnhancedDiscordClient.handle_command()` method (lines 752-874). Each command dispatches to a dedicated handler method:
+
+- `_handle_get_price()` - AI-powered contract parsing via `PriceParser`, fetches market data from Robinhood API
+- `_handle_pnl_command()` - Queries `EnhancedPerformanceTracker` for trade history and calculates metrics
+- `_handle_positions_command()` - Fetches positions from Robinhood, calculates real-time P&L using market data
+- `_handle_portfolio_command()` - Retrieves portfolio value and buying power from `RobinhoodTrader`
+
+### Price Command Response Fields
+
+The `!price` command displays comprehensive option data:
+
+**Price Data**: Mark, bid, ask, spread, previous close, price change (dollar and percent)
+
+**Greeks**: Delta, Gamma, Theta, Vega, Rho
+
+**Market Data**: Volume, open interest, implied volatility (IV)
+
+Implementation: `main.py` lines 1145-1244

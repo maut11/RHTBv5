@@ -520,3 +520,25 @@ rho_symbol = "..."    # Rho
 ## Work Log
 <!-- Updated as work progresses -->
 - [2026-01-28] Task created
+
+### 2026-01-28 - Implementation Complete
+
+#### Completed
+- Enhanced `!portfolio` command to show portfolio value AND buying power
+- Implemented new `!pnl [days]` command with total P&L, win rate, avg hold time, best/worst trade
+- Enhanced `!price` command with Greeks, IV, and price change
+- Kept `!getprice` as backward-compatible alias
+- Enhanced `!positions` to show entry price, current price, and P&L per position
+- Updated `!help` command to document all new/enhanced commands
+- Feature branch merged to main
+
+#### Files Modified
+- `main.py` - All command handler implementations
+
+#### Documentation Updates
+- Added Discord Bot Commands section to `CLAUDE.md` documenting:
+  - Trading commands table (!price, !pnl, !positions, !portfolio, !trades, !mintick, !clear)
+  - System commands table (!status, !heartbeat, !sim, !testing)
+  - Alert system commands table (!alert_health, !alert_restart, !alert_test, !queue, !help)
+  - Command implementation details with handler method references
+  - Price command response fields (Greeks, market data)

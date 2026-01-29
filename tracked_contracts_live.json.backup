@@ -1,0 +1,42 @@
+{
+  "1398211580470235176": [
+    {
+      "trade_id": "trade_1769560139524",
+      "symbol": "OPEN",
+      "trader_symbol": "OPEN",
+      "broker_symbol": "OPEN",
+      "symbol_variants": [
+        "OPEN"
+      ],
+      "strike": 11,
+      "type": "call",
+      "expiration": "2026-11-21",
+      "purchase_price": 1.4,
+      "entry_price": 1.4,
+      "size": "half",
+      "quantity": 35,
+      "channel": "Sean",
+      "created_at": "2026-01-28T00:28:59.667946+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1769568674498",
+      "symbol": "OPEN",
+      "trader_symbol": "OPEN",
+      "broker_symbol": "OPEN",
+      "symbol_variants": [
+        "OPEN"
+      ],
+      "strike": 11.0,
+      "type": "call",
+      "expiration": "2026-11-18",
+      "purchase_price": 1.4,
+      "entry_price": 1.4,
+      "size": "half",
+      "quantity": 35,
+      "channel": "Sean",
+      "created_at": "2026-01-28T02:51:14.634101+00:00",
+      "status": "open"
+    }
+  ]
+}
