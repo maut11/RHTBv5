@@ -765,19 +765,24 @@ class TradeExecutor:
     
     def _normalize_keys(self, data: dict) -> dict:
         """Normalize dictionary keys"""
-        if not isinstance(data, dict): 
+        if not isinstance(data, dict):
             return data
-        
+
         cleaned_data = {k.lower().replace(' ', '_'): v for k, v in data.items()}
-        
-        if 'option_type' in cleaned_data: 
+
+        if 'option_type' in cleaned_data:
             cleaned_data['type'] = cleaned_data.pop('option_type')
-        if 'entry_price' in cleaned_data: 
+        if 'entry_price' in cleaned_data:
             cleaned_data['price'] = cleaned_data.pop('entry_price')
-        
+
+        # Handle "market" price (e.g., "Stopped out" without a price)
+        if str(cleaned_data.get('price', '')).lower() == 'market':
+            cleaned_data['price'] = 0
+            cleaned_data['is_market_exit'] = True
+
         if 'ticker' in cleaned_data and isinstance(cleaned_data['ticker'], str):
             cleaned_data['ticker'] = cleaned_data['ticker'].replace('$', '').upper()
-            
+
         return cleaned_data
     
     def _round_to_tick(self, price: float, tick_size: float, round_up: bool = False) -> float:
@@ -1365,7 +1370,7 @@ class TradeExecutor:
 **Channel Mult:** {calc['channel_multiplier']:.1f}x
 **Allocation:** {calc['allocation_pct']:.2f}% = ${calc['max_dollar_amount']:,.2f}
 **Calc Contracts:** {calc['calculated_contracts']}
-**Final:** {calc['final_contracts']} (min: {calc['min_quantity']})
+**Final:** {calc['final_contracts']} (min: {calc['min_contracts']})
             """.strip()
             
             embed["fields"].append({

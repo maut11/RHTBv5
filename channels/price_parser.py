@@ -14,6 +14,15 @@ class PriceParser(BaseParser):
         # Pass a dummy channel_id; it won't be used for this command
         super().__init__(openai_client, channel_id=0, config=config)
 
+    def _validate_response_structure(self, parsed_json) -> bool:
+        """PriceParser needs ticker, strike, type, and expiration - not action field."""
+        required = ['ticker', 'strike', 'type', 'expiration']
+        if isinstance(parsed_json, dict):
+            return all(k in parsed_json for k in required)
+        elif isinstance(parsed_json, list):
+            return any(isinstance(item, dict) and all(k in item for k in required) for item in parsed_json)
+        return False
+
     def build_prompt(self) -> str:
         """Builds a prompt specifically for extracting contract details from a query."""
         today = datetime.now(timezone.utc)

@@ -530,6 +530,10 @@ class EnhancedDiscordClient(discord.Client):
     async def on_message(self, message):
         """Enhanced message handling with proper async context"""
         try:
+            # Skip messages in threads to prevent duplicate alert processing
+            if isinstance(message.channel, discord.Thread):
+                return
+
             # Handle commands
             if message.channel.id == LIVE_COMMAND_CHANNEL_ID and message.content.startswith('!'):
                 await self._handle_command(message)

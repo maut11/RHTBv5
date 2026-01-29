@@ -87,6 +87,7 @@ Messages without an explicit trade directive (e.g. "all cash", "still holding", 
 - TRIM: Represents a partial take-profit. Must include a price.
 - EXIT: Represents a full close of the position.
 - **Breakeven (BE)**: If the message mentions exiting at "BE", return "BE" as the value for the "price" field for immediate exits only.
+- **Stopped Out (no price)**: If the message says "stopped out" (including typos like "stoppedo ut", "stoped out") WITHOUT a specific price, return "market" as the price. This is still an EXIT action.
 - COMMENT: Not a trade instruction. Return null.
 - **Missing Info**: Avoid inferring trades from general commentary. If critical info for an action is missing, it is better to return a "null" action.
 - **Stop Loss** If the message mentions "Stop Loss" or "SL" this is a stop loss indicator and not a Ticker, Do not assume a SL is a ticker, return null for the ticker and the trading boths fallback logic will fill it in  
@@ -134,6 +135,14 @@ Output: {{"action": "exit", "ticker": "AAPL", "price": "BE"}}
 PRIMARY: "Stopped out here at 0.40"
 ORIGINAL: "$AMD 145p Feb 7 @ 1.20"
 Output: {{"action": "exit", "ticker": "AMD", "strike": 145, "type": "put", "expiration": "{current_year}-02-07", "price": 0.40}}
+
+**EXIT Example 4 (Stop without price / typo):**
+Message: "Stoppedo ut $CRML @everyone"
+Output: {{"action": "exit", "ticker": "CRML", "price": "market"}}
+
+**EXIT Example 5 (Stop without price):**
+Message: "Stopped out of TSLA"
+Output: {{"action": "exit", "ticker": "TSLA", "price": "market"}}
 
 **COMMENTARY Example 1:**
 Message: "Watching GOOGL for a potential entry"

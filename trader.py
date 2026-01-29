@@ -1066,10 +1066,17 @@ class EnhancedRobinhoodTrader:
             print(f"🛡️ Placing stop loss: {symbol}/{broker_symbol} ${strike}{opt_type.upper()} x{quantity} @ ${rounded_stop_price:.2f}")
             logger.info(f"Placing stop loss: {symbol}/{broker_symbol} x{quantity} @ ${rounded_stop_price:.2f}")
 
+            # Limit price set below stop to allow fills on gap-downs
+            limit_price = self.round_to_tick(
+                rounded_stop_price * 0.85, broker_symbol, round_up_for_buy=False
+            )
+
+            print(f"🛡️ Stop trigger: ${rounded_stop_price:.2f} | Limit floor: ${limit_price:.2f}")
+
             result = r.order_sell_option_stop_limit(
                 positionEffect='close',
                 creditOrDebit='credit',
-                limitPrice=rounded_stop_price,
+                limitPrice=limit_price,
                 stopPrice=rounded_stop_price,
                 symbol=broker_symbol,  # Use broker symbol
                 quantity=quantity,
