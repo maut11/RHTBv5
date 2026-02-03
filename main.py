@@ -410,8 +410,8 @@ class EnhancedDiscordClient(discord.Client):
                         # Handle different order states
                         if order_state == 'filled':
                             # Order filled - transition to 'open'
-                            fill_price = float(order_info.get('average_price', 0) or position.entry_price)
-                            fill_qty = int(float(order_info.get('cumulative_quantity', 0) or position.quantity))
+                            fill_price = float(order_info.get('average_price', 0) or position.avg_cost_basis)
+                            fill_qty = int(float(order_info.get('cumulative_quantity', 0) or position.total_quantity))
 
                             self.position_ledger.transition_to_open(ccid, fill_price)
 
