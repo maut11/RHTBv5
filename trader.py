@@ -429,15 +429,11 @@ class EnhancedRobinhoodTrader:
                                             else:
                                                 return 0.10  # Critical fix: SPX options over $5.00 use $0.10 ticks
                                         elif avg_price < 3.00:
-                                            if broker_symbol.upper() in ['SPY', 'QQQ', 'IWM']:  # Major ETFs in Penny Pilot
-                                                return 0.01
-                                            else:
-                                                return 0.05
+                                            # All non-SPX equity options are penny pilot ($0.01)
+                                            return 0.01
                                         else:
-                                            if broker_symbol.upper() in ['SPY', 'QQQ', 'IWM']:  # Major ETFs in Penny Pilot
-                                                return 0.05  
-                                            else:
-                                                return 0.10
+                                            # Penny pilot options over $3.00 use $0.05 ticks
+                                            return 0.05
                                         
                             except Exception as e:
                                 continue  # Try next strike
@@ -462,10 +458,9 @@ class EnhancedRobinhoodTrader:
                                 return 0.10  # Conservative for regular SPX when price unknown
                         except:
                             return 0.10  # Most conservative fallback
-                    elif broker_symbol.upper() in ['SPY', 'QQQ', 'IWM']:
-                        return 0.05  # Conservative for major ETF symbols
                     else:
-                        return 0.10  # Conservative for other symbols
+                        # All non-SPX equity options assumed penny pilot
+                        return 0.05
                         
         except Exception as e:
             logger.error(f"Error getting options tick size for {broker_symbol}: {e}")
@@ -586,11 +581,11 @@ class EnhancedRobinhoodTrader:
         except Exception as e:
             print(f"⚠️ Could not get tick size for {symbol}: {e}")
         
-        # Final fallback based on symbol
-        if broker_symbol.upper() in ['SPX', 'SPXW', 'SPY', 'QQQ', 'IWM']:
-            return 0.05
-        else:
+        # Final fallback: SPX uses 0.10, everything else penny pilot 0.05
+        if broker_symbol.upper() in ['SPX', 'SPXW']:
             return 0.10
+        else:
+            return 0.05
 
     def round_to_tick(self, price: float, symbol: str, round_up_for_buy: bool = False, expiration: str = None) -> float:
         """ENHANCED: Round price to valid tick with buy/sell logic and SPX 0DTE support"""
