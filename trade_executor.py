@@ -883,12 +883,12 @@ class TradeExecutor:
             padded_price = price * (1 + buy_padding)
             final_price = trader.round_to_tick(padded_price, symbol, round_up_for_buy=True, expiration=expiration)
 
-            # Calculate contracts with MIN_CONTRACTS and MAX_CONTRACTS enforcement
+            # Calculate contracts with per-channel minimum and MAX_CONTRACTS enforcement
+            min_channel_contracts = config.get("min_trade_contracts", MIN_CONTRACTS)
             calculated_contracts = int(max_amount / (final_price * 100))
-            contracts = max(MIN_CONTRACTS, min(calculated_contracts, MAX_CONTRACTS))
+            contracts = max(min_channel_contracts, min(calculated_contracts, MAX_CONTRACTS))
 
             # Check minimum trade contracts threshold for channel (0 = tracking only)
-            min_channel_contracts = config.get("min_trade_contracts", MIN_CONTRACTS)
             if min_channel_contracts == 0:
                 log_func(f"📊 Channel {trade_obj.get('channel', 'Unknown')} tracking only: Trading disabled")
                 trade_obj['quantity'] = 0

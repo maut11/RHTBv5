@@ -123,10 +123,10 @@ CHANNELS_CONFIG = {
     },
     "FiFi": {
         "live_id": 1368713891072315483,  # fifi-alerts
-        "test_id": 1402850612995031090,  # fifi simulation channel
+        "test_id": 1468477705270988833,  # fifi simulation channel
         "parser": "FiFiParser",
-        "multiplier": 1.0,
-        "min_trade_contracts": 0,      # Tracking-only mode initially
+        "multiplier": 0.5,             # 5% portfolio (0.10 * 0.5)
+        "min_trade_contracts": 1,      # Live trading, min 1 contract
         "initial_stop_loss": 0.50,
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,
