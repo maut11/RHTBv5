@@ -62,7 +62,7 @@ When multiple positions exist for the same ticker, the system uses weighted scor
 
 ### Configuration Values
 
-From `config.py` (lines 149-152):
+From `config.py` (lines 167-170):
 - `POSITION_LEDGER_DB = "logs/position_ledger.db"` - Database file path
 - `LEDGER_SYNC_INTERVAL = 60` - Robinhood reconciliation interval (seconds)
 - `LEDGER_HEURISTIC_STRATEGY = "fifo"` - Default resolution heuristic
@@ -135,7 +135,7 @@ Implementation: `main.py` lines 575-630
 
 ## Channel Parsers
 
-The bot supports multiple channel parsers, each tailored to a specific trader's messaging style. All parsers extend `BaseParser` (`channels/base_parser.py`) and override `build_prompt()` at minimum. Two active parsers exist: `SeanParser` and `FiFiParser`.
+The bot supports multiple channel parsers, each tailored to a specific trader's messaging style. All parsers extend `BaseParser` (`channels/base_parser.py`). LLM-based parsers override `build_prompt()` while regex-based parsers override `parse_message()` directly. Three active parsers exist: `SeanParser`, `FiFiParser`, and `RyanParser`.
 
 ### SeanParser (`channels/sean.py`)
 
@@ -143,7 +143,7 @@ The original parser for Sean's technical analysis alerts. Overrides only `build_
 
 ### FiFiParser (`channels/fifi.py`)
 
-Parses FiFi's (sauced2002) conversational, non-standardized Discord trading alerts. Deployed in tracking-only mode (`min_trade_contracts=0`).
+Parses FiFi's (sauced2002) conversational, non-standardized Discord trading alerts. Live trading with `min_trade_contracts=1`.
 
 **Enhancements over base parsing** (five total):
 
@@ -169,14 +169,43 @@ Parses FiFi's (sauced2002) conversational, non-standardized Discord trading aler
 - 10+ few-shot examples covering buy (explicit/implicit/lotto/multi), trim (reply-based/typo), exit (standard/stopped), and null (conditional/watchlist/intent/fragment/bare ticker)
 - Price parsing rule: "from $X" is entry price context, not current price
 
+### RyanParser (`channels/ryan.py`)
+
+Parses Ryan's 0DTE SPX options alerts from Discord embeds sent by "Sir Goldman Alert Bot". Architecturally different from Sean and FiFi -- overrides `parse_message()` entirely to use regex-based dispatch instead of LLM calls. This yields near-zero latency (~0ms) compared to ~700ms for LLM-based parsers.
+
+**Embed structure**: Ryan's alerts arrive as Discord embeds with a title (ENTRY/TRIM/EXIT/COMMENT) and a description containing the message text wrapped in bold markers. The existing `_extract_message_content()` in `main.py` delivers these as `message_meta = (embed_title, embed_description)` tuples.
+
+**Title-based dispatch** (`_dispatch()`, lines 91-112):
+- ENTRY -- Routes to regex parser `_parse_entry()` (lines 116-143)
+- TRIM -- Title alone triggers a market-price trim via `_parse_trim()` (lines 147-154)
+- EXIT -- Title alone triggers a market-price exit via `_parse_exit()` (lines 158-165)
+- COMMENT -- Returns empty list (non-actionable)
+- Unrecognized title -- Falls back to embed color matching (green=entry, yellow=trim, red=exit)
+
+**Entry regex** (line 18-21): `\$SPX\s+(\d+)(p|c)\s*@\s*\$?([\d.]+)` -- captures strike, option type (c/p), and alert price. Always sets `ticker="SPX"` (mapped to SPXW downstream) and `expiration=today` (0DTE only).
+
+**Futures filter** (line 24-27): `(?:Long|Short)\s+\$?(?:NQ|GC|ES|CL|YM)` -- filters out non-SPX futures entries (NQ, Gold, ES, Crude, Dow) that Ryan occasionally posts.
+
+**Description cleaning** (`_clean_description()`, lines 169-175): Strips `**` bold markers, removes emoji unicode ranges, and collapses whitespace before regex matching.
+
+**Key architectural differences from LLM parsers**:
+- Overrides `parse_message()` (not `build_prompt()`) -- bypasses the entire OpenAI pipeline
+- Handles its own cache interaction via `get_parse_cache()` (lines 57-62, 88)
+- Sets action values directly (`"buy"`, `"trim"`, `"exit"`) rather than relying on `_standardize_action()`
+- Injects `channel_id` and `received_ts` metadata manually (lines 74-77)
+- Skips Pydantic validation (regex output is deterministic)
+- Rejects non-embed (plain string) `message_meta` with an empty result (lines 50-52)
+- `build_prompt()` returns empty string (required by base class but never called)
+
 ### CHANNELS_CONFIG
 
-Channel configuration in `config.py` (lines 106-142). Each entry maps a channel name to parser class, channel IDs, risk parameters, and model settings.
+Channel configuration in `config.py` (lines 106-160). Each entry maps a channel name to parser class, channel IDs, risk parameters, and model settings.
 
 | Channel | Parser | Live Trading | Message History | Key Differences |
 |---------|--------|-------------|-----------------|-----------------|
 | Sean | `SeanParser` | Yes (`min_trade_contracts=2`) | 5 (default) | Standard prompt, no position injection |
-| FiFi | `FiFiParser` | No (`min_trade_contracts=0`, tracking-only) | 10 | Position injection, time deltas, negative constraints, role ping |
+| FiFi | `FiFiParser` | Yes (`min_trade_contracts=1`) | 10 | Position injection, time deltas, negative constraints, role ping |
+| Ryan | `RyanParser` | Yes (`min_trade_contracts=1`) | 0 | Regex-based (no LLM), embed dispatch, SPX 0DTE only |
 
 The `message_history_limit` config key controls how many recent messages are fetched for context per channel (see `main.py` line 555). Channels without this key default to 5.
 

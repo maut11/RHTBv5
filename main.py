@@ -23,6 +23,7 @@ from trader import EnhancedRobinhoodTrader, EnhancedSimulatedTrader
 # Import channel parsers
 from channels.sean import SeanParser
 from channels.fifi import FiFiParser
+from channels.ryan import RyanParser
 from channels.price_parser import PriceParser
 
 # Import AI logging system

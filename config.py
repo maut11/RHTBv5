@@ -138,6 +138,24 @@ CHANNELS_CONFIG = {
         "typical_hold_time": "30 minutes - 4 hours",
         "trade_first_mode": True,
         "message_history_limit": 10    # More context for conversational style
+    },
+    "Ryan": {
+        "live_id": 1072559822366576780,  # ryan-alerts
+        "test_id": 1468487671893721233,  # ryan simulation channel
+        "parser": "RyanParser",
+        "multiplier": 0.5,              # 5% portfolio (0.10 * 0.5)
+        "min_trade_contracts": 1,        # Minimum 1 contract
+        "initial_stop_loss": 0.30,
+        "trailing_stop_loss_pct": 0.20,
+        "buy_padding": 0.025,
+        "sell_padding": 0.01,
+        "model": "gpt-4o-mini",          # Required by BaseParser init, not used in hot path
+        "color": 3066993,                # Green
+        "description": "Ryan's 0DTE SPX options",
+        "risk_level": "high",
+        "typical_hold_time": "5-30 minutes",
+        "trade_first_mode": True,
+        "message_history_limit": 0       # Embeds are self-contained
     }
 }
 
