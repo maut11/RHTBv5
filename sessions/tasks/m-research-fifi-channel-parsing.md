@@ -1,6 +1,6 @@
 ---
 name: m-research-fifi-channel-parsing
-branch: none
+branch: main
 status: pending
 created: 2026-02-03
 ---
@@ -17,10 +17,10 @@ The goal is to:
 4. Design a parsing strategy that can extract actionable trade signals from her plain-English posts
 
 ## Success Criteria
-- [ ] Successfully scrape 1000 messages from FiFi's channel to CSV
-- [ ] Produce a categorized analysis of message types and patterns
-- [ ] Identify recurring linguistic patterns for buys, trims, exits, and commentary
-- [ ] Document a proposed parsing strategy with example mappings (message -> parsed alert)
+- [x] Successfully scrape 1000 messages from FiFi's channel to CSV
+- [x] Produce a categorized analysis of message types and patterns
+- [x] Identify recurring linguistic patterns for buys, trims, exits, and commentary
+- [x] Document a proposed parsing strategy with example mappings (message -> parsed alert)
 
 ## Context Manifest
 <!-- Added by context-gathering agent -->
@@ -310,6 +310,280 @@ This task is purely research/analysis. No code changes to the trading bot are ex
 - Old FiFi parser (git): `git show dc587876cebc59e18b98682dc6d4cffb4852049d~1:channels/fifi.py`
 - Output CSV (suggested): `/Users/mautasimhussain/trading-bots/RHTBv5/fifi_messages.csv`
 
+## Research Findings
+
+### Data Overview
+
+- **Scraped**: 1000 messages from #fifi-alerts (2025-12-16 to 2026-02-04)
+- **FiFi's username**: `sauced2002` (995 of 1000 messages)
+- **Alert role ping**: `<@&1369304547356311564>` (appended to actionable messages)
+- **CSV output**: `/Users/mautasimhussain/trading-bots/RHTBv5/fifi_messages.csv`
+
+### Message Distribution
+
+| Category | Count | % | Actionable? |
+|---|---|---|---|
+| Buy entries | 55 | 5.5% | Yes |
+| Implicit buys (no action word) | 4 | 0.4% | Yes |
+| Add to position | 12 | 1.2% | Yes (treat as buy) |
+| Trims | 154 | 15.5% | Yes |
+| Exits | 73 | 7.3% | Yes |
+| Trim summaries | 20 | 2.0% | No (recap) |
+| Limit order announcements | 8 | 0.8% | No (pending) |
+| Watchlist/forward-looking | 26 | 2.6% | No |
+| Recaps | 2 | 0.2% | No |
+| Commentary | 571 | 57.4% | No |
+| Ping/emoji only | 70 | 7.0% | No |
+
+**Actionable: 298 messages (29.9%)** | Non-actionable: 697 (70.1%)
+
+### Linguistic Pattern Catalog
+
+#### BUY Patterns
+
+**Format 1: "in TICKER" prefix** (most common ~60% of buys)
+```
+"in PLTR 2/6 $155p $2.70"           -> buy PLTR 2026-02-06 155 put @ 2.70
+"in MO 0dte $61c .08"               -> buy MO today 61 call @ 0.08
+"in QQQ 0dte 615p 1/8 size .88"     -> buy QQQ today 615 put @ 0.88 (half)
+"in TSLA 2/20 $400p $6.80"          -> buy TSLA 2026-02-20 400 put @ 6.80
+"in UPS March $115c @ $2"           -> buy UPS March-20 115 call @ 2.00
+"in XOM weekly 134c .82"            -> buy XOM weekly 134 call @ 0.82
+"in SLV 0dte 80p .18"              -> buy SLV today 80 put @ 0.18
+```
+
+**Format 2: "scaling into" / "bought"**
+```
+"scaling into XOM March 20 $140c $4.30 bought 1/4 size"
+"Bought a starter size 1/5 position in both:
+ SPY 2/20 $680p @ $5.92
+ QQQ 3/20 $600p @ $9.72"           -> 2 buys (multi-ticker)
+```
+
+**Format 3: "grabbed"**
+```
+"grabbed a couple 180p weekly .31"   -> buy [context-ticker] weekly 180 put @ 0.31
+"Grabbed some IWM Odte 260p .31"    -> buy IWM today 260 put @ 0.31
+```
+
+**Format 4: Implicit buy (no action word)**
+```
+"TSLA 480p 0dte 1.40"              -> buy TSLA today 480 put @ 1.40
+"XOM 130c 0dte at .25"             -> buy XOM today 130 call @ 0.25
+"short QQQ 613p 0dte .47"          -> buy QQQ today 613 put @ 0.47
+```
+
+**Format 5: "added" (average into position)**
+```
+"added full size into MRK 2/20 $110c here at $2.90"
+"added 1/2 size SMH 1/30 $390p $6.15"
+"added XOM $135c 2/20 $2"
+"added to NVDA here .53 new average is .82"  -> buy [resolve from position] @ 0.53
+```
+
+**Format 6: Multi-line**
+```
+"in PLTR 2/6
+$155p $2.70
+SL is HOD"
+```
+
+**Format 7: Multi-ticker buy**
+```
+"Added to April puts
+SPY $670 @ $9.50
+QQQ $600p @ 11.60"                 -> 2 buys
+```
+
+#### TRIM Patterns
+
+**Format 1: "trim $PRICE" (reply-based, most common)**
+```
+"trim .18"                          -> trim [resolve from reply] @ 0.18
+"trim .35"                          -> trim [resolve from reply] @ 0.35
+"trim $9.50"                        -> trim [resolve from reply] @ 9.50
+```
+Reply contains the original buy with full contract details.
+
+**Format 2: "trim TICKER $PRICE"**
+```
+"Trim spy weekly $7"                -> trim SPY weekly @ 7.00
+"trim XOM $4.1"                     -> trim XOM @ 4.10
+"trim QQQ puts at 3.20 from .43"    -> trim QQQ @ 3.20
+"trim XOM feb 135c $2.80 from $2"   -> trim XOM 2/20 135 call @ 2.80
+```
+
+**Format 3: "Trimmed TICKER $PRICE from $ENTRY"**
+```
+"Trimmed spy 7.20 from 4.60 for 2/20"     -> trim SPY 2/20 @ 7.20
+"Trimmed QQQ 2/20 at $10.60 from 6.60"    -> trim QQQ 2/20 @ 10.60
+"Trimmed XOM 7.5"                          -> trim XOM @ 7.50
+```
+
+**Format 4: "sold X here/at $PRICE"**
+```
+"Sold some more XOM 6.50"          -> trim XOM @ 6.50
+"sold 1/4 here .40"                -> trim [resolve from reply] @ 0.40
+"sold 1/2 SLV here .20 +100%"      -> trim SLV @ 0.20
+```
+
+**Format 5: "TP $PRICE"**
+```
+"TP 630"                            -> trim [resolve from context]
+```
+
+#### EXIT Patterns
+
+**Format 1: "out TICKER $PRICE" (most common)**
+```
+"out TSLA 1.4"                      -> exit TSLA @ 1.40
+"out pltr lotto .16"                -> exit PLTR @ 0.16
+"out last piece of MRK 3.20"       -> exit MRK @ 3.20
+```
+
+**Format 2: "Out TICKER BE"**
+```
+"Out PLTR BE here"                  -> exit PLTR @ BE
+"out rest BE of MO"                 -> exit MO @ BE
+"out WMT BE"                        -> exit WMT @ BE
+```
+
+**Format 3: "all out TICKER"**
+```
+"all out SNDK for now"              -> exit SNDK @ market
+"all out of NUE $6.90"             -> exit NUE @ 6.90
+```
+
+**Format 4: Multi-ticker exit**
+```
+"Out nvda 1.50 from 2.5
+Out spy 4.10 from 5.5"             -> exit NVDA @ 1.50 + exit SPY @ 4.10
+```
+
+**Format 5: Stopped out**
+```
+"got stopped on rest of RGTI"      -> exit RGTI @ market
+"stopped out BE on AAPL, QQQ"      -> exit AAPL @ BE + exit QQQ @ BE
+```
+
+#### NON-ACTIONABLE Patterns (must return null)
+
+- **Trim summaries**: Posts with haircut emoji listing entry->exit prices (already executed)
+- **Open Positions lists**: Posts with "FiFi's Open Positions" and bullet points
+- **Limit order announcements**: "have a limit sell in for..."
+- **Watchlist**: "eyeing", "watching", "looking to"
+- **SL declarations**: "SL is HOD/LOD/close over $X"
+- **Emoji/ping only**: Just role mentions or emoji reactions
+
+### Critical: Reply Context
+
+**50 of 298 actionable messages (16.8%)** use reply-based context. The trim/exit has minimal info (just a price) and relies on the replied-to message for contract details. The parser MUST inject reply context into the LLM prompt.
+
+### No STO Pattern Detected
+
+Zero "Sold to Open" messages in the last 1000 messages. Keep minimal handling but deprioritize.
+
+### Reference Tables
+
+**Price formats**: $X.XX (178), $X (189), .XX (common sub-dollar), X.XX no $ (105), @ $X (44), at $X (49), BE (46)
+
+**Expiration formats**: M/D (161), weekly (65), 0dte (48), Full month (24), Month abbrev (13)
+
+**Size mapping**: 1/4->half, 1/2->half, full->full, lotto->lotto, starter->half, 1/8->lotto, couple cons->half, SUPER SMALL->lotto
+
+## Proposed Parsing Strategy
+
+### Recommendation: Rebuild FiFiParser with enhanced LLM prompt
+
+The old parser's architecture is **still valid**. Use `BaseParser` + `build_prompt()` + custom `_normalize_entry()`.
+
+### Key Design Decisions
+
+1. **Primary model**: gpt-4o-mini with gpt-4o fallback
+2. **Reply context is critical**: Inject PRIMARY + ORIGINAL messages. 16.8% of signals depend on this.
+3. **Trim summaries must return null**: Explicitly instruct LLM to ignore haircut-emoji recap posts
+4. **Multi-ticker messages**: LLM returns array of alerts for multi-trade messages
+5. **STO handling**: Minimal - zero occurrences in recent data
+
+### Core Parser Enhancements (Approved)
+
+**1. Ledger injection into prompt** (highest impact)
+- Inject compact JSON of open FiFi-channel positions into system prompt
+- Format: `OPEN POSITIONS: [{ticker, strike, type, exp, avg_cost}]`
+- Enables LLM to resolve ambiguous trims/exits ("trim $7" -> which position?)
+- Read from `PositionLedger` at parse time, filter to FiFi channel positions
+
+**2. Reply context with clear tags**
+- Inject replied-to message: `PRIMARY: [message]` / `REPLYING TO: [original]`
+- Covers 16.8% of actionable signals that are reply-based
+- Already wired in bot's `on_message()`, just needs prompt formatting
+
+**3. Last 10 messages with time deltas**
+- Expand history from 5 (Sean default) to 10 for FiFi
+- Prepend time delta tags: `[2m ago]`, `[15m ago]`
+- FiFi's conversational style means trims may reference buys 8-10 messages back
+
+**4. Negative constraint firewall**
+- Explicit "Do NOT" rules in prompt:
+  - Do NOT treat "watching"/"eyeing"/"looking to" as entries
+  - Do NOT treat trim summaries (haircut emoji + entry->exit lists) as live trades
+  - Do NOT treat "have a limit sell" as executed trades
+  - Do NOT treat "SL is HOD/LOD" or "stops at BE" as exits
+  - Do NOT treat open positions lists as trades
+
+**5. Role ping as signal**
+- Pass `has_alert_ping: true/false` to the prompt
+- Messages WITH the role ping have higher probability of being actionable
+- Not a hard filter, but a probability weight for the LLM
+
+### Prompt Design
+
+The `build_prompt()` should include:
+1. Action definitions with FiFi-specific vocabulary
+2. Reply context injection (PRIMARY + ORIGINAL)
+3. Open positions from ledger (compact JSON)
+4. Last 10 messages with time deltas
+5. Negative constraint firewall (explicit "Do NOT" rules)
+6. Role ping flag (has_alert_ping)
+7. Null rules for summaries, positions lists, limit orders, watchlist, SL declarations
+8. Price extraction rules ($X.XX, .XX, X.XX, "BE", "market")
+9. Expiration conversion (0dte->today, weekly->Friday, M/D->YYYY-MM-DD)
+10. Size mapping table
+11. Multi-ticker handling instructions
+12. 8-10 few-shot examples from real messages
+
+### `_normalize_entry()` Post-Processing
+
+1. Embedded contract notation regex: `^([A-Z]+)(\d+(?:\.\d+)?)(c|p)$`
+2. "from $X" stripping (extract current price only)
+3. Size normalization (1/4, 1/8, starter, couple -> schema values)
+4. Default 0DTE when action=buy and no expiration
+5. "rest"/"runners" in exits -> full exit
+
+### Example Mappings
+
+| FiFi Message | Parsed Alert |
+|---|---|
+| `in PLTR 2/6 $155p $2.70 SL is HOD` | `{action:"buy", ticker:"PLTR", strike:155, type:"put", exp:"2026-02-06", price:2.70, size:"full"}` |
+| `in MO 0dte $61c .08 LOTTO SIZE` | `{action:"buy", ticker:"MO", strike:61, type:"call", exp:"today", price:0.08, size:"lotto"}` |
+| `TSLA 480p 0dte 1.40` | `{action:"buy", ticker:"TSLA", strike:480, type:"put", exp:"today", price:1.40, size:"full"}` |
+| `trim .18 +100%` (reply to MO buy) | `{action:"trim", ticker:"MO", price:0.18}` |
+| `Trimmed spy 7.20 from 4.60 for 2/20` | `{action:"trim", ticker:"SPY", price:7.20}` |
+| `Out PLTR BE here` | `{action:"exit", ticker:"PLTR", price:"BE"}` |
+| `all out SNDK for now` | `{action:"exit", ticker:"SNDK", price:"market"}` |
+| `stopped out BE on AAPL, QQQ` | `[exit AAPL @ BE, exit QQQ @ BE]` |
+| Trim summary with haircut emoji | `{action:"null"}` |
+| `Eyeing SMH short on the next bounce` | `{action:"null"}` |
+
+### Edge Cases
+
+1. **"out of potentially"** - NOT an exit ("This is 1st out of potentially 4")
+2. **"TP 630"** - Ambiguous price, LLM should infer from option range
+3. **Video recap posts** - Contain "opened" but are recaps, not trades
+4. **"stops at BE"** - SL management, not an exit action
+5. **"selling 1/2 at .60"** - Trim, not STO
+6. **Mixed trims** - "sold 1/4 MRK here at $2.60 / trim TSLA weekly $3.7" -> two trims
+
 ## User Notes
 - FiFi's channel ID: 1368713891072315483
 - Reference scraper: /Users/mautasimhussain/trading-bots/IBKR_MES/archive/IBKR_ES/development/discord_scraper.py
@@ -319,3 +593,10 @@ This task is purely research/analysis. No code changes to the trading bot are ex
 ## Work Log
 <!-- Updated as work progresses -->
 - [2026-02-03] Task created
+- [2026-02-03] Scraped 1000 messages from FiFi's channel (2025-12-16 to 2026-02-04)
+- [2026-02-03] Completed message classification: 298 actionable (29.9%), 697 non-actionable (70.1%)
+- [2026-02-03] Documented linguistic patterns for all alert types with examples
+- [2026-02-03] Proposed parsing strategy: rebuild FiFiParser using BaseParser architecture
+- [2026-02-03] Key finding: 16.8% of actionable signals are reply-based (need reply context)
+- [2026-02-03] Key finding: zero STO patterns in recent data (deprioritize)
+- [2026-02-03] Key finding: trim summaries and position lists must be filtered as null
