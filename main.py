@@ -22,6 +22,7 @@ from trader import EnhancedRobinhoodTrader, EnhancedSimulatedTrader
 
 # Import channel parsers
 from channels.sean import SeanParser
+from channels.fifi import FiFiParser
 from channels.price_parser import PriceParser
 
 # Import AI logging system
@@ -69,8 +70,9 @@ class MessageEditTracker:
             return self.processed_messages.get(message_id)
 
 class ChannelHandlerManager:
-    def __init__(self, openai_client):
+    def __init__(self, openai_client, position_ledger=None):
         self.openai_client = openai_client
+        self.position_ledger = position_ledger
         self.handlers = {}
         
     def update_handlers(self, testing_mode: bool):
@@ -86,7 +88,8 @@ class ChannelHandlerManager:
                 
                 if channel_id:
                     parser_instance = parser_class(
-                        self.openai_client, channel_id, {**config, "name": name}
+                        self.openai_client, channel_id, {**config, "name": name},
+                        position_ledger=self.position_ledger
                     )
                     self.handlers[channel_id] = parser_instance
         
@@ -129,7 +132,7 @@ class EnhancedDiscordClient(discord.Client):
             logger.info("Simulated trader initialized")
             
             # Initialize handlers and utilities
-            self.channel_manager = ChannelHandlerManager(self.openai_client)
+            self.channel_manager = ChannelHandlerManager(self.openai_client, self.position_ledger)
             self.price_parser = PriceParser(self.openai_client)
             self.edit_tracker = MessageEditTracker()
             
@@ -548,9 +551,10 @@ class EnhancedDiscordClient(discord.Client):
                 message_meta, raw_msg = self._extract_message_content(message, handler)
 
                 if raw_msg:
-                    # Fetch recent message history for context (last 5 messages)
+                    # Fetch recent message history for context (configurable per channel)
+                    history_limit = CHANNELS_CONFIG.get(handler.name, {}).get("message_history_limit", 5)
                     message_history = await self.get_channel_message_history(
-                        message.channel, limit=5, exclude_message_id=message.id
+                        message.channel, limit=history_limit, exclude_message_id=message.id
                     )
                     logger.debug(f"Fetched {len(message_history)} messages for context")
 

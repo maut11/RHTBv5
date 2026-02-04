@@ -220,7 +220,7 @@ class BaseParser(ABC):
     It handles the common logic of calling the OpenAI API, parsing JSON,
     and basic error handling, leaving channel-specific logic to subclasses.
     """
-    def __init__(self, openai_client: OpenAI, channel_id: int, config: dict):
+    def __init__(self, openai_client: OpenAI, channel_id: int, config: dict, position_ledger=None):
         self.client = openai_client
         self.channel_id = channel_id
         self.name = config["name"]
@@ -229,6 +229,7 @@ class BaseParser(ABC):
         self.color = config.get("color", 7506394)  # Default to gray if not specified
         self._current_message_meta = None
         self._message_history = []  # Recent messages for context
+        self.position_ledger = position_ledger
 
     @abstractmethod
     def build_prompt(self) -> str:

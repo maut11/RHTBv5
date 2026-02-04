@@ -3,8 +3,8 @@ from .base_parser import BaseParser
 from datetime import datetime, timezone 
 
 class SeanParser(BaseParser):
-    def __init__(self, openai_client, channel_id, config):
-        super().__init__(openai_client, channel_id, config)
+    def __init__(self, openai_client, channel_id, config, **kwargs):
+        super().__init__(openai_client, channel_id, config, **kwargs)
 
     def build_prompt(self) -> str:
         # --- Dynamically get the current date ---

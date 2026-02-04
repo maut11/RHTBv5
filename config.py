@@ -120,6 +120,24 @@ CHANNELS_CONFIG = {
         "risk_level": "medium-high",
         "typical_hold_time": "1-4 hours",
         "trade_first_mode": True     # Execute trades before alerts
+    },
+    "FiFi": {
+        "live_id": 1368713891072315483,  # fifi-alerts
+        "test_id": 1402850612995031090,  # fifi simulation channel
+        "parser": "FiFiParser",
+        "multiplier": 1.0,
+        "min_trade_contracts": 0,      # Tracking-only mode initially
+        "initial_stop_loss": 0.50,
+        "trailing_stop_loss_pct": 0.20,
+        "buy_padding": 0.025,
+        "sell_padding": 0.01,
+        "model": "gpt-4o-2024-08-06",
+        "color": 15277667,             # Pink (0xE91E63)
+        "description": "FiFi's swing and momentum trades",
+        "risk_level": "medium",
+        "typical_hold_time": "30 minutes - 4 hours",
+        "trade_first_mode": True,
+        "message_history_limit": 10    # More context for conversational style
     }
 }
 
