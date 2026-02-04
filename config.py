@@ -2,7 +2,7 @@
 MAX_PCT_PORTFOLIO = 0.10
 MAX_DOLLAR_AMOUNT = 25000
 MIN_CONTRACTS = 2      # Minimum contracts per trade
-MAX_CONTRACTS = 20     # Maximum contracts per trade
+MAX_CONTRACTS = 3      # Maximum contracts per trade (reduced for live testing)
 
 # Default paddings (can be overridden per channel)
 DEFAULT_BUY_PRICE_PADDING = 0.020

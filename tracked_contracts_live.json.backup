@@ -37,6 +37,123 @@
       "channel": "Sean",
       "created_at": "2026-01-28T02:51:14.634101+00:00",
       "status": "open"
+    },
+    {
+      "trade_id": "trade_1769629737602",
+      "symbol": "OPEN",
+      "trader_symbol": "OPEN",
+      "broker_symbol": "OPEN",
+      "symbol_variants": [
+        "OPEN"
+      ],
+      "strike": 11.0,
+      "type": "call",
+      "expiration": "2026-11-18",
+      "purchase_price": 1.4,
+      "entry_price": 1.4,
+      "size": "half",
+      "quantity": 35,
+      "channel": "Sean",
+      "created_at": "2026-01-28T19:48:57.730224+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1769654714983",
+      "symbol": "BTDR",
+      "trader_symbol": "BTDR",
+      "broker_symbol": "BTDR",
+      "symbol_variants": [
+        "BTDR"
+      ],
+      "strike": 15.0,
+      "type": "call",
+      "expiration": "2026-02-20",
+      "purchase_price": 0.95,
+      "entry_price": 0.95,
+      "size": "full",
+      "quantity": 20,
+      "channel": "Sean",
+      "created_at": "2026-01-29T02:45:15.111291+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1769655153105",
+      "symbol": "BTDR",
+      "trader_symbol": "BTDR",
+      "broker_symbol": "BTDR",
+      "symbol_variants": [
+        "BTDR"
+      ],
+      "strike": 15.0,
+      "type": "call",
+      "expiration": "2026-02-20",
+      "purchase_price": 0.95,
+      "entry_price": 0.95,
+      "size": "full",
+      "quantity": 20,
+      "channel": "Sean",
+      "created_at": "2026-01-29T02:52:33.243568+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1769698350746",
+      "symbol": "CRML",
+      "trader_symbol": "CRML",
+      "broker_symbol": "CRML",
+      "symbol_variants": [
+        "CRML"
+      ],
+      "strike": 25.0,
+      "type": "call",
+      "expiration": "2026-03-20",
+      "purchase_price": 2.35,
+      "entry_price": 2.35,
+      "size": "full",
+      "quantity": 20,
+      "channel": "Sean",
+      "created_at": "2026-01-29T14:52:30.885248+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1770148533438",
+      "symbol": "TSLA",
+      "trader_symbol": "TSLA",
+      "broker_symbol": "TSLA",
+      "symbol_variants": [
+        "TSLA"
+      ],
+      "strike": 465.0,
+      "type": "call",
+      "expiration": "2026-02-06",
+      "purchase_price": 0.2,
+      "entry_price": 0.2,
+      "size": "full",
+      "quantity": 3,
+      "channel": "Sean",
+      "created_at": "2026-02-03T19:55:33.546840+00:00",
+      "status": "open"
+    }
+  ],
+  "1072555808832888945": [
+    {
+      "trade_id": "trade_1769707163439",
+      "symbol": "APLD",
+      "trader_symbol": "APLD",
+      "broker_symbol": "APLD",
+      "symbol_variants": [
+        "APLD"
+      ],
+      "strike": 40.0,
+      "type": "call",
+      "expiration": "2026-02-20",
+      "purchase_price": 3.45,
+      "entry_price": 3.45,
+      "size": "half",
+      "quantity": 14,
+      "channel": "Sean",
+      "created_at": "2026-01-29T17:19:23.569686+00:00",
+      "status": "closed",
+      "closed_at": "2026-01-29T17:20:36.428805+00:00"
     }
   ]
 }
