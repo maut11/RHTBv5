@@ -1,0 +1,14 @@
+FiFi Channel Analysis - 2026-02-12 09:05
+============================================================
+
+Total Messages: 50
+Actionable Alerts: 16 (32.0%)
+
+Action Distribution:
+  buy: 4
+  trim: 9
+  exit: 3
+  null: 34
+  error: 0
+
+Avg Parse Time: 1465ms

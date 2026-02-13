@@ -1,0 +1,264 @@
+msg,current_ms,new_ms,delta_ms,current_result,new_result
+small trim $5 from 4.05 <@&1369304547356311564>,980.950117111206,512.4807357788086,-468.46938133239746,"{""action"": ""trim"", ""ticker"": null, ""strike"": null, ""type"": null, ""price"": 4.05, ""expiration"": null, ""size"": 5}","{""action"": ""trim"", ""price"": 5}"
+Good spot to take profits on weekly spy/qqq puts. ,673.5200881958008,518.9237594604492,-154.59632873535156,"{""action"": ""null""}","{""action"": ""null""}"
+QQQs might flush here under 50day,464.5829200744629,402.33922004699707,-62.24370002746582,"{""action"": ""null""}","{""action"": ""null""}"
+,441.6460990905762,798.6769676208496,357.03086853027344,"{""action"": ""null""}","{""action"": ""null""}"
+Heading into meetings.   Have a limit sell for 1/2,253.49187850952148,761.7290019989014,508.2371234893799,"{""action"": ""null""}","{""action"": ""trim"", ""ticker"": ""PLTR"", ""strike"": null, ""type"": null, ""price"": 5.4, ""expiration"": null, ""size"": ""half""}"
+<@&1369304547356311564>,500.32615661621094,631.8361759185791,131.51001930236816,"{""action"": ""null""}","{""action"": ""null""}"
+Sold some more XOM 6.50 <@&1369304547356311564>,674.8788356781006,625.4940032958984,-49.38483238220215,"{
+  ""action"": ""trim"",
+  ""ticker"": ""XOM"",
+  ""strike"": ""6.50"",
+  ""type"": null,
+  ""price"": null,
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": 6.50, ""type"": ""null"", ""price"": ""market"", ""size"": ""half""}"
+👆,461.11297607421875,397.1600532531738,-63.95292282104492,"{""action"": ""null""}","{""action"": ""null""}"
+,266.4628028869629,449.5809078216553,183.11810493469238,"{""action"": ""null""}","{""action"": ""null""}"
+🚀,323.24790954589844,371.3858127593994,48.13790321350098,"{""action"": ""null""}","{""action"": ""null""}"
+"Out PLTR BE here. Iran news can move it,",787.1918678283691,669.0418720245361,-118.14999580383301,"{""action"": ""exit"", ""ticker"": ""PLTR"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","{""action"": ""exit"", ""ticker"": ""PLTR"", ""strike"": null, ""type"": null, ""price"": ""BE"", ""expiration"": null, ""size"": ""full""}"
+<@&1369304547356311564>,268.8710689544678,388.06772232055664,119.19665336608887,"{""action"": ""null""}","{""action"": ""null""}"
+Trimmed XOM 7.5 <@&1369304547356311564>,847.8109836578369,793.6279773712158,-54.183006286621094,"{
+  ""action"": ""trim"",
+  ""ticker"": ""XOM"",
+  ""strike"": ""7.5"",
+  ""type"": null,
+  ""price"": null,
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": 7.5, ""type"": ""null"", ""price"": ""market"", ""size"": ""full""}"
+Trimmed weekly and 2/20 puts   Holding April. Will,221.27795219421387,386.57307624816895,165.29512405395508,"{""action"": ""null""}","{""action"": ""null""}"
+Trim spy weekly $7,773.3502388000488,662.2819900512695,-111.0682487487793,"{""action"": ""trim"", ""ticker"": ""SPY"", ""strike"": null, ""type"": null, ""price"": 7, ""expiration"": null, ""size"": null}","{""action"": ""trim"", ""ticker"": ""SPY"", ""strike"": null, ""type"": null, ""price"": 7, ""expiration"": null, ""size"": ""full""}"
+<@&1369304547356311564>,373.78787994384766,396.838903427124,23.051023483276367,"{""action"": ""null""}","{""action"": ""null""}"
+Trimmed QQQ 2/20 at $10.60 here from 6.60   <@&136,657.9608917236328,714.8847579956055,56.923866271972656,"{
+  ""action"": ""trim"",
+  ""ticker"": ""QQQ"",
+  ""strike"": null,
+  ""type"": null,
+  ""price"": 10.60,
+  ""expiration"": ""2026-02-20"",
+  ""size"": null
+}","{""action"": ""trim"", ""ticker"": ""QQQ"", ""strike"": 0, ""type"": ""null"", ""price"": 10.60, ""expiration"": ""2026-02-20"", ""size"": ""full""}"
+Trimmed spy 7.20 from 4.60 for 2/20,706.3741683959961,728.4588813781738,22.084712982177734,"{
+  ""action"": ""trim"",
+  ""ticker"": ""SPY"",
+  ""strike"": ""7.20"",
+  ""type"": ""call"",
+  ""price"": ""4.60"",
+  ""expiration"": ""2026-02-20"",
+  ""size"": null
+}","{""action"": ""trim"", ""ticker"": ""SPY"", ""price"": 7.20, ""strike"": null, ""type"": null, ""expiration"": ""2026-02-20"", ""size"": ""full""}"
+Trims 💇‍♀️  PLTR $2.70 to $4.00 XOM $4.05 to $7.50,363.905668258667,379.79698181152344,15.891313552856445,"{""action"": ""null""}","{""action"": ""null""}"
+<@&1369304547356311564> 🐾,274.83510971069336,433.17413330078125,158.3390235900879,"{""action"": ""null""}","{""action"": ""null""}"
+Ugh,253.9520263671875,379.56690788269043,125.61488151550293,"{""action"": ""null""}","{""action"": ""null""}"
+This is why i tend to give a longer leash on most ,405.8349132537842,354.6140193939209,-51.22089385986328,"{""action"": ""null""}","{""action"": ""null""}"
+But didn’t this time 🤦🏽‍♂️,424.58391189575195,393.24498176574707,-31.338930130004883,"{""action"": ""null""}","{""action"": ""null""}"
+Eyeing SMH short on the next bounce,256.0009956359863,421.62513732910156,165.62414169311523,"{""action"": ""null""}","{""action"": ""null""}"
+trim SPY weekly puts here $6.50 from 3.70 trim QQQ,2821.058988571167,355.9243679046631,-2465.134620666504,"{
+  ""trades"": [
+    {
+      ""action"": ""trim"",
+      ""ticker"": ""SPY"",
+      ""strike"": null,
+      ""type"": ""put"",
+      ""price"": 6.50,
+      ""expiration"": ""weekly"",
+      ""size"": null
+    },
+    {
+      ""action"": ""trim"",
+      ""ticker"": ""QQQ"",
+      ""strike"": 13.50,
+      ""type"": null,
+      ""price"": null,
+      ""expiration"": ""2/20"",
+      ""size"": null
+    },
+    {
+      ""action"": ""trim"",
+      ""ticker"": ""XOM"",
+      ""strike"": null,
+      ""type"": null,
+      ""price"": null,
+      ""expiration"": null,
+      ""size"": 9
+    }
+  ]
+}","{""action"": ""null""}"
+in TSLA weekly 410c 5.80 <@&1369304547356311564>,843.3680534362793,712.2790813446045,-131.0889720916748,"{
+  ""action"": ""buy"",
+  ""ticker"": ""TSLA"",
+  ""strike"": ""410c"",
+  ""type"": ""call"",
+  ""price"": ""5.80"",
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""buy"", ""ticker"": ""TSLA"", ""strike"": 410, ""type"": ""call"", ""price"": 5.80, ""size"": ""full""}"
+SL LOD,232.81288146972656,351.87816619873047,119.0652847290039,"{""action"": ""null""}","{""action"": ""null""}"
+all out weekly SPY 8.60 <@&1369304547356311564>  f,822.0317363739014,732.9351902008057,-89.0965461730957,"{
+  ""action"": ""exit"",
+  ""ticker"": ""SPY"",
+  ""strike"": null,
+  ""type"": ""weekly"",
+  ""price"": ""8.60"",
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""exit"", ""ticker"": ""SPY"", ""strike"": 0, ""type"": ""null"", ""price"": ""market"", ""expiration"": ""2026-02-09"", ""size"": ""full""}"
+out tsla 4.2 <@&1369304547356311564>,773.1132507324219,671.6098785400391,-101.50337219238281,"{
+  ""action"": ""exit"",
+  ""ticker"": ""TSLA"",
+  ""strike"": null,
+  ""type"": null,
+  ""price"": ""4.2"",
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""exit"", ""ticker"": ""TSLA"", ""strike"": null, ""type"": null, ""price"": 4.2, ""expiration"": null, ""size"": ""full""}"
+was looking for a bounce,269.60182189941406,417.2210693359375,147.61924743652344,"{""action"": ""null""}","{""action"": ""null""}"
+https://klipy.com/gifs/ryan-stiles-middle-finger-1,263.0419731140137,3731.1458587646484,3468.1038856506348,"{""action"": ""null""}","{""action"": ""null""}"
+to all the TSLA to $500 folks tho,427.1430969238281,406.3608646392822,-20.7822322845459,"{""action"": ""null""}","{""action"": ""null""}"
+https://tenor.com/view/mjpersonal-gif-129107576616,341.60876274108887,363.6622428894043,22.05348014831543,"{""action"": ""null""}","{""action"": ""null""}"
+<@&1369304547356311564>,270.3380584716797,442.0130252838135,171.6749668121338,"{""action"": ""null""}","{""action"": ""null""}"
+sold an April con of QQQ and SPY SPY $15 from $11 ,1639.8017406463623,367.71106719970703,-1272.0906734466553,"{
+  ""trades"": [
+    {
+      ""action"": ""exit"",
+      ""ticker"": ""SPY"",
+      ""strike"": ""$15"",
+      ""type"": ""call"",
+      ""price"": ""$11"",
+      ""expiration"": ""April"",
+      ""size"": null
+    },
+    {
+      ""action"": ""exit"",
+      ""ticker"": ""QQQ"",
+      ""strike"": ""$22.50"",
+      ""type"": ""call"",
+      ""price"": ""$13.50"",
+      ""expiration"": ""April"",
+      ""size"": null
+    }
+  ]
+}","{""action"": ""null""}"
+out of short dated puts will re enter tomorrow <@&,326.23791694641113,372.9419708251953,46.70405387878418,"{""action"": ""null""}","{""action"": ""null""}"
+holding april,255.33485412597656,421.92697525024414,166.59212112426758,"{""action"": ""null""}","{""action"": ""null""}"
+all out of XOM here too 9.30  bit extended,616.2850856781006,610.0718975067139,-6.213188171386719,"{
+  ""action"": ""exit"",
+  ""ticker"": ""XOM"",
+  ""strike"": null,
+  ""type"": null,
+  ""price"": ""9.30"",
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""exit"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": ""market"", ""expiration"": null, ""size"": ""full""}"
+"Actually, all out of all positions for now. I’m al",540.0419235229492,742.5382137298584,202.49629020690918,"{""action"": ""exit"", ""ticker"": null, ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","{""action"": ""exit"", ""ticker"": ""ALL"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": ""full""}"
+Gonna wait for set up again,279.68883514404297,354.79092597961426,75.10209083557129,"{""action"": ""null""}","{""action"": ""null""}"
+Don’t see 600 cracking on QQQ yet,272.46904373168945,383.7890625,111.32001876831055,"{""action"": ""null""}","{""action"": ""null""}"
+💇‍♀️ TRIMS  💰 XOM $4.05 to 9.30 💰 SPY $3.70 to $8.,210.61992645263672,395.1418399810791,184.52191352844238,"{""action"": ""null""}","{""action"": ""null""}"
+Looking to reenter NVDA puts tomorrow,293.5497760772705,444.72289085388184,151.17311477661133,"{""action"": ""null""}","{""action"": ""null""}"
+$AAPL 🩸 2/6 $275p or 2/20 $270p Rejection of $278 ,466.98975563049316,430.1631450653076,-36.82661056518555,"{""action"": ""null""}","{""action"": ""null""}"
+😉,214.56527709960938,396.03424072265625,181.46896362304688,"{""action"": ""null""}","{""action"": ""null""}"
+$HAL  3/20 $35c $1.35  1/2 size <@&136930454735631,329.8361301422119,615.9560680389404,286.1199378967285,"{""action"": ""null""}","{""action"": ""buy"", ""ticker"": ""HAL"", ""strike"": 35, ""type"": ""call"", ""price"": 1.35, ""size"": ""half""}"
+looking to reshort QQQ at 606 potentially,251.92809104919434,490.77677726745605,238.84868621826172,"{""action"": ""null""}","{""action"": ""null""}"
+in AAPL  3/20  $260p 4.20 <@&1369304547356311564>,969.3460464477539,1361.4089488983154,392.0629024505615,"{
+  ""action"": ""buy"",
+  ""ticker"": ""AAPL"",
+  ""strike"": ""$260p"",
+  ""type"": ""put"",
+  ""price"": ""4.20"",
+  ""expiration"": ""3/20"",
+  ""size"": null
+}","{""action"": ""buy"", ""ticker"": ""AAPL"", ""strike"": 260, ""type"": ""put"", ""price"": 4.20, ""expiration"": ""2026-03-20"", ""size"": ""full""}"
+full size for me. SL is close over 278,268.38207244873047,394.7932720184326,126.41119956970215,"{""action"": ""null""}","{""action"": ""null""}"
+"if you want some spice, 270p weekly on AAPL",215.57879447937012,420.55702209472656,204.97822761535645,"{""action"": ""null""}","{""action"": ""null""}"
+flying back today so cant alert/manage it,267.61603355407715,436.40613555908203,168.79010200500488,"{""action"": ""null""}","{""action"": ""null""}"
+scaling back into XOM 1st buy  3/20 $150c $3.30  W,792.7868366241455,654.8919677734375,-137.894868850708,"{
+  ""action"": ""buy"",
+  ""ticker"": ""XOM"",
+  ""strike"": ""150c"",
+  ""type"": ""call"",
+  ""price"": 3.30,
+  ""expiration"": ""2023-03-20"",
+  ""size"": 1
+}","{""action"": ""buy"", ""ticker"": ""XOM"", ""strike"": 150, ""type"": ""call"", ""price"": 3.30, ""size"": ""half""}"
+"$HAL   TP: $35.50, $36.80, $38  SL is LOD",377.25281715393066,388.99993896484375,11.747121810913086,"{""action"": ""null""}","{""action"": ""null""}"
+Out HAL $1.20 <@&1369304547356311564>,643.3577537536621,668.7979698181152,25.440216064453125,"{
+  ""action"": ""exit"",
+  ""ticker"": ""HAL"",
+  ""strike"": null,
+  ""type"": null,
+  ""price"": ""1.20"",
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""exit"", ""ticker"": ""HAL"", ""strike"": null, ""type"": null, ""price"": 1.20, ""expiration"": null, ""size"": ""full""}"
+AAPL wicks are telling...,222.5179672241211,328.50098609924316,105.98301887512207,"{""action"": ""null""}","{""action"": ""null""}"
+<:blood:1467026339205877790>,235.91303825378418,393.01586151123047,157.1028232574463,"{""action"": ""null""}","{""action"": ""null""}"
+At $5 if you’re scurreed,222.78881072998047,383.6500644683838,160.86125373840332,"{""action"": ""null""}","{""action"": ""null""}"
+"Hopping on flight. Word of advice, don’t trade bas",237.46299743652344,565.936803817749,328.4738063812256,"{""action"": ""null""}","{""action"": ""null""}"
+AAPL working fine.   If it sweeps $277 again tomor,303.58004570007324,372.21789360046387,68.63784790039062,"{""action"": ""null""}","{""action"": ""null""}"
+,248.6579418182373,413.0098819732666,164.3519401550293,"{""action"": ""null""}","{""action"": ""null""}"
+Congrats if you held,289.0639305114746,342.53692626953125,53.47299575805664,"{""action"": ""null""}","{""action"": ""null""}"
+Had a bunch of people asking me for a new user dis,268.0220603942871,410.3100299835205,142.2879695892334,"{""action"": ""null""}","{""action"": ""null""}"
+"Odte watch list: SLV, NVDA, COIN, XOM",301.8937110900879,393.89920234680176,92.00549125671387,"{""action"": ""null""}","{""action"": ""null""}"
+Nvda could be setting up to short into 180,374.84002113342285,458.524227142334,83.68420600891113,"{""action"": ""null""}","{""action"": ""null""}"
+still not an environment i'd be ready to swing lon,336.7640972137451,390.6259536743164,53.86185646057129,"{""action"": ""null""}","{""action"": ""null""}"
+SLV 0dte $70c .60  SL is LOW <@&136930454735631156,256.98113441467285,630.4240226745605,373.4428882598877,"{""action"": ""null""}","{""action"": ""buy"", ""ticker"": ""SLV"", ""strike"": 70, ""type"": ""call"", ""price"": 0.60, ""size"": ""full""}"
+XOM 148c 0dte .68 <@&1369304547356311564>,751.4591217041016,695.4193115234375,-56.03981018066406,"{
+  ""action"": ""buy"",
+  ""ticker"": ""XOM"",
+  ""strike"": ""148c"",
+  ""type"": ""call"",
+  ""price"": 0.68,
+  ""expiration"": ""0dte"",
+  ""size"": null
+}","{""action"": ""buy"", ""ticker"": ""XOM"", ""strike"": 148, ""type"": ""call"", ""price"": 0.68, ""expiration"": ""2026-02-09"", ""size"": ""full""}"
+trim XOM 1.22 <@&1369304547356311564>,619.9328899383545,504.3210983276367,-115.61179161071777,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": ""1.22"", ""expiration"": null, ""size"": null}","{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 1.22}"
+next TP 150 on XOM,233.8559627532959,384.1588497161865,150.30288696289062,"{""action"": ""null""}","{""action"": ""null""}"
+took a small trum 1.50 on XOM <@&13693045473563115,626.6639232635498,546.8869209289551,-79.77700233459473,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": ""1.50"", ""expiration"": null, ""size"": null}","{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 1.50, ""size"": ""full""}"
+SLV TPS 70.20 AND 71.43,289.31474685668945,425.6100654602051,136.29531860351562,"{""action"": ""null""}","{""action"": ""null""}"
+come on down apple,248.65293502807617,368.2878017425537,119.63486671447754,"{""action"": ""null""}","{""action"": ""null""}"
+out SLV at BE <@&1369304547356311564>,536.6570949554443,666.7129993438721,130.05590438842773,"{""action"": ""exit"", ""ticker"": ""SLV"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","{""action"": ""exit"", ""ticker"": ""SLV"", ""strike"": null, ""type"": null, ""price"": ""BE"", ""expiration"": null, ""size"": ""full""}"
+stops at BE on XOM,395.5540657043457,416.38684272766113,20.83277702331543,"{""action"": ""null""}","{""action"": ""null""}"
+in WMT 130c 0dte .32 <@&1369304547356311564>  risk,664.2119884490967,492.94114112854004,-171.27084732055664,"{
+  ""action"": ""buy"",
+  ""ticker"": ""WMT"",
+  ""strike"": ""130c"",
+  ""type"": ""call"",
+  ""price"": "".32"",
+  ""expiration"": ""0dte"",
+  ""size"": null
+}","{""action"": ""buy"", ""ticker"": ""WMT"", ""strike"": 130, ""type"": ""call"", ""price"": 0.32, ""size"": ""full""}"
+trim WMT .45 <@&1369304547356311564>,542.9491996765137,564.9127960205078,21.96359634399414,"{""action"": ""trim"", ""ticker"": ""WMT"", ""strike"": null, ""type"": null, ""price"": 0.45, ""expiration"": null, ""size"": null}","{""action"": ""trim"", ""ticker"": ""WMT"", ""price"": 0.45}"
+out XOM in profit,727.2017002105713,638.0870342254639,-89.11466598510742,"{""action"": ""exit"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","{""action"": ""exit"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": ""full""}"
+stopat BE on WMT <@&1369304547356311564>,319.28229331970215,502.2261142730713,182.94382095336914,"{""action"": ""null""}","{""action"": ""null""}"
+bacj in SLV 70c 0dte <@&1369304547356311564> .50,534.7228050231934,608.7260246276855,74.00321960449219,"{""action"": ""buy"", ""ticker"": ""SLV"", ""strike"": ""70c"", ""type"": ""call"", ""price"": "".50"", ""expiration"": ""0dte"", ""size"": null}","{""action"": ""buy"", ""ticker"": ""SLV"", ""strike"": 70, ""type"": ""call"", ""price"": 0.50, ""size"": ""full""}"
+trim XOM March 4.50 from 3.25  will add full size ,319.52595710754395,282.13024139404297,-37.39571571350098,"{""action"": ""null""}","{""action"": ""null""}"
+"looking for SLV EOD squeeze, shorts covering",459.7949981689453,417.1898365020752,-42.60516166687012,"{""action"": ""null""}","{""action"": ""null""}"
+super lotto XOM 0dte 150c .11 <@&13693045473563115,307.02900886535645,690.3648376464844,383.33582878112793,"{""action"": ""null""}","{""action"": ""buy"", ""ticker"": ""XOM"", ""strike"": 150, ""type"": ""call"", ""price"": 0.11, ""expiration"": ""2026-02-09"", ""size"": ""lotto""}"
+have a sell in for .22 for 1/2 <@&1369304547356311,395.4761028289795,291.58592224121094,-103.89018058776855,"{""action"": ""null""}","{""action"": ""null""}"
+sold some here .15 <@&1369304547356311564>,613.4829521179199,392.84420013427734,-220.63875198364258,"{""action"": ""trim"", ""ticker"": null, ""strike"": null, ""type"": null, ""price"": 0.15, ""expiration"": null, ""size"": null}","{""action"": ""trim"", ""price"": 0.15}"
+have 1/2 sell in at .22,227.39911079406738,436.22899055480957,208.8298797607422,"{""action"": ""null""}","{""action"": ""null""}"
+trim .75 SLV   +50%  <@&1369304547356311564>,657.4892997741699,521.1589336395264,-136.33036613464355,"{""action"": ""trim"", ""ticker"": ""SLV"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","{""action"": ""trim"", ""ticker"": ""SLV"", ""price"": 0.75}"
+looking for 50 day ema test of 71.45,318.38393211364746,386.32798194885254,67.94404983520508,"{""action"": ""null""}","{""action"": ""null""}"
+out of XOM lotto at bE,628.5059452056885,942.8310394287109,314.32509422302246,"{""action"": ""exit"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","{""action"": ""exit"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": ""BE"", ""expiration"": null, ""size"": ""lotto""}"
+have sell in for $1.50 on SLV,405.22217750549316,281.7831039428711,-123.43907356262207,"{""action"": ""null""}","{""action"": ""null""}"
+took another tim .90 on SLV,331.05993270874023,498.8842010498047,167.82426834106445,"{""action"": ""null""}","{""action"": ""trim"", ""ticker"": ""SLV"", ""price"": 0.90}"
+having a tough time over YDH <@&136930454735631156,261.9049549102783,397.2499370574951,135.3449821472168,"{""action"": ""null""}","{""action"": ""null""}"
+added to AAPL here at $3.15 added 5 cons to my 20 ,593.0318832397461,1419.3458557128906,826.3139724731445,"{
+  ""action"": ""buy"",
+  ""ticker"": ""AAPL"",
+  ""strike"": null,
+  ""type"": ""cons"",
+  ""price"": 3.15,
+  ""expiration"": null,
+  ""size"": 5
+}","{""action"": ""buy"", ""ticker"": ""AAPL"", ""strike"": null, ""type"": null, ""price"": 3.15, ""expiration"": null, ""size"": ""half""}"
+have your trade plan,528.749942779541,496.61707878112793,-32.132863998413086,"{""action"": ""null""}","{""action"": ""null""}"
+"cons have time, so im comfortable",238.63863945007324,398.313045501709,159.67440605163574,"{""action"": ""null""}","{""action"": ""null""}"
+💇‍♀️ TRIMS  💰 XOM $3.25 to $4.50 💰 XOM .68 to $1.5,362.1809482574463,347.3484516143799,-14.832496643066406,"{""action"": ""null""}","{""action"": ""null""}"
+Will be looking to enter puts Monday before close.,274.2631435394287,381.6971778869629,107.43403434753418,"{""action"": ""null""}","{""action"": ""null""}"
+,266.36695861816406,382.23719596862793,115.87023735046387,"{""action"": ""null""}","{""action"": ""null""}"
+Just gonna say this… AAPL chart reminds me of TSLA,321.5489387512207,416.3250923156738,94.77615356445312,"{""action"": ""null""}","{""action"": ""null""}"
+Deep research time,395.45702934265137,393.3420181274414,-2.115011215209961,"{""action"": ""null""}","{""action"": ""null""}"
+Looking at MSFT for a dead cat bounce towards $440,356.2450408935547,415.15111923217773,58.90607833862305,"{""action"": ""null""}","{""action"": ""null""}"

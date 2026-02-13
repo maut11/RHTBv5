@@ -108,28 +108,35 @@ Your ONLY job is to extract EXECUTED trade actions and return a JSON array. Each
 --- NEGATIVE CONSTRAINTS (HIGHEST PRIORITY — CHECK THESE FIRST) ---
 Before classifying ANY message, check if it matches these patterns. If it does → return [{{"action": "null"}}].
 
-1. CONDITIONAL SETUPS / WATCHLISTS:
+1. RECAPS vs. LIVE TRADES (CRITICAL):
+   - RECAPS: Summaries of past trades. Often use "to" syntax (e.g., "TRIMS XOM $4.05 to 9.30"). → "null"
+   - LIVE TRADES: Often use "from" syntax (e.g., "trim SPY $6.50 from 3.70"). → KEEP, extract as "trim".
+   - IF unsure, and it lists multiple tickers with "to" prices, it's likely a recap.
+
+2. CONDITIONAL SETUPS / WATCHLISTS:
    Messages containing "Pullback to", "Rejection of", "Break over", "Break under", or "TP:" with price targets are WATCHLIST posts, NOT live trades → "null".
    Pattern: TICKER + condition + expiry + strike + target prices.
    The 🩸 emoji often marks these watchlist/analysis posts.
 
-2. INTENT / PLANS (not yet executed):
-   "Plan:", "I want", "Going to open", "will be looking", "might grab", "eyeing", "watching", "looking at" → "null".
+3. INTENT / PLANS (not yet executed):
+   "Plan:", "I want", "Going to open", "will be looking", "might grab", "eyeing", "watching", "looking at", "Have a limit sell" → "null".
    The action must be DONE, not planned.
 
-3. BARE TICKER MENTIONS:
+4. BARE TICKER MENTIONS:
    Messages that are ONLY a ticker symbol ("$FLNC", "$MRK", "XOM") with no strike/price/action → "null".
 
-4. CORRECTION FRAGMENTS:
+5. CORRECTION FRAGMENTS:
    Isolated fragments like "82c", "245p", "9c" without a ticker or price → "null".
 
-5. RECAPS & STOP MANAGEMENT:
-   Trim summaries (💇 emoji recaps), "SL is HOD", "stops at BE", "move stops to", video recaps, open position lists → "null".
+6. STOP MANAGEMENT:
+   "SL is HOD", "stops at BE", "move stops to" → "null".
 
-6. TARGET PRICES: "TP 630", "TP: $A, $B, $C" are targets, NOT trims → "null".
+7. TARGET PRICES: "TP 630", "TP: $A, $B, $C" are targets, NOT trims → "null".
 
 --- OPEN POSITIONS ---
 {open_positions}
+
+Use this to resolve ambiguous trims/exits. If a ticker matches an open position, it's likely a valid trade action.
 
 --- CONTEXT ---
 ALERT PING: {str(has_alert_ping).lower()} (Pings = higher likelihood of actionable trade)
@@ -141,9 +148,12 @@ REPLYING TO: Context for missing details (ticker, strike, expiration).
     - Explicit: "in", "bought", "added", "grabbed", "opening", "back in", "scaling into".
     - Implicit: Ticker+strike+type+price WITHOUT any conditional words from Negative Constraints.
     - "sold" / "asold" (typo) with "from $X" context = TRIM, not buy.
+    - NOTE: "added", "scaling into", "back in" imply adding to existing position → set size "half".
 - "trim": Partial take-profit. "trim", "trimmed", "sold half", "sold 1/2", "sold some", "asold" (typo for sold), "taking some off", "scaling out".
+    - Price: If "from X", ignore X. Use the execution price.
     NOTE: "sold all" = EXIT, not trim. "sold" without qualifier + full position context = EXIT.
 - "exit": Full close. "out", "all out", "sold all", "closed", "done", "stopped out", "got stopped", "exiting", "rest out".
+    - Price: If explicit price is given (e.g. "out 8.60"), USE IT. Only use "market" for "stopped out" or if no price is specified.
 - "null": Everything else. Commentary, watchlists, analysis, stop management, recaps.
 
 --- MULTI-TRADE DETECTION (CRITICAL) ---
@@ -217,16 +227,24 @@ REPLYING TO: "in MO 0dte $61c .08"
 "got stopped on rest of RGTI"
 → [{{"action": "exit", "ticker": "RGTI", "price": "market"}}]
 
-**NULL (conditional setup - CRITICAL):**
+**EXIT (explicit price):**
+"all out weekly SPY 8.60"
+→ [{{"action": "exit", "ticker": "SPY", "price": 8.60}}]
+
+**NULL (recap - "to" syntax - CRITICAL):**
+"Trims 💇‍♀️ PLTR $2.70 to $4.00 XOM $4.05 to $7.50"
+→ [{{"action": "null"}}]
+
+**NULL (intent - limit sell):**
+"Heading into meetings. Have a limit sell for 1/2"
+→ [{{"action": "null"}}]
+
+**NULL (conditional setup):**
 "KEYS\\nPullback to $210 or Over $214.50\\n2/20 $230c\\nTP: $220, $230, $240"
 → [{{"action": "null"}}]
 
 **NULL (watchlist with 🩸):**
 "$NVDA 🩸\\nRejection of $185 or Below $180\\n2/20 $175p\\nTP: $176, $172, $165"
-→ [{{"action": "null"}}]
-
-**NULL (intent):**
-"TSLA Plan: a break under 485.33 I'm adding 0DTE $480p"
 → [{{"action": "null"}}]
 
 **NULL (correction fragment):**
@@ -256,14 +274,27 @@ NOTE: Parse ONLY the PRIMARY message. History is context only.
 
         return prompt
 
+    # Averaging keywords that indicate adding to position (force half size)
+    AVERAGING_KEYWORDS = ["added to", "scaling into", "back in", "add to", "scaling back", "added 5", "added 10"]
+
     def _normalize_entry(self, entry: dict) -> dict:
         """FiFi-specific post-processing after base class date normalization."""
         entry = super()._normalize_entry(entry)
 
-        # --- Stop-out phrase detection (force exit) ---
+        # --- Extract raw message for pattern matching ---
         raw_msg = str(self._current_message_meta).lower() if self._current_message_meta else ""
         if isinstance(self._current_message_meta, tuple):
             raw_msg = str(self._current_message_meta[0]).lower()
+
+        # --- Averaging detection: force size to 'half' for adds ---
+        if entry.get('action') == 'buy':
+            if any(kw in raw_msg for kw in self.AVERAGING_KEYWORDS):
+                current_size = (entry.get('size') or '').lower()
+                # Only override if not already explicitly smaller
+                if current_size not in ['lotto', 'tiny', '1/8']:
+                    entry['size'] = 'half'
+
+        # --- Stop-out phrase detection (force exit) ---
         for phrase in self.STOP_PHRASES:
             if phrase in raw_msg and entry.get('action') not in ('exit', 'null'):
                 entry['action'] = 'exit'

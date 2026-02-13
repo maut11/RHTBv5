@@ -14,7 +14,7 @@ from config import (
     MAX_DOLLAR_AMOUNT, MIN_CONTRACTS, MAX_CONTRACTS, DEFAULT_BUY_PRICE_PADDING,
     DEFAULT_SELL_PRICE_PADDING, STOP_LOSS_DELAY_SECONDS, TRIM_PERCENTAGE,
     TRIM_CASCADE_STEPS, EXIT_CASCADE_STEPS,
-    ALL_NOTIFICATION_WEBHOOK, PLAYS_WEBHOOK,
+    ALL_NOTIFICATION_WEBHOOK, PLAYS_WEBHOOK, LIVE_FEED_WEBHOOK,
     get_broker_symbol, get_trader_symbol, get_all_symbol_variants,
     SYMBOL_NORMALIZATION_CONFIG
 )
@@ -198,13 +198,14 @@ class TradeExecutor:
     """Channel-aware trade execution with symbol mapping support"""
 
     def __init__(self, live_trader, sim_trader, performance_tracker, position_manager,
-                 alert_manager, position_ledger=None):
+                 alert_manager, position_ledger=None, auto_exit_manager=None):
         self.live_trader = live_trader
         self.sim_trader = sim_trader
         self.performance_tracker = performance_tracker
         self.position_manager = position_manager
         self.alert_manager = alert_manager
         self.position_ledger = position_ledger
+        self.auto_exit_manager = auto_exit_manager
 
         # Enhanced feedback logger with symbol mapping
         self.feedback_logger = ChannelAwareFeedbackLogger()
@@ -213,7 +214,34 @@ class TradeExecutor:
         print("✅ Trade Executor initialized with symbol mapping support")
         if position_ledger:
             print("✅ Position ledger integration enabled")
+        if auto_exit_manager:
+            print("✅ Auto-exit manager integration enabled")
     
+    def _schedule_delayed_stop(self, trader, trade_id, trade_obj, config,
+                               symbol, strike, expiration, opt_type, price):
+        """Schedule a delayed stop-loss order (non-Ryan channels)."""
+        try:
+            stop_price = trader.round_to_tick(
+                price * (1 - config.get("initial_stop_loss", 0.50)),
+                symbol, round_up_for_buy=False, expiration=expiration
+            )
+            print(f"⏱️ Scheduling stop loss for {STOP_LOSS_DELAY_SECONDS/60:.0f} min @ ${stop_price:.2f}")
+
+            stop_data = {
+                'trader': trader,
+                'symbol': symbol,
+                'strike': strike,
+                'expiration': expiration,
+                'opt_type': opt_type,
+                'quantity': trade_obj.get('quantity', 1),
+                'stop_price': stop_price
+            }
+            self.stop_loss_manager.schedule_stop_loss(trade_id, stop_data, STOP_LOSS_DELAY_SECONDS)
+            trade_obj['stop_loss_price'] = stop_price
+            trade_obj['stop_loss_scheduled'] = True
+        except Exception as e:
+            print(f"⚠️ Stop loss scheduling failed (non-critical): {e}")
+
     def _normalize_market_data(self, market_data) -> dict:
         """Normalize market data response to handle [[data]] vs [data] inconsistency"""
         try:
@@ -236,33 +264,107 @@ class TradeExecutor:
         except (IndexError, TypeError):
             return None
 
+    def _send_cascade_alert(self, message, is_fill=False, is_error=False):
+        """Send cascade status alert to Discord (thread-safe for blocking context).
+
+        Sends to both ALL_NOTIFICATION_WEBHOOK (text) and LIVE_FEED_WEBHOOK (embed).
+        """
+        try:
+            if hasattr(self, 'event_loop') and self.event_loop and self.alert_manager:
+                # Send text to all notification webhook
+                asyncio.run_coroutine_threadsafe(
+                    self.alert_manager.add_alert(
+                        ALL_NOTIFICATION_WEBHOOK,
+                        {"content": message},
+                        "cascade_notification"
+                    ),
+                    self.event_loop
+                )
+
+                # Send embed to live feed webhook
+                # Determine color based on status
+                if is_fill:
+                    color = 0x00FF00  # Green for fills
+                elif is_error:
+                    color = 0xFF0000  # Red for errors
+                else:
+                    color = 0xFFAA00  # Orange for in-progress
+
+                cascade_embed = {
+                    "title": "📉 Sell Cascade Update",
+                    "description": message,
+                    "color": color,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "footer": {"text": "Cascade Sell System"}
+                }
+
+                asyncio.run_coroutine_threadsafe(
+                    self.alert_manager.add_alert(
+                        LIVE_FEED_WEBHOOK,
+                        {"embeds": [cascade_embed]},
+                        "cascade_live_feed"
+                    ),
+                    self.event_loop
+                )
+        except Exception as e:
+            print(f"   ⚠️ Cascade alert failed: {e}")
+
+    def _verify_order_cancelled(self, trader, order_id, log_func, max_wait=10):
+        """
+        Verify an order is cancelled or catch race-condition fills.
+        Polls order state every 1s for up to max_wait seconds.
+
+        Returns:
+            tuple: (verified: bool, filled_during_cancel: bool, fill_price: float or None)
+        """
+        verify_start = time.time()
+        last_state = "unknown"
+        while time.time() - verify_start < max_wait:
+            try:
+                info = trader.get_option_order_info(order_id)
+                if not info:
+                    time.sleep(1)
+                    continue
+                last_state = (info.get('state') or 'unknown').lower()
+
+                if last_state == 'filled':
+                    fill_price = float(info.get('average_price', 0) or 0)
+                    return True, True, fill_price
+
+                if last_state in ('cancelled', 'rejected', 'failed'):
+                    return True, False, None
+
+            except Exception as e:
+                log_func(f"   ⚠️ Verify error: {e}")
+            time.sleep(1)
+
+        log_func(f"   ⚠️ Cancel verification timeout (last state: {last_state})")
+        return False, False, None
+
     def _cascade_sell(self, trader, symbol, strike, expiration, opt_type, quantity, cascade_steps, config, log_func):
         """
-        Execute cascade sell with stepped-down pricing.
+        Execute cascade sell with stepped-down pricing, order verification, and Discord alerts.
 
         Cascade flow:
-        1. Start with highest price (e.g., mark)
+        1. Start with highest price (e.g., ask for trims)
         2. Wait for fill or timeout
-        3. If not filled, cancel and step down to next price level
-        4. Continue until filled or all steps exhausted
-
-        Args:
-            trader: Trading API instance
-            symbol: Option symbol
-            strike: Strike price
-            expiration: Expiration date
-            opt_type: 'call' or 'put'
-            quantity: Number of contracts to sell
-            cascade_steps: List of dicts with price_type, multiplier, wait_seconds
-            config: Channel configuration
-            log_func: Logging function
+        3. If not filled, cancel and VERIFY cancelled (catch race-condition fills)
+        4. Step down to next price level
+        5. Continue until filled or all steps exhausted
 
         Returns:
             tuple: (success: bool, order_id: str or None, fill_price: float or None, step_used: int)
         """
         try:
-            print(f"🔄 CASCADE SELL: {quantity}x {symbol} ${strike}{opt_type[0].upper()}")
+            contract_label = f"{quantity}x {symbol} ${strike}{opt_type[0].upper()}"
+            print(f"🔄 CASCADE SELL: {contract_label}")
             print(f"   Steps: {len(cascade_steps)}")
+
+            self._send_cascade_alert(
+                f"🔄 **Cascade Sell Started**\n"
+                f"{contract_label}\n"
+                f"Steps: {len(cascade_steps)}"
+            )
 
             for step_num, step in enumerate(cascade_steps, 1):
                 price_type = step.get('price_type', 'bid')
@@ -273,16 +375,24 @@ class TradeExecutor:
                 market_data = trader.get_option_market_data(symbol, expiration, strike, opt_type)
                 data = self._normalize_market_data(market_data)
 
-                if not data:
+                # Build market data snapshot for alerts
+                md_snapshot = "No data"
+                if data:
+                    bid = float(data.get('bid_price', 0) or 0)
+                    ask = float(data.get('ask_price', 0) or 0)
+                    mark = float(data.get('mark_price', 0) or 0)
+                    md_snapshot = f"B: ${bid:.2f} | A: ${ask:.2f} | M: ${mark:.2f}"
+                else:
                     log_func(f"⚠️ No market data for step {step_num}")
+                    self._send_cascade_alert(f"⚠️ Step {step_num}/{len(cascade_steps)} — No market data, skipping")
                     continue
 
                 # Determine price based on price_type
-                if price_type == 'mark':
+                if price_type == 'ask':
+                    base_price = float(data.get('ask_price', 0) or 0)
+                elif price_type == 'mark':
                     base_price = float(data.get('mark_price', 0) or 0)
                 elif price_type == 'midpoint':
-                    bid = float(data.get('bid_price', 0) or 0)
-                    ask = float(data.get('ask_price', 0) or 0)
                     base_price = (bid + ask) / 2 if bid > 0 and ask > 0 else bid
                 elif price_type == 'bid':
                     base_price = float(data.get('bid_price', 0) or 0)
@@ -291,6 +401,7 @@ class TradeExecutor:
 
                 if base_price <= 0:
                     log_func(f"⚠️ Invalid base price for step {step_num}: ${base_price}")
+                    self._send_cascade_alert(f"⚠️ Step {step_num}/{len(cascade_steps)} — Invalid {price_type} price, skipping")
                     continue
 
                 # Apply multiplier and round
@@ -302,6 +413,13 @@ class TradeExecutor:
                 )
 
                 print(f"   Step {step_num}/{len(cascade_steps)}: {price_type} × {multiplier} = ${limit_price:.2f} (wait: {wait_seconds}s)")
+
+                self._send_cascade_alert(
+                    f"📉 **Step {step_num}/{len(cascade_steps)}** — {contract_label}\n"
+                    f"Price: **${limit_price:.2f}** ({price_type} × {multiplier})\n"
+                    f"Market: {md_snapshot}\n"
+                    f"Wait: {wait_seconds}s"
+                )
 
                 # Cancel any existing orders first
                 try:
@@ -316,7 +434,9 @@ class TradeExecutor:
                     )
 
                     if not sell_response or sell_response.get('error'):
-                        log_func(f"   ❌ Step {step_num} order failed: {sell_response}")
+                        err = sell_response.get('error', sell_response) if sell_response else 'No response'
+                        log_func(f"   ❌ Step {step_num} order failed: {err}")
+                        self._send_cascade_alert(f"❌ Step {step_num} order failed: {err}", is_error=True)
                         continue
 
                     order_id = sell_response.get('id')
@@ -329,36 +449,330 @@ class TradeExecutor:
                             max_wait_seconds=wait_seconds
                         )
 
-                        if confirmation.get('status') == 'filled':
+                        status = confirmation.get('status')
+
+                        if status == 'filled':
                             fill_price = float(confirmation.get('average_price', limit_price))
                             print(f"   ✅ FILLED at step {step_num}: ${fill_price:.2f}")
+                            self._send_cascade_alert(
+                                f"✅ **FILLED** at step {step_num}/{len(cascade_steps)}\n"
+                                f"{contract_label} @ **${fill_price:.2f}**",
+                                is_fill=True
+                            )
                             return True, order_id, fill_price, step_num
 
-                        elif confirmation.get('status') in ('cancelled', 'rejected', 'failed'):
-                            log_func(f"   ❌ Order {confirmation.get('status')} at step {step_num}")
+                        elif status in ('cancelled', 'rejected', 'failed'):
+                            log_func(f"   ❌ Order {status} at step {step_num}")
+                            self._send_cascade_alert(f"❌ Step {step_num} — Order {status}", is_error=True)
                             continue
 
-                        # Not filled yet - cancel and try next step
-                        print(f"   ⏰ Timeout at step {step_num} - stepping down...")
+                        # Not filled — cancel specific order and verify before stepping down
+                        print(f"   ⏰ Timeout at step {step_num} — cancelling & verifying...")
                         try:
-                            trader.cancel_open_option_orders(symbol, strike, expiration, opt_type)
-                        except:
-                            pass
+                            trader.cancel_option_order(order_id)
+                        except Exception as e:
+                            print(f"   ⚠️ Cancel error: {e}")
+
+                        # Verify cancellation (catch race-condition fills)
+                        verified, filled_during_cancel, race_fill_price = self._verify_order_cancelled(
+                            trader, order_id, log_func
+                        )
+
+                        if filled_during_cancel:
+                            print(f"   ✅ FILLED during cancel at step {step_num}: ${race_fill_price:.2f}")
+                            self._send_cascade_alert(
+                                f"✅ **FILLED** (during cancel) at step {step_num}/{len(cascade_steps)}\n"
+                                f"{contract_label} @ **${race_fill_price:.2f}**",
+                                is_fill=True
+                            )
+                            return True, order_id, race_fill_price, step_num
+
+                        if verified:
+                            self._send_cascade_alert(f"⏰ Step {step_num} timed out — stepping down")
+                        else:
+                            self._send_cascade_alert(f"⚠️ Step {step_num} cancel unverified — stepping down")
+
                     else:
-                        # Last step (wait_seconds=0) - just return the order and let it fill
-                        print(f"   🏁 Final step {step_num} - order placed at ${limit_price:.2f}")
+                        # Last step (wait_seconds=0) — place and let it fill
+                        print(f"   🏁 Final step {step_num} — order placed at ${limit_price:.2f}")
+                        self._send_cascade_alert(
+                            f"🏁 **Final step {step_num}/{len(cascade_steps)}** — {contract_label}\n"
+                            f"Limit: **${limit_price:.2f}** (letting it fill)"
+                        )
                         return True, order_id, limit_price, step_num
 
                 except Exception as e:
                     log_func(f"   ❌ Step {step_num} error: {e}")
+                    self._send_cascade_alert(f"❌ Step {step_num} error: {e}")
                     continue
 
             # All steps exhausted without fill
             log_func(f"❌ CASCADE FAILED: All {len(cascade_steps)} steps exhausted")
+            self._send_cascade_alert(f"❌ **Cascade Failed** — All {len(cascade_steps)} steps exhausted\n{contract_label}")
             return False, None, None, 0
 
         except Exception as e:
             log_func(f"❌ CASCADE ERROR: {e}")
+            self._send_cascade_alert(f"❌ **Cascade Error**: {e}")
+            return False, None, None, 0
+
+    def _cascade_buy(self, trader, symbol, strike, expiration, opt_type, quantity,
+                     cascade_steps, config, log_func, max_price_cap):
+        """
+        Execute cascade buy with stepped pricing, hard cap, and BP retry.
+
+        Steps up through price levels (midpoint → ask discount → ask → cap),
+        with each price strictly capped at max_price_cap. Reuses _verify_order_cancelled
+        to catch race-condition fills between steps. Includes buying power retry
+        to handle Robinhood's ledger lag after order cancellation.
+
+        Args:
+            max_price_cap: Hard price cap (parsed_price × 1.025). NEVER exceeded.
+
+        Returns:
+            tuple: (success, order_id, fill_price, step_used)
+        """
+        try:
+            contract_label = f"{quantity}x {symbol} ${strike}{opt_type[0].upper()}"
+            resting_timeout = config.get('resting_order_timeout', 300)
+            print(f"🔄 CASCADE BUY: {contract_label}")
+            print(f"   Steps: {len(cascade_steps)} | Cap: ${max_price_cap:.2f} | Rest timeout: {resting_timeout}s")
+
+            self._send_cascade_alert(
+                f"🔄 **Cascade Buy Started**\n"
+                f"{contract_label}\n"
+                f"Cap: **${max_price_cap:.2f}** | Steps: {len(cascade_steps)} | Rest: {resting_timeout}s"
+            )
+
+            last_order_id = None
+
+            for step_num, step in enumerate(cascade_steps, 1):
+                price_type = step.get('price_type', 'ask')
+                multiplier = step.get('multiplier', 1.0)
+                wait_seconds = step.get('wait_seconds', 30)
+
+                # --- Cancel previous order ---
+                if last_order_id:
+                    try:
+                        trader.cancel_option_order(last_order_id)
+                    except Exception as e:
+                        print(f"   ⚠️ Cancel error: {e}")
+
+                    verified, filled_during_cancel, race_fill_price = self._verify_order_cancelled(
+                        trader, last_order_id, log_func
+                    )
+
+                    if filled_during_cancel:
+                        print(f"   ✅ FILLED during cancel at step {step_num}: ${race_fill_price:.2f}")
+                        self._send_cascade_alert(
+                            f"✅ **FILLED** (during cancel) at step {step_num}/{len(cascade_steps)}\n"
+                            f"{contract_label} @ **${race_fill_price:.2f}**"
+                        )
+                        return True, last_order_id, race_fill_price, step_num
+
+                    last_order_id = None
+
+                # --- Get fresh market data ---
+                market_data = trader.get_option_market_data(symbol, expiration, strike, opt_type)
+                data = self._normalize_market_data(market_data)
+
+                md_snapshot = "No data"
+                if data:
+                    bid = float(data.get('bid_price', 0) or 0)
+                    ask = float(data.get('ask_price', 0) or 0)
+                    mark = float(data.get('mark_price', 0) or 0)
+                    md_snapshot = f"B: ${bid:.2f} | A: ${ask:.2f} | M: ${mark:.2f}"
+                else:
+                    log_func(f"⚠️ No market data for step {step_num}")
+                    self._send_cascade_alert(f"⚠️ Step {step_num}/{len(cascade_steps)} — No market data, skipping")
+                    continue
+
+                # --- Calculate target price based on price_type ---
+                if price_type == 'cap':
+                    target_price = max_price_cap
+                elif price_type == 'midpoint':
+                    target_price = ((bid + ask) / 2 if bid > 0 and ask > 0 else ask) * multiplier
+                elif price_type == 'ask':
+                    target_price = (float(data.get('ask_price', 0) or 0)) * multiplier
+                elif price_type == 'mark':
+                    target_price = (float(data.get('mark_price', 0) or 0)) * multiplier
+                elif price_type == 'bid':
+                    target_price = (float(data.get('bid_price', 0) or 0)) * multiplier
+                else:
+                    target_price = (float(data.get('ask_price', 0) or 0)) * multiplier
+
+                if target_price <= 0:
+                    log_func(f"⚠️ Invalid target price for step {step_num}: ${target_price}")
+                    self._send_cascade_alert(f"⚠️ Step {step_num} — Invalid {price_type} price, skipping")
+                    continue
+
+                # --- HARD CAP: never exceed max_price_cap ---
+                capped_price = min(target_price, max_price_cap)
+
+                # Round to tick — round UP for buys normally
+                limit_price = trader.round_to_tick(capped_price, symbol, round_up_for_buy=True, expiration=expiration)
+
+                # If rounding pushed above cap, round DOWN instead
+                if limit_price > max_price_cap:
+                    limit_price = trader.round_to_tick(capped_price, symbol, round_up_for_buy=False, expiration=expiration)
+
+                # Final safety check
+                if limit_price > max_price_cap:
+                    log_func(f"⚠️ Step {step_num}: rounded price ${limit_price:.2f} exceeds cap ${max_price_cap:.2f}, using cap")
+                    limit_price = max_price_cap
+
+                print(f"   Step {step_num}/{len(cascade_steps)}: {price_type}×{multiplier} → ${target_price:.2f} → capped ${limit_price:.2f} (wait: {wait_seconds}s)")
+
+                self._send_cascade_alert(
+                    f"📈 **Step {step_num}/{len(cascade_steps)}** — {contract_label}\n"
+                    f"Limit: **${limit_price:.2f}** ({price_type}×{multiplier}, cap ${max_price_cap:.2f})\n"
+                    f"Market: {md_snapshot}\n"
+                    f"Wait: {wait_seconds}s"
+                )
+
+                # --- Place order with BP retry loop ---
+                buy_response = None
+                order_id = None
+                for bp_attempt in range(3):
+                    try:
+                        buy_response = trader.place_option_buy_order(
+                            symbol, strike, expiration, opt_type, quantity, limit_price,
+                            exact_price=True
+                        )
+
+                        if buy_response and buy_response.get('id') and not buy_response.get('error'):
+                            order_id = buy_response.get('id')
+                            break
+
+                        # Check for buying power error
+                        error_str = str(buy_response.get('error', '') if buy_response else '')
+                        if 'insufficient' in error_str.lower() or 'buying power' in error_str.lower():
+                            log_func(f"   ⚠️ BP not released yet, retry {bp_attempt+1}/3...")
+                            time.sleep(1)
+                            continue
+                        else:
+                            # Non-BP error, don't retry
+                            break
+
+                    except Exception as e:
+                        log_func(f"   ❌ Order placement error attempt {bp_attempt+1}: {e}")
+                        time.sleep(1)
+
+                if not order_id:
+                    err = buy_response.get('error', buy_response) if buy_response else 'No response'
+                    log_func(f"   ❌ Step {step_num} order failed after retries: {err}")
+                    self._send_cascade_alert(f"❌ Step {step_num} order failed: {err}")
+                    continue
+
+                last_order_id = order_id
+                print(f"   📝 Order placed: {order_id}")
+
+                # --- Wait for fill ---
+                if wait_seconds > 0:
+                    # Poll every 1s for tight fill detection
+                    poll_start = time.time()
+                    filled = False
+                    while time.time() - poll_start < wait_seconds:
+                        time.sleep(1)
+                        try:
+                            info = trader.get_option_order_info(order_id)
+                            if not info:
+                                continue
+                            state = (info.get('state') or '').lower()
+
+                            if state == 'filled':
+                                fill_price = float(info.get('average_price', 0) or limit_price)
+                                print(f"   ✅ FILLED at step {step_num}: ${fill_price:.2f}")
+                                self._send_cascade_alert(
+                                    f"✅ **FILLED** at step {step_num}/{len(cascade_steps)}\n"
+                                    f"{contract_label} @ **${fill_price:.2f}**"
+                                )
+                                return True, order_id, fill_price, step_num
+
+                            elif state in ('cancelled', 'rejected', 'failed'):
+                                log_func(f"   ❌ Order {state} at step {step_num}")
+                                self._send_cascade_alert(f"❌ Step {step_num} — Order {state}")
+                                last_order_id = None
+                                filled = True  # Break outer, but not a fill
+                                break
+
+                        except Exception as e:
+                            log_func(f"   ⚠️ Poll error: {e}")
+
+                    if filled:
+                        continue  # Order was cancelled/rejected, try next step
+
+                    # Not filled — step timed out, continue to next step
+                    print(f"   ⏰ Timeout at step {step_num} — stepping up")
+                    self._send_cascade_alert(f"⏰ Step {step_num} timed out — stepping up")
+
+                else:
+                    # Last step (wait_seconds=0) — resting order at cap
+                    print(f"   🏁 Resting order at ${limit_price:.2f} — timeout {resting_timeout}s")
+                    self._send_cascade_alert(
+                        f"🏁 **Resting order** — {contract_label}\n"
+                        f"Limit: **${limit_price:.2f}** | Timeout: {resting_timeout}s"
+                    )
+
+                    # Poll during resting timeout
+                    rest_start = time.time()
+                    while time.time() - rest_start < resting_timeout:
+                        time.sleep(10)  # Poll every 10s during rest
+                        try:
+                            info = trader.get_option_order_info(order_id)
+                            if not info:
+                                continue
+                            state = (info.get('state') or '').lower()
+
+                            if state == 'filled':
+                                fill_price = float(info.get('average_price', 0) or limit_price)
+                                elapsed = time.time() - rest_start
+                                print(f"   ✅ FILLED during rest after {elapsed:.0f}s: ${fill_price:.2f}")
+                                self._send_cascade_alert(
+                                    f"✅ **FILLED** during resting period ({elapsed:.0f}s)\n"
+                                    f"{contract_label} @ **${fill_price:.2f}**"
+                                )
+                                return True, order_id, fill_price, step_num
+
+                            elif state in ('cancelled', 'rejected', 'failed'):
+                                log_func(f"   ❌ Resting order {state}")
+                                self._send_cascade_alert(f"❌ Resting order {state}")
+                                return False, None, None, 0
+
+                        except Exception as e:
+                            log_func(f"   ⚠️ Rest poll error: {e}")
+
+                    # Resting order timed out — cancel it
+                    print(f"   ⏰ Resting order timed out after {resting_timeout}s")
+                    try:
+                        trader.cancel_option_order(order_id)
+                        verified, filled_on_cancel, race_price = self._verify_order_cancelled(
+                            trader, order_id, log_func
+                        )
+                        if filled_on_cancel:
+                            print(f"   ✅ FILLED during final cancel: ${race_price:.2f}")
+                            self._send_cascade_alert(
+                                f"✅ **FILLED** (during cancel)\n"
+                                f"{contract_label} @ **${race_price:.2f}**"
+                            )
+                            return True, order_id, race_price, step_num
+                    except Exception as e:
+                        log_func(f"   ⚠️ Final cancel error: {e}")
+
+                    self._send_cascade_alert(
+                        f"⏰ **Missed Trade** — Resting order expired\n"
+                        f"{contract_label} | Cap: ${max_price_cap:.2f}"
+                    )
+                    return False, None, None, 0
+
+            # All steps exhausted (shouldn't reach here with last step wait_seconds=0)
+            log_func(f"❌ CASCADE BUY FAILED: All {len(cascade_steps)} steps exhausted")
+            self._send_cascade_alert(f"❌ **Cascade Buy Failed** — All steps exhausted\n{contract_label}")
+            return False, None, None, 0
+
+        except Exception as e:
+            log_func(f"❌ CASCADE BUY ERROR: {e}")
+            self._send_cascade_alert(f"❌ **Cascade Buy Error**: {e}")
             return False, None, None, 0
 
     async def process_trade(self, handler, message_meta, raw_msg, is_sim_mode, received_ts, message_id=None, is_edit=False, event_loop=None, message_history=None):
@@ -582,55 +996,64 @@ class TradeExecutor:
                             # Fire these tasks asynchronously - don't wait for them
                             print(f"📊 TRADE PLACED SUCCESSFULLY - Starting async updates...")
                             
-                            # 1. Schedule stop loss (non-blocking)
+                            # 1. Stop loss / auto-exit setup (non-blocking)
                             price = trade_obj.get('price', 0)
                             if price > 0 and not trade_obj.get('is_breakeven'):
-                                try:
-                                    stop_price = trader.round_to_tick(
-                                        price * (1 - config.get("initial_stop_loss", 0.50)), 
-                                        symbol, round_up_for_buy=False, expiration=expiration
+                                # Ryan: use auto-exit (tiered profit + stop) instead of delayed stop
+                                ccid = trade_obj.get('ledger_ccid')
+                                if self.auto_exit_manager and handler.name == 'Ryan' and ccid:
+                                    try:
+                                        ae_success = self.auto_exit_manager.setup_strategy(
+                                            ccid, price, trade_obj.get('quantity', 1),
+                                            symbol, strike, expiration, opt_type
+                                        )
+                                        if ae_success:
+                                            trade_obj['auto_exit_active'] = True
+                                            print(f"🎯 Auto-exit active — skipping delayed stop")
+                                        else:
+                                            # Fallback to delayed stop if auto-exit setup fails
+                                            print(f"⚠️ Auto-exit failed, falling back to delayed stop")
+                                            self._schedule_delayed_stop(
+                                                trader, trade_id, trade_obj, config,
+                                                symbol, strike, expiration, opt_type, price
+                                            )
+                                    except Exception as e:
+                                        print(f"⚠️ Auto-exit exception, falling back to delayed stop: {e}")
+                                        self._schedule_delayed_stop(
+                                            trader, trade_id, trade_obj, config,
+                                            symbol, strike, expiration, opt_type, price
+                                        )
+                                else:
+                                    # Non-Ryan channels: existing delayed stop
+                                    self._schedule_delayed_stop(
+                                        trader, trade_id, trade_obj, config,
+                                        symbol, strike, expiration, opt_type, price
                                     )
-                                    
-                                    print(f"⏱️ Scheduling stop loss for {STOP_LOSS_DELAY_SECONDS/60:.0f} min @ ${stop_price:.2f}")
-                                    
-                                    stop_data = {
-                                        'trader': trader,
-                                        'symbol': symbol,
-                                        'strike': strike,
-                                        'expiration': expiration,
-                                        'opt_type': opt_type,
-                                        'quantity': trade_obj.get('quantity', 1),
-                                        'stop_price': stop_price
-                                    }
-                                    
-                                    self.stop_loss_manager.schedule_stop_loss(trade_id, stop_data, STOP_LOSS_DELAY_SECONDS)
-                                    trade_obj['stop_loss_price'] = stop_price
-                                    trade_obj['stop_loss_scheduled'] = True
-                                except Exception as e:
-                                    print(f"⚠️ Stop loss scheduling failed (non-critical): {e}")
                         
-                        # 2. Record in tracking systems (for both real trades and tracking-only)
-                        try:
-                            # Mark as tracking-only if applicable
-                            if trade_obj.get('is_tracking_only'):
-                                trade_obj['status'] = 'tracking_only'
-                                print(f"📊 Recording tracking-only entry: {symbol} @ ${trade_obj.get('price', 0):.2f}")
-                            else:
-                                trade_obj['status'] = 'active'
-                                print(f"✅ Recording active trade entry")
-                            
-                            self.performance_tracker.record_entry(trade_obj)
-                            if not trade_obj.get('is_tracking_only'):
-                                self.position_manager.add_position(trade_obj['channel_id'], trade_obj)
+                        # 2. Record in tracking systems (ONLY if successful OR tracking-only)
+                        # BUG FIX: Failed cascade buys should NOT be recorded as entries
+                        if execution_success or trade_obj.get('is_tracking_only'):
+                            try:
+                                # Mark as tracking-only if applicable
+                                if trade_obj.get('is_tracking_only'):
+                                    trade_obj['status'] = 'tracking_only'
+                                    print(f"📊 Recording tracking-only entry: {symbol} @ ${trade_obj.get('price', 0):.2f}")
+                                else:
+                                    trade_obj['status'] = 'active'
+                                    print(f"✅ Recording active trade entry")
 
-                            # Position already created in 'opening' status by _execute_buy_order()
-                            # Fill monitoring task will transition to 'open' when filled
-                            if trade_obj.get('ledger_ccid'):
-                                print(f"📒 Position in ledger (opening): {trade_obj['ledger_ccid']}")
+                                self.performance_tracker.record_entry(trade_obj)
+                                if not trade_obj.get('is_tracking_only'):
+                                    self.position_manager.add_position(trade_obj['channel_id'], trade_obj)
 
-                            print(f"✅ Performance tracking updated")
-                        except Exception as e:
-                            print(f"⚠️ Performance tracking failed (non-critical): {e}")
+                                # Position already created in 'opening' status by _execute_buy_order()
+                                # Fill monitoring task will transition to 'open' when filled
+                                if trade_obj.get('ledger_ccid'):
+                                    print(f"📒 Position in ledger (opening): {trade_obj['ledger_ccid']}")
+
+                                print(f"✅ Performance tracking updated")
+                            except Exception as e:
+                                print(f"⚠️ Performance tracking failed (non-critical): {e}")
                         
                         # 3. Send alerts (async, fire-and-forget) - for all trades
                         try:
@@ -646,9 +1069,36 @@ class TradeExecutor:
                             print(f"⚠️ Alert failed (non-critical): {e}")
 
                     elif action in ("trim", "exit", "stop"):
+                        # ========== AUTO-EXIT OVERRIDE CHECK (Ryan) ==========
+                        if self.auto_exit_manager and handler.name == 'Ryan':
+                            ae_ccid = trade_obj.get('ledger_ccid')
+                            if ae_ccid and self.auto_exit_manager.has_active_strategy(ae_ccid):
+                                if action == "trim":
+                                    # Ignore trims — auto-exit is managing this position
+                                    print(f"⏭️ Ignoring Ryan TRIM — auto-exit managing {symbol}")
+                                    log_func(f"⏭️ Ignoring Ryan TRIM — auto-exit active for {symbol}")
+                                    result_summary = "Trim skipped (auto-exit active)"
+                                    # Send notification only, no trade execution
+                                    try:
+                                        asyncio.run_coroutine_threadsafe(
+                                            self._send_trade_alert(
+                                                trade_obj, 'trim_skipped', 0, 0, is_sim_mode
+                                            ),
+                                            self.event_loop
+                                        )
+                                    except Exception:
+                                        pass
+                                    log_func(f"📊 Trade Summary: {result_summary}")
+                                    continue
+                                elif action in ("exit", "stop"):
+                                    # Cancel auto-exit, then proceed with normal cascade sell
+                                    print(f"🔄 Cancelling auto-exit for {symbol} — manual EXIT")
+                                    log_func(f"🔄 Cancelling auto-exit for {symbol} — manual EXIT override")
+                                    self.auto_exit_manager.cancel_strategy(ae_ccid)
+
                         # ========== TRADE-FIRST WORKFLOW ==========
                         print(f"⚡ EXECUTING TRADE FIRST: {action.upper()} {symbol}")
-                        
+
                         # Get trade ID for tracking
                         trade_id = active_position.get('trade_id') if active_position else None
                         if not trade_id and trade_obj.get('ticker'):
@@ -878,6 +1328,22 @@ class TradeExecutor:
 
             # Apply channel-specific padding with OPTIMIZED tick rounding
             buy_padding = config.get("buy_padding", DEFAULT_BUY_PRICE_PADDING)
+            resting_timeout = config.get('resting_order_timeout', 300)
+
+            # TIERED LOGIC: Long-dated contracts (>= 30 days) get wider padding & longer timeout
+            if expiration:
+                try:
+                    from datetime import datetime, timezone
+                    exp_date = datetime.strptime(expiration, "%Y-%m-%d").date()
+                    today = datetime.now(timezone.utc).date()
+                    days_to_expiry = (exp_date - today).days
+
+                    if days_to_expiry >= 30:
+                        buy_padding = 0.05  # 5% padding for monthly+ contracts
+                        resting_timeout = 600  # 10 minute timeout
+                        log_func(f"📅 Long-dated contract ({days_to_expiry}d): 5% padding, 10m timeout")
+                except Exception as e:
+                    print(f"⚠️ Expiration parse error: {e}")
 
             # CRITICAL: Use trader's optimized tick rounding with round_up for buys
             padded_price = price * (1 + buy_padding)
@@ -887,6 +1353,11 @@ class TradeExecutor:
             min_channel_contracts = config.get("min_trade_contracts", MIN_CONTRACTS)
             calculated_contracts = int(max_amount / (final_price * 100))
             contracts = max(min_channel_contracts, min(calculated_contracts, MAX_CONTRACTS))
+
+            # LOTTO OVERRIDE: Force 1 contract for lotto-size trades
+            if size == 'lotto':
+                contracts = 1
+                log_func(f"🎰 Lotto size detected: Forcing 1 contract (overrides channel minimum)")
 
             # Check minimum trade contracts threshold for channel (0 = tracking only)
             if min_channel_contracts == 0:
@@ -950,39 +1421,47 @@ class TradeExecutor:
             }
 
             # ========== PRE-EXECUTION VALIDATION (CRITICAL SAFETY) ==========
-            print(f"🔍 VALIDATING: {contracts}x {symbol} {strike}{opt_type} @ ${final_price:.2f}")
-            if not trader.validate_order_requirements(symbol, strike, expiration, opt_type, contracts, final_price):
+            # max_price_cap = padded price. This is the HARD CAP — cascade never exceeds this.
+            max_price_cap = final_price
+            print(f"🔍 VALIDATING: {contracts}x {symbol} {strike}{opt_type} @ cap ${max_price_cap:.2f}")
+            if not trader.validate_order_requirements(symbol, strike, expiration, opt_type, contracts, max_price_cap):
                 log_func(f"❌ Order validation failed for {symbol} {strike}{opt_type}")
                 return False, "Order validation failed"
 
-            # SPEED OPTIMIZATION: Minimal logging during execution
-            print(f"⚡ FAST BUY: {contracts}x {symbol} {strike}{opt_type} @ ${final_price:.2f}")
-
-            # ========== TRADE FIRST (HIGHEST PRIORITY) ==========
-            start_time = time.time()
-            buy_response = trader.place_option_buy_order(symbol, strike, expiration, opt_type, contracts, final_price)
-            execution_time = time.time() - start_time
-
-            # Check result immediately
+            # ========== SIMULATED MODE (no cascade) ==========
             if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
+                start_time = time.time()
+                buy_response = trader.place_option_buy_order(symbol, strike, expiration, opt_type, contracts, max_price_cap)
+                execution_time = time.time() - start_time
                 print(f"✅ SIMULATED buy executed in {execution_time:.3f}s")
                 trade_obj['order_id'] = f"sim_{int(time.time() * 1000)}"
-                trade_obj['position_status'] = 'open'  # Simulated orders are immediately filled
+                trade_obj['position_status'] = 'open'
                 return True, f"Simulated buy: {contracts}x {symbol}"
 
-            order_id = buy_response.get('id')
-            if not order_id:
-                print(f"❌ Buy order FAILED: {buy_response}")
-                return False, f"Order failed: {buy_response.get('error', 'Unknown error')}"
+            # ========== LIVE: CASCADE BUY ==========
+            print(f"⚡ CASCADE BUY: {contracts}x {symbol} {strike}{opt_type} | Cap: ${max_price_cap:.2f}")
 
-            print(f"✅ Buy order PLACED in {execution_time:.3f}s: {order_id}")
+            from config import BUY_CASCADE_STEPS
+            # Create runtime config with potentially modified timeout for long-dated contracts
+            run_config = config.copy()
+            run_config['resting_order_timeout'] = resting_timeout
 
-            # Store order_id for fill monitoring
+            cascade_success, order_id, fill_price, step_used = self._cascade_buy(
+                trader, symbol, strike, expiration, opt_type, contracts,
+                BUY_CASCADE_STEPS, run_config, log_func, max_price_cap
+            )
+
+            if not cascade_success:
+                log_func(f"❌ Cascade buy failed for {symbol} {strike}{opt_type}")
+                return False, f"Cascade buy failed: no fill within cap ${max_price_cap:.2f}"
+
+            # Update trade_obj with ACTUAL fill price (not padded alert price)
+            trade_obj['price'] = fill_price if fill_price else max_price_cap
             trade_obj['order_id'] = order_id
-            trade_obj['position_status'] = 'opening'  # Position is pending fill
+            trade_obj['position_status'] = 'opening'
+            trade_obj['cascade_step'] = step_used
 
-            # Create position in 'opening' status in the ledger
-            # Fill monitoring task will transition to 'open' when filled
+            # Create position in 'opening' status in the ledger with correct price
             if self.position_ledger:
                 try:
                     ccid = self.position_ledger.create_opening_position(trade_obj, order_id)
@@ -991,8 +1470,7 @@ class TradeExecutor:
                 except Exception as le:
                     print(f"⚠️ Ledger opening position creation failed (non-critical): {le}")
 
-            # Return success - fill monitoring task will handle state transitions
-            return True, f"Buy order placed: {contracts}x {symbol} @ ${final_price:.2f} (ID: {order_id}, status: opening)"
+            return True, f"Cascade buy filled: {contracts}x {symbol} @ ${trade_obj['price']:.2f} (step {step_used}, cap ${max_price_cap:.2f})"
 
         except Exception as e:
             print(f"❌ CRITICAL buy execution error: {e}")
@@ -1051,6 +1529,17 @@ class TradeExecutor:
                 
                 return False, f"Channel tracking only: {action} at ${trade_obj['price']:.2f} (Market: ${float(trade_obj.get('market_price_at_alert', 0)):.2f})"
             
+            # PRE-CANCEL existing orders FIRST (handles "abort buy" scenario)
+            # Must happen BEFORE position check - if buy hasn't filled, cancel it
+            print(f"🚫 Cancelling existing orders for {symbol}...")
+            cancelled_count = 0
+            try:
+                cancelled_count = trader.cancel_open_option_orders(symbol, strike, expiration, opt_type)
+                if cancelled_count > 0:
+                    print(f"✅ Cancelled {cancelled_count} existing orders")
+            except Exception as e:
+                print(f"⚠️ Order cancellation failed (proceeding anyway): {e}")
+
             # PRE-CALCULATE position quantity (for real trading mode)
             if hasattr(trader, 'simulated_orders') or trader.__class__.__name__ == 'EnhancedSimulatedTrader':
                 total_quantity = 10
@@ -1059,25 +1548,20 @@ class TradeExecutor:
                 all_positions = trader.get_open_option_positions()
                 position = trader.find_open_option_position(all_positions, symbol, strike, expiration, opt_type)
                 if not position:
+                    # If we cancelled pending orders, that's a success (aborted buy)
+                    if cancelled_count > 0:
+                        log_func(f"✅ Cancelled {cancelled_count} pending buy orders (no position to {action})")
+                        return True, f"Cancelled {cancelled_count} pending orders"
                     print(f"❌ No position found for {symbol}")
                     return False, "No position found"
                 total_quantity = int(float(position.get('quantity', 0)))
-            
+
             # Determine quantity - use TRIM_PERCENTAGE for trims (25% by default)
             if action == "trim":
                 sell_quantity = max(1, int(total_quantity * TRIM_PERCENTAGE))
             else:
                 sell_quantity = total_quantity
             trade_obj['quantity'] = sell_quantity
-            
-            # PRE-CANCEL existing orders (non-blocking for speed)
-            print(f"🚫 Cancelling existing orders for {symbol}...")
-            try:
-                cancelled = trader.cancel_open_option_orders(symbol, strike, expiration, opt_type)
-                if cancelled > 0:
-                    print(f"✅ Cancelled {cancelled} existing orders")
-            except Exception as e:
-                print(f"⚠️ Order cancellation failed (proceeding anyway): {e}")
             
             # SPEED-OPTIMIZED price calculation
             sell_padding = config.get("sell_padding", DEFAULT_SELL_PRICE_PADDING)

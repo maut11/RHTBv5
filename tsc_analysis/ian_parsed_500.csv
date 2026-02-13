@@ -1,0 +1,1620 @@
+message_id,timestamp,author,content,is_reply,reply_context,is_edited,is_forward,action,ticker,strike,type,price,expiration,size,stop_price,trailing,trade_count,raw_parsed
+1460485773706137731,2026-01-13T04:09:02.965000+00:00,ohiain,<@&1457740469353058469>,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460633882415202409,2026-01-13T13:57:34.833000+00:00,ohiain,"Morning family! Markets are gapping down this morning, with both QQQ and SPY lower by roughly a dollar, while IWM and ARKK are opening right around yesterday’s close. Small caps continue to show relative strength, and IWM remains my primary area of focus as tech has taken some meaningful hits over t",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460642836998521106,2026-01-13T14:33:09.772000+00:00,ohiain,"Nasty 5 min open on $JOBY, watching closely.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460644705418084578,2026-01-13T14:40:35.238000+00:00,ohiain,"Flat $JOBY @.93 at b/e 
+
+5 min ORB break to downside, not holding that sucker.
+
+Looked sooo good, what was that 5 min candle 😭
+
+<@&1457740469353058469>",False,,False,False,exit,JOBY,,,b/e,,,,,1,"{""action"": ""exit"", ""ticker"": ""JOBY"", ""price"": ""b/e""}"
+1460644913380327639,2026-01-13T14:41:24.820000+00:00,ohiain,"I went from up 25% to b/e in 5 mins, what was the PA.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460645096436400361,2026-01-13T14:42:08.464000+00:00,ohiain,"Looking for strength ATM, seems like a lot of names are pulling back into MAs.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460646154956968120,2026-01-13T14:46:20.835000+00:00,ohiain,$ASTS looks great on this o/p reclaim,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460647699710742653,2026-01-13T14:52:29.133000+00:00,ohiain,"$CIFR and $ASTS are holding up well, keeping them on watch.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460650389857898611,2026-01-13T15:03:10.514000+00:00,ohiain,"$QQQ flipping red, if I had to guess, another low volume day.
+
+All I've done is move my WL around for strength and got stopped out of $JOBY at b/e.
+
+The market has been sloppy the past few weeks, which has required a lot of selectivity if you wanted to see progress. Lots of headlines, news, and rand",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460653569513361594,2026-01-13T15:15:48.603000+00:00,ohiain,https://tenor.com/view/sunnyfication-gif-20299408,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460653575632851136,2026-01-13T15:15:50.062000+00:00,ohiain,"$ALAB, $AVGO, $INTC semi are cooking rn.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460655341984284766,2026-01-13T15:22:51.193000+00:00,ohiain,"This is why you have b/e stops people!! 😆
+
+If the trade comes back to your invalidation level, that means the entry could've been better. If it breaks your level, get out... no discussion.
+
+It's better to be wanting into a stock than to be wanting to get out!
+Know this.",True,"Flat $JOBY @.93 at b/e 
+
+5 min ORB break to downside, not holding that sucker.
+
+Looked sooo good, what was that 5 min candle 😭
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460659154480926946,2026-01-13T15:38:00.163000+00:00,ohiain,"Doesn't look like much is happening today. All I'm seeing are a bunch of squats at key pivots, and much downside follow through because of the indices failing at highs + news.
+
+Nothing for me to do so far today, so I'll prob call the morning session here. 
+
+I've got alerts set and will come back dur",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460660845930479749,2026-01-13T15:44:43.436000+00:00,ohiain,"I'm taking of the RS on $BTC and $ETH, crypto names getting some follow through.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460663856467542213,2026-01-13T15:56:41.204000+00:00,ohiain,"$ALAB carrying the momentum further, semis responding well to this intraday PA  <@199628210818908160> 
+
+$AVGO, $INTC, $AMD... is $NVDA next???",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460680219383038063,2026-01-13T17:01:42.427000+00:00,ohiain,Watching $LMND for a PB buy entry.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460689601571065919,2026-01-13T17:38:59.315000+00:00,ohiain,"I would like to see a bottom form, or some intraday tight range to risk off of. Clear retest back into a big weekly pivot. HTF setup on the weekly.",True,Watching $LMND for a PB buy entry.,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460698532385394891,2026-01-13T18:14:28.587000+00:00,ohiain,Watching this 65 min pivot on $LMND for a potential entry.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460698576568193045,2026-01-13T18:14:39.121000+00:00,ohiain,right off the 9 EMA.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460706623675961539,2026-01-13T18:46:37.701000+00:00,ohiain,"$LMND catching no momentum intraday, think I'm taking the rest of the day off, heavy news tonight and the rest of the week.
+
+No need to force anything! All I did was manage $JOBY today at open for b/e, I'm full cash heading into tm!
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460773288514158655,2026-01-13T23:11:31.837000+00:00,ohiain,"**straight from my X:
+**
+""80% of my trades recently have come from undercuts and reclaims of support pivots, daily EMAs, and/or intraday VWAP.
+
+I’m sharing this because the past few months have been a constant lesson for me in adaptation. The market isn’t giving easy breakouts as it did back in Sept",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1460998429172826366,2026-01-14T14:06:09.553000+00:00,ohiain,"Markets are gapping down across the board this morning, with $QQQ, $SPY, $IWM, and $ARKK all opening lower ahead of fresh news. Whenever we get a broad gap like this, my first job is to observe how price reacts once the market actually opens. One constructive note from yesterday is that growth names",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461004312380571710,2026-01-14T14:29:32.219000+00:00,ohiain,"I like $ASTS sub 90 and $ALAB sub 175 as a buyer, watching off open. Do note that we have news at 10 am EST!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461006124009394342,2026-01-14T14:36:44.145000+00:00,ohiain,$RIVN trying to fill this gap right at the 50 day.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461006184080347247,2026-01-14T14:36:58.467000+00:00,ohiain,$RKLB refusing to go down as $ASTS sitting right at 9 day.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461007747502964799,2026-01-14T14:43:11.216000+00:00,ohiain,"Adding $ASTS 120c Feb 20 @3.80
+
+half size (9 day + 90/OP reclaim)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,False,False,buy,ASTS,120,call,3.8,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""ASTS"", ""strike"": 120, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 3.8, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1461008463915389183,2026-01-14T14:46:02.022000+00:00,ohiain,"$RKLB trying to RDR here, I will know if I'm wrong quickly.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461008628986155205,2026-01-14T14:46:41.378000+00:00,ohiain,"If $ASTS loses 9 day, I will look to buy it back at the 87 gap.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461009341560655884,2026-01-14T14:49:31.269000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461010688020582523,2026-01-14T14:54:52.290000+00:00,ohiain,"$NBIS very appealing here, will wait for the next 6 mins to see what happens.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461011270651088947,2026-01-14T14:57:11.200000+00:00,ohiain,"$RKLB breaking out of 15 min ORB, woud like to see $ASTS catch a bid here also.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461013629729112166,2026-01-14T15:06:33.648000+00:00,ohiain,$ASTS needs to hold above 90 or this will be a quick cut.,True,"Adding $ASTS 120c Feb 20 @3.80
+
+half size (9 day + 90/OP reclaim)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461017003455156356,2026-01-14T15:19:58.007000+00:00,ohiain,So far I'm really liking this reaction off the undercut of the 9 day.,True,$ASTS needs to hold above 90 or this will be a quick cut.,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461017863254052874,2026-01-14T15:23:22.999000+00:00,ohiain,"Wow, $RKLB RDR is a beauitful thing to witness.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461018009832263792,2026-01-14T15:23:57.946000+00:00,ohiain,Now pump my $ASTS pls 😭,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461019321756160162,2026-01-14T15:29:10.733000+00:00,ohiain,"Heavy sell wall right at OP, you won't see any momentum unless we close above OP, stop is still LOD will alert what I do!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461023091151868109,2026-01-14T15:44:09.427000+00:00,ohiain,Watching this 15 min close at LOD to exit or hold.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461024010086387722,2026-01-14T15:47:48.518000+00:00,ohiain,"The longer it chops intraday, the more I am likely to get out. I want to see aggressive buyers hold the 90 pivot. If not, I'm out.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461025828161716470,2026-01-14T15:55:01.981000+00:00,ohiain,"The 65 min closed below the 9 day, I do not want to see that, it's either now or neva.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461026726548209715,2026-01-14T15:58:36.173000+00:00,ohiain,Need this 30 min pivot high to get taken out and a reclaim of OP and I might actually add here to my position off the 9 day.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461030044385280216,2026-01-14T16:11:47.207000+00:00,ohiain,"If we take out ORB on $ASTS, I might look to average up on this position and take the $ASTS $100c 16 Jan to see if we can get some momentum through PLOD reclaim.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461030597488017555,2026-01-14T16:13:59.077000+00:00,ohiain,"$CIFR looks awesome, I love this RDR and DTL retest, however, it's too extended intraday for my liking.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461031090293702990,2026-01-14T16:15:56.571000+00:00,ohiain,"$LUMN trying to take out PHOD, I love this r/r spot right above the $8 pivot.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461031623997919296,2026-01-14T16:18:03.816000+00:00,ohiain,"I can just feel the pressure building right below OP, need a solid close above, and that's when the momentum will most likely return.",True,"Heavy sell wall right at OP, you won't see any momentum unless we close above OP, stop is still LOD will alert what I do!",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461031768542019595,2026-01-14T16:18:38.278000+00:00,ohiain,I'm sitting right above b/e on these cons.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461033118348738654,2026-01-14T16:24:00.097000+00:00,ohiain,"There's that pressure release, I could just feel it in my bones... I would like to see a reclaim of the closing print for a confirmed RDR.
+
+NHOD, watching the 100c weelies on $ASTS.",True,"I can just feel the pressure building right below OP, need a solid close above, and that's when the momentum will most likely return.",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461033907385536563,2026-01-14T16:27:08.218000+00:00,ohiain,"Adding $ASTS 100c 16 Jan @.99
+
+1/5th size (LOTTO TRADE)
+
+Stop: Opening Print.
+
+<@&1457740469353058469>",False,,True,False,buy,ASTS,100,call,0.99,2026-01-16,lotto,,,1,"{""action"": ""buy"", ""ticker"": ""ASTS"", ""strike"": 100, ""type"": ""call"", ""expiration"": ""2026-01-16"", ""price"": 0.99, ""size"": ""lotto""}"
+1461033940033863681,2026-01-14T16:27:16.002000+00:00,ohiain,"GUYS I CAN""T TYPE FAST ENOUGH",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461034529526513861,2026-01-14T16:29:36.548000+00:00,ohiain,"Moving stop on these to OP, I do not want to see these come back.",True,"Adding $ASTS 100c 16 Jan @.99
+
+1/5th size (LOTTO TRADE)
+
+Stop: Opening Print.
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461034741561032869,2026-01-14T16:30:27.101000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461034760515223562,2026-01-14T16:30:31.620000+00:00,ohiain,$RKLB nice move so far.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461035302377357494,2026-01-14T16:32:40.810000+00:00,ohiain,Looking to take trims into strength if we get a move through 94.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461035823410712793,2026-01-14T16:34:45.034000+00:00,ohiain,Looking for another pop above this DTL on the 30 min to take profits into strength.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461037976992612489,2026-01-14T16:43:18.488000+00:00,ohiain,"$ACHR is getting super tight right at the 50 day, they're buying up Aerospace today.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461038873562972304,2026-01-14T16:46:52.247000+00:00,ohiain,"$UUUU filling gap, super tight 30 min pivot off open, would've been a really nice spot to define your risk. Really nice chart part of the energy / metals theme.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461039737044340787,2026-01-14T16:50:18.117000+00:00,ohiain,"$ASTS is sitting right at r/g spot, big pivot here on the chart. while $RKLB is having troubles at highs.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461040384409997372,2026-01-14T16:52:52.461000+00:00,ohiain,"$QQQ right at 50 day.
+
+Notice how $ASTS is staying at highs, while the market is dumping, RS at it's finest.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461045102725042451,2026-01-14T17:11:37.395000+00:00,ohiain,"Setting a hard stop on these @ .85 as we can reclaim yesterday's close.
+
+Let's see if we can get a push into NHOD + 94 ish area.
+
+<@&1457740469353058469>",True,"Adding $ASTS 100c 16 Jan @.99
+
+1/5th size (LOTTO TRADE)
+
+Stop: Opening Print.
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461051962106576980,2026-01-14T17:38:52.799000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461052146945495092,2026-01-14T17:39:36.868000+00:00,ohiain,"$ASTS is having some trouble through this r/g pivot, but if we close near highs today... man this chart looks beautiful.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461054985214103582,2026-01-14T17:50:53.564000+00:00,ohiain,"Bang, NHOD!
+
+Trimming 1/4th on weeklies here @1.25 +25% and moving stop to b/e.
+Paying for risk on the whole position.
+
+Still no trims on core position just yet.
+
+<@&1457740469353058469>",False,,False,False,trim,RKLB,,,1.25,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""RKLB"", ""price"": 1.25, ""size"": ""quarter""}"
+1461055623658471572,2026-01-14T17:53:25.781000+00:00,ohiain,"$ASTS is trying to get all the weak hands to sell, like what is that rejection off NHOD...",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461056848231661689,2026-01-14T17:58:17.742000+00:00,ohiain,"Looking to take first trims into 95 on the core position.
+
+I've still got my weeklies set at b/e, I'm gonna hop off for a bit and get some grub. I won't be on the screen, so manage risk peeps!
+
+<@&1457740469353058469>",True,"Bang, NHOD!
+
+Trimming 1/4th on weeklies here @1.25 +25% and moving stop to b/e.
+Paying for risk on the whole position.
+
+Still no trims on core position just yet.
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461082628877713438,2026-01-14T19:40:44.327000+00:00,ohiain,I'm back on the screens now for power hour.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461084625962139815,2026-01-14T19:48:40.469000+00:00,ohiain,https://tenor.com/view/uhhhhh-gif-18728531,True,I'm back on the screens now for power hour.,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461085789273325835,2026-01-14T19:53:17.824000+00:00,ohiain,send it to the moon will ya?  🙏,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461086338412707850,2026-01-14T19:55:28.749000+00:00,ohiain,"I've gotta know when to be quiet, I keep jixing myself.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461091682186690641,2026-01-14T20:16:42.804000+00:00,ohiain,"If we can get one more HOD push, I'm looking to scale into strength above the 94 pivot.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461092622440595466,2026-01-14T20:20:26.978000+00:00,ohiain,"Trimming 1/5th @ 4.65 +23%
+
+I have to trim something into this pop!
+Paying for risk here, now I can let it breathe.
+
+Watching for a strong close to swing the rest.
+
+<@&1457740469353058469>",True,"Adding $ASTS 120c Feb 20 @3.80
+
+half size (9 day + 90/OP reclaim)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,trim,ASTS,,,4.65,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 4.65, ""size"": ""quarter""}"
+1461092941400379435,2026-01-14T20:21:43.024000+00:00,ohiain,TOC we could get PAID here if they close it strong!!  🔥,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461095119775072296,2026-01-14T20:30:22.389000+00:00,ohiain,"They want Aerospace way higher tomorrow, I can just feel the tingle in my bones  😆 !!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461096961707872276,2026-01-14T20:37:41.540000+00:00,ohiain,"Trimming weeklies here @ 1.60 +60% !!!
+
+**Moving stops to b/e on:**
+
+$ASTS 100c 16 Jan (lotto) 2/5th left
+$ASTS 120c 20 Feb (core position) 4/5th left
+
+<@&1457740469353058469>",True,"Adding $ASTS 100c 16 Jan @.99
+
+1/5th size (LOTTO TRADE)
+
+Stop: Opening Print.
+
+<@&1457740469353058469>",True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461097033707295074,2026-01-14T20:37:58.706000+00:00,ohiain,These could easily go 200%+ tm.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461097911239573708,2026-01-14T20:41:27.926000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461098453986709606,2026-01-14T20:43:37.327000+00:00,ohiain,"$ASTS one of the best looking charts heading into tm IMO:
+
+- leader
+- hot theme
+- above all moving averages
+- following right behind $RKLB
+- RS over the overall market today
+- heading for 100+ psych b/o
+
+I mean like cmon...",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461098660745187328,2026-01-14T20:44:26.622000+00:00,ohiain,"$RKLB in price discovery mode rn, could go parabolic... who knows??",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461099735858282578,2026-01-14T20:48:42.949000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461100154923909276,2026-01-14T20:50:22.862000+00:00,ohiain,"The breakout is above 100 btw... the move hasn't even started, and we got in at 90... I think this could be huge into EOW+.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461103439714058430,2026-01-14T21:03:26.017000+00:00,ohiain,"**Position Update:**
+
+$ASTS 100c 16 Jan (lotto) 2/5th left +60% into close
+$ASTS 120c 20 Feb (core position) 4/5th left +30% into close
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461103637110722675,2026-01-14T21:04:13.080000+00:00,ohiain,"Forgot to update before close, my apologies fam!! Great start on $ASTS position, let's see if we can get a move above +100 into EOW!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461113406701572200,2026-01-14T21:43:02.332000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461113503674007644,2026-01-14T21:43:25.452000+00:00,ohiain,$ASTS U&R entry setup heading into tm:,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461358928221700227,2026-01-15T13:58:39.224000+00:00,ohiain,"Morning family!! Markets are gapping up hard across the board this morning, with $SPY, $QQQ, $IWM, and $ARKK all opening significantly higher. The only scheduled data we have today is unemployment claims, so outside of that, this is largely a price driven move. $IWM continues to stand out as the cle",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461360496958509088,2026-01-15T14:04:53.240000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461360703964188673,2026-01-15T14:05:42.594000+00:00,ohiain,"$ONDS is the main focus for me today. I would've liked to see another day or two build out to the right, but I don't think we will get that. Very strong name!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461365109866762255,2026-01-15T14:23:13.043000+00:00,ohiain,"I have b/e stops on both $ASTS positions. I will not let a trade deep in profit go red.
+
+I can always re-enter.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461369215066833049,2026-01-15T14:39:31.799000+00:00,ohiain,"I'm in profit on both $ASTS positions, waiting.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461370439388364922,2026-01-15T14:44:23.700000+00:00,ohiain,"Trimming my core position 4.80 from 3.80 +26%
+
+Derisking at PHOD!
+
+<@&1457740469353058469>",False,,False,False,trim,ASTS,,,4.8,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 4.8, ""size"": ""full""}"
+1461371792621965333,2026-01-15T14:49:46.336000+00:00,ohiain,"TRIMMING WEEEKLIES HERE @ 1.75 +75%%
+
+PAYY MEE $ASTS!!
+
+<@&1457740469353058469>",False,,False,False,trim,ASTS,,call,1.75,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""type"": ""call"", ""price"": 1.75, ""size"": ""full""}"
+1461372334395887700,2026-01-15T14:51:55.505000+00:00,ohiain,"Stops are at b/e for both positions!!!! Deep in cushion and trimmed down to sizable positions, letting these work 🤝",False,,False,False,stop_update,ASTS,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""ASTS"", ""stop_price"": ""BE""}"
+1461372965466800235,2026-01-15T14:54:25.964000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461373036123918367,2026-01-15T14:54:42.810000+00:00,ohiain,"They might actually do it today, patience, patience, patience.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461373424650682380,2026-01-15T14:56:15.442000+00:00,ohiain,"TRIMMING 3/4ths on WEEKLIES @ 2.10 +117%
+
+We are absolutley printing 🔥
+
+<@&1457740469353058469>",True,"TRIMMING WEEEKLIES HERE @ 1.75 +75%%
+
+PAYY MEE $ASTS!!
+
+<@&1457740469353058469>",False,False,trim,ASTS,,,2.1,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 2.1, ""size"": ""quarter""}"
+1461373610970054738,2026-01-15T14:56:59.864000+00:00,ohiain,"I'm up 40% on 20 Feb core position, will scale some into 98 strength. So don't wait for my alert!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461375704619810877,2026-01-15T15:05:19.029000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461375787533078804,2026-01-15T15:05:38.797000+00:00,ohiain,"$ACHR could catch some momentum here with $ASTS going, very intriguing spot on the chart.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461376116370706493,2026-01-15T15:06:57.198000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461376141674942516,2026-01-15T15:07:03.231000+00:00,ohiain,$JOBY also looks amazing over the 15 pivot.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461376770421948482,2026-01-15T15:09:33.136000+00:00,ohiain,"TRIMMMING core $ASTS position @ 5.75 from 3.80 +50%
+
+NHOD + 98!!!! 
+
+<@&1457740469353058469>",True,"Trimming my core position 4.80 from 3.80 +26%
+
+Derisking at PHOD!
+
+<@&1457740469353058469>",False,False,trim,ASTS,,,5.75,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 5.75, ""size"": ""full""}"
+1461377023007133697,2026-01-15T15:10:33.357000+00:00,ohiain,"WOW what a trade to end the week, this could squeeze through 100 today and if it does.... oh boy I better buckle up.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461378652611547438,2026-01-15T15:17:01.885000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461378662426476596,2026-01-15T15:17:04.225000+00:00,ohiain,$SEI on watch.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461379734196715704,2026-01-15T15:21:19.755000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461379782922211552,2026-01-15T15:21:31.372000+00:00,ohiain,$UMAC setting up for a potential inside day setup.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461382289627021497,2026-01-15T15:31:29.017000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461382417913872560,2026-01-15T15:31:59.603000+00:00,ohiain,$CIFR might make me pull the trigger here off 9 day + PLOD undercut.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461384895426334720,2026-01-15T15:41:50.288000+00:00,ohiain,"Adding $CIFR 20c 20 Feb @1.42
+
+1/2 size (VWAP reclaim, DTL retest, 35% LOD, 30 min pivot off 9 day undercut)
+
+Stop: LOD
+
+<@&1457740469353058469>",True,,False,False,buy,CIFR,20,call,1.42,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""CIFR"", ""strike"": 20, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 1.42, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1461385006424260668,2026-01-15T15:42:16.752000+00:00,ohiain,"$CIFR looking for some momentum back over PLOD, let's see if buyers step in at the 9 day.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461387710760488980,2026-01-15T15:53:01.516000+00:00,ohiain,Watching this 5 min close on $UMAC.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461387897717391553,2026-01-15T15:53:46.090000+00:00,ohiain,"Adding $UMAC 17.5c 20 Feb @1.70
+
+1/2 size (VWAP reclaim, 30 min pivot off 9day)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,True,False,buy,UMAC,17.5,call,1.7,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""UMAC"", ""strike"": 17.5, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 1.7, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1461387995889406033,2026-01-15T15:54:09.496000+00:00,ohiain,I'm feeling good from $ASTS this morning and opened up too many positions 🤣,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461388388685844481,2026-01-15T15:55:43.146000+00:00,ohiain,"I'm sitting the rest of the day and managing my current positions:
+
+$ASTS (I've got b/e stops on these)
+$CIFR 20c 20 Feb @1.42
+$UMAC 17.5c 20 Feb @1.70
+
+Took on more risk this AM because I'm in cushion from $ASTS, always know your own risk appetite!
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461388604277391423,2026-01-15T15:56:34.547000+00:00,ohiain,,True,[Could not fetch],False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461388606508634314,2026-01-15T15:56:35.079000+00:00,ohiain,I got in before you <@1024375625219317812> 😜,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461394518040645652,2026-01-15T16:20:04.498000+00:00,ohiain,"I will trim 1/5th $CIFR into NHOD push and pay for my risk, everyone.",False,,False,False,trim,CIFR,,,,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""CIFR"", ""size"": ""quarter""}"
+1461395385573441722,2026-01-15T16:23:31.334000+00:00,ohiain,"I feel like they're about to MOOON $ASTS, so I will look to trim the runners I have on the weeklies + my core position if we break above 100 pivot.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461396472171069510,2026-01-15T16:27:50.399000+00:00,ohiain,I will also trim my $UMAC into the 17 b/o.,True,"I will trim 1/5th $CIFR into NHOD push and pay for my risk, everyone.",False,False,trim,UMAC,,call,market,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""UMAC"", ""type"": ""call"", ""size"": ""quarter"", ""price"": ""market""}"
+1461399367851180185,2026-01-15T16:39:20.783000+00:00,ohiain,"TRIMMING $ASTS weeklies here at NHOD:
+
+.99 -> 2.40 +150% 🔥
+
+I've got a few cons left, wanna see a triple on these cons.
+
+<@&1457740469353058469>",True,"TRIMMMING core $ASTS position @ 5.75 from 3.80 +50%
+
+NHOD + 98!!!! 
+
+<@&1457740469353058469>",False,False,trim,ASTS,,,2.4,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 2.4, ""size"": ""full""}"
+1461401036206899334,2026-01-15T16:45:58.550000+00:00,ohiain,$ASTS can move really quickly through 100 pivot.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461401895691096174,2026-01-15T16:49:23.467000+00:00,ohiain,"I will most likely be trimming $ASTS core position into this overhead supply!
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461405318071324705,2026-01-15T17:02:59.426000+00:00,ohiain,"Calling it a morning here, what a day for the books!
+
+$ASTS weeklies ran +170% (stop at b/e) 1/5th left.
+$ASTS 20 Feb position +50% on last trim (stop at b/e) 2/5th left.
+(I also took speculative lottos on $LUMN 8.5c weeklies @ close yday) 🥀
+
+**New positions:
+**
+$CIFR 20c 20 Feb @1.42
+$UMAC 17.5c 20",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461411963987955734,2026-01-15T17:29:23.936000+00:00,ohiain,"TRIMMING $UMAC here @ 2.30 +35%
+
+<@&1457740469353058469>",False,,False,False,trim,UMAC,,call,2.3,,full,,,1,"{""action"": ""trim"", ""ticker"": ""UMAC"", ""type"": ""call"", ""price"": 2.3, ""size"": ""full""}"
+1461412844082827264,2026-01-15T17:32:53.767000+00:00,ohiain,"TRIMMING $CIFR here @ 1.85 +30%
+
+<@&1457740469353058469>",False,,False,False,trim,CIFR,,,1.85,,full,,,1,"{""action"": ""trim"", ""ticker"": ""CIFR"", ""price"": 1.85, ""size"": ""full""}"
+1461413161633714318,2026-01-15T17:34:09.477000+00:00,ohiain,"NHOD on $CIFR, TOC we're soooo paid it's unreal on these positions!!
+
+$ASTS banger 🔥
+$CIFR caught LOD
+$UMAC is about to be HUGE 
+...and and my $LUMN lottos (sorry) 😢🥀",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461414819038236805,2026-01-15T17:40:44.633000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461414907257028771,2026-01-15T17:41:05.666000+00:00,ohiain,"When a stock in a leading theme/sector gets tight around the 50 day, it’s usually sitting right on the 9EMA on the weekly.
+
+That’s your cue to stalk.
+
+Wait for the expansion off the weekly 9, buy the leaders in the strongest themes, and let the trade do the work.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461414960159789249,2026-01-15T17:41:18.279000+00:00,ohiain,Good writeup to study!!!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461416917142077594,2026-01-15T17:49:04.860000+00:00,ohiain,"TRIMMING SOME OF MY LAST WEEKLIES ON $ASTS
+
+.99 to 3.23 +225% 🔥 🎯
+
+<@&1457740469353058469>",False,,False,False,trim,ASTS,,,3.23,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 3.23, ""size"": ""full""}"
+1461417198580011118,2026-01-15T17:50:11.960000+00:00,ohiain,"ALSO TRIMMING a small chunk on CORE position $ASTS
+
+6.50 from 3.80 +70%  ☑️ 🔥
+
+<@&1457740469353058469>",False,,False,False,trim,ASTS,,,6.5,,small,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 6.5, ""size"": ""small""}"
+1461418020235640903,2026-01-15T17:53:27.858000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461418172069580964,2026-01-15T17:54:04.058000+00:00,ohiain,"$ONDS top watch, we are going to catch this puppy, checking all the signs I wanna see for a fat pitch trade idea.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461418391238742204,2026-01-15T17:54:56.312000+00:00,ohiain,"I've noted it's above 4 ATR% from the 50 day, but if we undercut this gap/9EMA I'm slapping my parents house on this trade!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461426796674420879,2026-01-15T18:28:20.324000+00:00,ohiain,"Watching $QBTS on a potential 30 min pivot, VWAP recovery + PHOD reclaim. This would be a HL setup.
+
+This would get me some exposure in Quant, the only thing I don't like too much is the upper wicks at HOD, but looks constructive so far. 
+
+I will alert if I take a stab at it, also $ALAB is gorgeous ",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461427157786955981,2026-01-15T18:29:46.420000+00:00,ohiain,Watching $ASTS for trims into new highs.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461427444174029094,2026-01-15T18:30:54.700000+00:00,ohiain,"This will be on the very few weeklies that I have, no need to trim the core position until we see ATHs! Gotta let my 20 Feb cons cook 🔥",True,Watching $ASTS for trims into new highs.,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461428320305545217,2026-01-15T18:34:23.586000+00:00,ohiain,,True,[Could not fetch],False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461428320976769166,2026-01-15T18:34:23.746000+00:00,ohiain,I'm tailing this.,False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461429672838430771,2026-01-15T18:39:46.055000+00:00,ohiain,"I want in $ONDS sooo bad, willing to risk it all just to get in...",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461430079845302455,2026-01-15T18:41:23.093000+00:00,ohiain,,True,"I want in $ONDS sooo bad, willing to risk it all just to get in...",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461430144882315528,2026-01-15T18:41:38.599000+00:00,ohiain,"If $ONDS isn't your top watch right now, you're obviously looking in the wrong places.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461431453278670938,2026-01-15T18:46:50.545000+00:00,ohiain,"TRIMMING MORE HERE TOC FAMILY!! I've got just a few runners left!!
+
+.99 to 4.00 +300% 🔥 
+
+<@&1457740469353058469>",True,"TRIMMING SOME OF MY LAST WEEKLIES ON $ASTS
+
+.99 to 3.23 +225% 🔥 🎯
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461433651664392374,2026-01-15T18:55:34.681000+00:00,ohiain,"TRIMMING WEEKLIES INTO NEW HIGHS!!!
+
+WE GOT OURSELVES A WINNER ON $ASTS  🔥 🎯
+
+.99 to 4.90 +395%
+
+WE BOTTOM TICKED LOD YESTERDAY!
+
+<@&1457740469353058469>",True,"TRIMMING MORE HERE TOC FAMILY!! I've got just a few runners left!!
+
+.99 to 4.00 +300% 🔥 
+
+<@&1457740469353058469>",False,False,trim,ASTS,,,4.9,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 4.9, ""size"": ""full""}"
+1461434466324189421,2026-01-15T18:58:48.911000+00:00,ohiain,"TRIMMING $ASTS core 120c 20 Feb position here too!!
+
+3.80 to 7.65 +102% ✅
+
+Who's all paid?? 🔥 emoji if you're paid!
+
+<@&1457740469353058469>",False,,False,False,trim,ASTS,,call,7.65,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""type"": ""call"", ""price"": 7.65, ""size"": ""full""}"
+1461439039927226491,2026-01-15T19:16:59.343000+00:00,ohiain,"SMALL TRIM on $UMAC here into highs!
+
+1.70 to 2.60 +55% ✅
+
+TODAY went down in HISTORY.
+I will recap everything on X later today!
+
+<@&1457740469353058469>",False,,False,False,trim,UMAC,,,2.6,,full,,,1,"{""action"": ""trim"", ""ticker"": ""UMAC"", ""price"": 2.6, ""size"": ""full""}"
+1461439871599251507,2026-01-15T19:20:17.629000+00:00,ohiain,"RUNNERS ON THESE WEEKLIES TRIMMMM
+
+what is happening... 🫢
+
+.99 to 5.85 +500%
+
+<@&1457740469353058469>",True,"TRIMMING WEEKLIES INTO NEW HIGHS!!!
+
+WE GOT OURSELVES A WINNER ON $ASTS  🔥 🎯
+
+.99 to 4.90 +395%
+
+WE BOTTOM TICKED LOD YESTERDAY!
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461441028379643914,2026-01-15T19:24:53.427000+00:00,ohiain,"I""M FLAT ON MY $ASTS WEEKLIES.
+
+.99 to 5.85 UNREAL TRADE. 🤯 🔥
+
+2026 JUST GOT A WHOLE LOT BETTA!!!
+
+<@&1457740469353058469>",False,,False,False,exit,ASTS,,,market,,,,,1,"{""action"": ""exit"", ""ticker"": ""ASTS"", ""price"": ""market""}"
+1461441136362131548,2026-01-15T19:25:19.172000+00:00,ohiain,"(sorry for the spam today) love ya'll, more bangers to come in 2026!!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461446179987656735,2026-01-15T19:45:21.666000+00:00,ohiain,"I'm going to take the rest of the day off, one of my bigger days. I want you all to know that days like today very rarely happen, and if you can take advantage of asymmetrical opportunities, you can thrive in difficult markets. Being patient in 2026 has paid us massively, and it just started, one fo",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461449708080857322,2026-01-15T19:59:22.829000+00:00,ohiain,"I'm hopping off the charts now, but all my stops are set to b/e!
+
+I plan to recap today on X (ohiain) later today, but will be off the charts until then... Manage risk, people!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461466647767547976,2026-01-15T21:06:41.565000+00:00,ohiain,https://x.com/wallstengine/status/2011907804559523861?s=20,False,,False,True,null,,,,,,,,,0,"{""action"": ""null""}"
+1461466695846858967,2026-01-15T21:06:53.028000+00:00,ohiain,$UMAC news after hours.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461466739840782602,2026-01-15T21:07:03.517000+00:00,ohiain,<@&1457740469353058469>,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461511839807705305,2026-01-16T00:06:16.187000+00:00,ohiain,"THIS CANT BE REAL 😭
+
+$ASTS, why did I sell my weeklies… they’re going to open up prob a couple 1,000%s tm if this sticks overnight.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461719766854013044,2026-01-16T13:52:29.858000+00:00,ohiain,"Good morning everyone, what a start to 2026!! All four major indices $SPY, $QQQ, $IWM, and $ARKK are gapping above their 9 day moving averages this morning, which tells me the short term trend is still firmly intact. We also have no scheduled news today (1/16/26), so barring any surprises, this shou",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461729514236150028,2026-01-16T14:31:13.815000+00:00,ohiain,"TRIMMMING $ASTS 120c 20 Feb HERE @ OPEN
+
+3.80 -> 10.25 + 170% 🔥
+
+<@&1457740469353058469>",False,,False,False,trim,ASTS,120,call,10.25,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""strike"": 120, ""type"": ""call"", ""price"": 10.25, ""size"": ""full""}"
+1461730691212513280,2026-01-16T14:35:54.428000+00:00,ohiain,"TRIMMING SMALL $ASTS 120c 20 Feb
+
+3.80 -> 12.00 +220% 🎯🔥
+
+<@&1457740469353058469>",True,"TRIMMMING $ASTS 120c 20 Feb HERE @ OPEN
+
+3.80 -> 10.25 + 170% 🔥
+
+<@&1457740469353058469>",False,False,trim,ASTS,120,call,12.0,,small,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""strike"": 120, ""type"": ""call"", ""price"": 12.0, ""size"": ""small""}"
+1461731072562692147,2026-01-16T14:37:25.349000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461731203685023895,2026-01-16T14:37:56.611000+00:00,ohiain,"Setting STOP on these cons @ LOD.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461731539804225598,2026-01-16T14:39:16.748000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461731595516903484,2026-01-16T14:39:30.031000+00:00,ohiain,$ONDS watching for a potential entry on the 9 day retest.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461731704589783165,2026-01-16T14:39:56.036000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461731736395448471,2026-01-16T14:40:03.619000+00:00,ohiain,$CIFR sitting right n tight at the 9 day.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461731968621351084,2026-01-16T14:40:58.986000+00:00,ohiain,"Btw $UMAC, $ASTS, and $LUMN are all set to b/e.
+
+Manage risk always!
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461732254941184131,2026-01-16T14:42:07.250000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461732321526022326,2026-01-16T14:42:23.125000+00:00,ohiain,"$CIFR right off the 9 day/DTL retest, watching 15 min ORB potential.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461732551684259951,2026-01-16T14:43:17.999000+00:00,ohiain,Next trim on $ASTS is 115.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461734654884188160,2026-01-16T14:51:39.441000+00:00,ohiain,"TRIMMING MORE $ASTS HERE INTO 118 POP!
+
+Sizing down to runners here.
+
+3.80 -> 14.45 +280% 🔥
+
+INSANITY $ASTS.
+
+<@&1457740469353058469>",True,"TRIMMING SMALL $ASTS 120c 20 Feb
+
+3.80 -> 12.00 +220% 🎯🔥
+
+<@&1457740469353058469>",False,False,trim,ASTS,,,14.45,,full,,,1,"{""action"": ""trim"", ""ticker"": ""ASTS"", ""price"": 14.45, ""size"": ""full""}"
+1461734903870656512,2026-01-16T14:52:38.804000+00:00,ohiain,"Next TP is ITM for runners, stop remains LOD.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461734930101964896,2026-01-16T14:52:45.058000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461734956479811787,2026-01-16T14:52:51.347000+00:00,ohiain,INSANITY.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461737864030322813,2026-01-16T15:04:24.561000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461737990069031105,2026-01-16T15:04:54.611000+00:00,ohiain,$SEI potential top blast (no position),False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461738444131930333,2026-01-16T15:06:42.868000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461738471776452786,2026-01-16T15:06:49.459000+00:00,ohiain,Looking to TRIM $UMAC into 18 push,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461739828906561606,2026-01-16T15:12:13.024000+00:00,ohiain,$JOBY and $CIFR are two main focuses.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461746133142339837,2026-01-16T15:37:16.071000+00:00,ohiain,"I will most likely be wrapping up the week here, one for the books that's for sure. I plan to recap everything on X after close, two names that I have alerts on are $CIFR and $JOBY.
+
+Current positions:
+
+- $UMAC 17.5c Feb 20 (last trim +55%) (stop @ b/e)
+- $ASTS 120c 20 Feb (last trim) 280%+ (down to",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461756670932947016,2026-01-16T16:19:08.476000+00:00,ohiain,"TRIMMING $UMAC 17.5c Feb 20
+
+I've got 1/2 left of the position
+Looks amazing into next week!
+
+1.70 -> 3.15 +85% 🔥
+
+<@&1457740469353058469>",False,,False,False,trim,UMAC,,call,3.15,,half,,,1,"{""action"": ""trim"", ""ticker"": ""UMAC"", ""type"": ""call"", ""price"": 3.15, ""size"": ""half""}"
+1461757061758058608,2026-01-16T16:20:41.656000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461757120369135627,2026-01-16T16:20:55.630000+00:00,ohiain,Watching $ONDS 30 min pivot in this gap support/9day.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461765922803945533,2026-01-16T16:55:54.294000+00:00,ohiain,"If you're still holding these congrats, 1 day too early... $CIFR pushing higher!",True,"Adding $CIFR 20c 20 Feb @1.42
+
+1/2 size (VWAP reclaim, DTL retest, 35% LOD, 30 min pivot off 9 day undercut)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461767354227888130,2026-01-16T17:01:35.572000+00:00,ohiain,Watching 30 min pivot on $ONDS here off the gap fill support + 9 day.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461768948486898020,2026-01-16T17:07:55.673000+00:00,ohiain,"Adding $ONDS 15c Feb 20 @ 1.10
+
+Half size (30 min pivot + gap support + 9 day)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,True,False,buy,ONDS,15,call,1.1,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""ONDS"", ""strike"": 15, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 1.1, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1461769180431908998,2026-01-16T17:08:50.973000+00:00,ohiain,"This is my last trade of the week, let's see if $ONDS can find some momentum here within the gap.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461769338498318613,2026-01-16T17:09:28.659000+00:00,ohiain,This should either work right away or we revisit lows.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461769926699126916,2026-01-16T17:11:48.897000+00:00,ohiain,The 15 min LOD sweep looks solid as buyers quickly reclaimed the selling into lows.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461770965850521602,2026-01-16T17:15:56.650000+00:00,ohiain,"I do not want to see this chop right above my cost basis, I want this to rocket from lows and close above PLOD.
+
+The more it chops, the more likely I will exit. I want to see a quick move with velocity!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461771927138996305,2026-01-16T17:19:45.839000+00:00,ohiain,"This is exactly what I want to see, FAST moves from LOD! Now we need to close above PLOD to confirm RDR.",True,"Adding $ONDS 15c Feb 20 @ 1.10
+
+Half size (30 min pivot + gap support + 9 day)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461772469995044969,2026-01-16T17:21:55.266000+00:00,ohiain,I do not want to see PLOD rejected here. I want to see buyers step in and reclaim the 9 day.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461772692645478663,2026-01-16T17:22:48.350000+00:00,ohiain,Could easily see a fat pop through VWAP if we reclaim intraday.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461773753183899669,2026-01-16T17:27:01.202000+00:00,ohiain,"$ONDS is currently sitting at a big inflection point, testing prior intraday level of supply... either we reclaim PLOD, and we push to HOD.
+
+or...
+
+We reject and see NLOD. Let's see what happens.",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461774065152037101,2026-01-16T17:28:15.581000+00:00,ohiain,Should see a lot of volume come in at this 30 min close in 2 mins.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461774496699515180,2026-01-16T17:29:58.470000+00:00,ohiain,Btw for this trade to work $ONDS should not break this 30 min candle LOW.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461775482914603039,2026-01-16T17:33:53.602000+00:00,ohiain,"They're bidding right off PLOD, good sign so far.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461777175400415273,2026-01-16T17:40:37.122000+00:00,ohiain,"I usually don't do this, but since we've got multiple massive upperwicks on $ONDS daily, I'm moving my risk up to this 30 min pivot low.
+
+Read my above thoughts on the entry and trade management if confused as to why.
+
+I do not want to see $ONDS fail VWAP reclaim.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461783313424318604,2026-01-16T18:05:00.541000+00:00,ohiain,"Super wicky at yesterday's lows, whichever way this breaks, expect a squeeze.
+
+Manage risk.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461783451844874446,2026-01-16T18:05:33.543000+00:00,ohiain,"The character of $ONDS is known for harsh down moves, just keep that in mind.",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461786049775800453,2026-01-16T18:15:52.938000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461786177030983690,2026-01-16T18:16:23.278000+00:00,ohiain,"$ONDS testing VWAP, would like to see a squeeze through, risk stays the same until we recovery VWAP.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461790734699991223,2026-01-16T18:34:29.911000+00:00,ohiain,Watching $ONDS for first trims.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461790773241450871,2026-01-16T18:34:39.100000+00:00,ohiain,Up 6% from entry already.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461791231536271517,2026-01-16T18:36:28.366000+00:00,ohiain,"Moving stop to b/e on $ONDS, FREE TRADE.
+
+Would like to see a move to OP to trim some into strength.
+
+<@&1457740469353058469>",False,,False,False,stop_update,ONDS,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""ONDS"", ""stop_price"": ""BE""}"
+1461793539460698184,2026-01-16T18:45:38.618000+00:00,ohiain,"$ONDS is currently up 8% off LOD, extended to say the least... but it can also push higher.
+
+b/e stop as always.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461804314740916295,2026-01-16T19:28:27.645000+00:00,ohiain,"If this 15 min candle closes below 13 pivot + VWAP, I will de-risk 1/2 of my $ONDS. I will alert if I do so!
+
+$ONDS likes to sell off into EOD + I don't want to see VWAP fail.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461805242848116758,2026-01-16T19:32:08.923000+00:00,ohiain,I might get stopped here at b/e.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461809161066123405,2026-01-16T19:47:43.099000+00:00,ohiain,"Filled here at b/e on $ONDS.
+
+I could've trimmed when I was up 25%, but my plan was to TRIM on a push through OP, and we didn't get that.
+
+Manage risk really well, and great end to the week! I'm off the charts for the rest of the day, I will update positions into close :))
+
+<@&1457740469353058469>",False,,False,False,stop_update,ONDS,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""ONDS"", ""stop_price"": ""BE""}"
+1461822974003777622,2026-01-16T20:42:36.360000+00:00,ohiain,"""$ONDS likes to sell off into EOD + I don't want to see VWAP fail.""
+
+You must know the character of the names you trade, because this is an edge.
+
+Great b/e stop on $ONDS! :))",True,"If this 15 min candle closes below 13 pivot + VWAP, I will de-risk 1/2 of my $ONDS. I will alert if I do so!
+
+$ONDS likes to sell off into EOD + I don't want to see VWAP fail.
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461825215171526851,2026-01-16T20:51:30.696000+00:00,ohiain,"End of day Position Update 1/16/2026:
+
+Stopped b/e on $ONDS.
+
+$UMAC 17.5c Feb 20 (last trim) +85%
+$ASTS 120c 20 Feb (last trim) +280%
+
+I will be swinging both my $UMAC and $ASTS positions! Keep in mind we have Monday off, so be prepared for a short week next week. I will be recapping my week later o",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461837968086929604,2026-01-16T21:42:11.228000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1461838019538587842,2026-01-16T21:42:23.495000+00:00,ohiain,$UMAC looks incredible into the short week ahead!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1462623637252079620,2026-01-19T01:44:09.354000+00:00,ohiain,"I’m getting that familiar itch with $USAR, because it feels like déjà vu from last October when I caught this pivot, and it ripped 130% in just 7 trading days.
+
+This setup looks eerily similar... basing off recent lows, volume picking up, and the rare earth theme heating back up with major geopoliti",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1462623678864031963,2026-01-19T01:44:19.275000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1462980899191914642,2026-01-20T01:23:47.238000+00:00,ohiain,"$JOBY is one of my top focuses this week.
+
+After breaking out of a multi year base and running +78%, it’s now digesting into a 182 day base right at multiple inflection points on the chart.
+
+Currently squeezing between the April 7 AVWAP lows and highs. Retesting the multi year b/o pivot, sitting abo",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1462980933119508502,2026-01-20T01:23:55.327000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1462988021623296032,2026-01-20T01:52:05.358000+00:00,ohiain,"$SEI is also one to watch heading into the short week.
+
+After a +132% move, it topped and digested into a 3 month base under heavy resistance. With a 40% short float, there’s potential for a squeeze if buyers decide to rip it higher.
+
+Currently holding above the VPOC, with volume showing buyers supp",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1462988087016558705,2026-01-20T01:52:20.949000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1462988224153784321,2026-01-20T01:52:53.645000+00:00,ohiain,I will update the full list tomorrow morning!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463000857573327013,2026-01-20T02:43:05.687000+00:00,ohiain,"$OKLO has been putting in work and is currently sitting at a major inflection point on the chart.
+
+After topping out on Oct 15 and dropping -63%, it found buyers at the April 7 AVWAP and caught another +63% off Dec 31 lows.
+
+The wedge pop above the EMAs showed early strength, and now it’s pinched be",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463000890880426054,2026-01-20T02:43:13.628000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463166570409885756,2026-01-20T13:41:34.706000+00:00,ohiain,"Good morning TOC fam! we’ve got a short week ahead, and the tone coming into today is very different from how we ended last week. $BTC and $ETH sold off hard over the weekend, which immediately puts risk appetite under the microscope. On the equity side, $QQQ is gapping below its 50-day moving avera",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463166657328320592,2026-01-20T13:41:55.429000+00:00,ohiain,"I’ll be managing my $ASTS and $UMAC positions off the open... both are currently set at breakeven, and that may change as the session develops. Given that the market is gapping down and $SPY + $QQQ are sitting at or below their 50-days, today is primarily an observation day.
+
+I want to see what show",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463173543239094312,2026-01-20T14:09:17.158000+00:00,ohiain,"Stops are set to b/e on $ASTS and $UMAC (small positions left), there is no need to alert my exits unless I move my stop up in profit.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463178441971994809,2026-01-20T14:28:45.107000+00:00,ohiain,I’ll be waiting the first 15 mins of open!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463180835695104141,2026-01-20T14:38:15.815000+00:00,ohiain,Watching $JOBY 15 min U&R.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463180892208894036,2026-01-20T14:38:29.289000+00:00,ohiain,$APLD as well.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463181023616700489,2026-01-20T14:39:00.619000+00:00,ohiain,$OKLO.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463182340116320276,2026-01-20T14:44:14.497000+00:00,ohiain,$JOBY and $USAR RS on focus list.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463183045304516782,2026-01-20T14:47:02.627000+00:00,ohiain,Lots of names on focus/weekly watch are failing LOD. Keep this in mind: start tracking RS names.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463183452298805334,2026-01-20T14:48:39.662000+00:00,ohiain,I would love to potentially get an entry on $USAR around OP.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463183563296997511,2026-01-20T14:49:06.126000+00:00,ohiain,If rare earth names bottom and start to show strength at LOD.,True,I would love to potentially get an entry on $USAR around OP.,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463183828893040864,2026-01-20T14:50:09.449000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463183901278077112,2026-01-20T14:50:26.707000+00:00,ohiain,$SERV is interesting down at this gap fill right @ 9 day.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463184007587041323,2026-01-20T14:50:52.053000+00:00,ohiain,Currently trying to undercut last weeks lows.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463184456654262447,2026-01-20T14:52:39.119000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463184470294401182,2026-01-20T14:52:42.371000+00:00,ohiain,$BROS looks INSANE.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463184681762820168,2026-01-20T14:53:32.789000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463184729292541983,2026-01-20T14:53:44.121000+00:00,ohiain,$SPY needs to hold the 50 day or we will fill gap back down to 675,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463184818916294678,2026-01-20T14:54:05.489000+00:00,ohiain,$UMAC and $ASTS two active positions are holding up very well.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463185162236989622,2026-01-20T14:55:27.343000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463185244122382449,2026-01-20T14:55:46.866000+00:00,ohiain,$NBIS RS off AVWAP + 9 day + retest.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463185297687838996,2026-01-20T14:55:59.637000+00:00,ohiain,Nice r/r spot to risk off of. + 100 psych pivot.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463185706187886657,2026-01-20T14:57:37.031000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463185749426835663,2026-01-20T14:57:47.340000+00:00,ohiain,$AEHR setting up here.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463187789666324560,2026-01-20T15:05:53.771000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463187811728621680,2026-01-20T15:05:59.031000+00:00,ohiain,$ONDS,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463188379226210459,2026-01-20T15:08:14.333000+00:00,ohiain,"Lot's of volume coming in at LOD on $OKLO, I'm watching for a sweep of PLOD + strength to potential get an early entry (higher risk trade idea)",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463189548291850281,2026-01-20T15:12:53.060000+00:00,ohiain,"Watching 30 min ORB on $NBIS, price is sitting at many major pivots on the chart.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463190570192076891,2026-01-20T15:16:56.700000+00:00,ohiain,"What I'm watching for on $NBIS, big weekly pivot here.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463192883648659467,2026-01-20T15:26:08.271000+00:00,ohiain,$IONQ 👀,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463196470390820995,2026-01-20T15:40:23.417000+00:00,ohiain,"Adding $IONQ 55c Feb 20 @ 3.30
+
+Half size (15 min ORB + AVWAP support)
+
+Stop: LOD",False,,False,False,buy,IONQ,55,call,3.3,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""IONQ"", ""strike"": 55, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 3.3, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1463196487738458112,2026-01-20T15:40:27.553000+00:00,ohiain,<@&1457740469353058469>,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463196916379685089,2026-01-20T15:42:09.749000+00:00,ohiain,"Adding $NBIS 120c Feb 20 @ 5.30
+
+Half size (9 day, U&R PLOD + support @ 100 psych)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,False,False,buy,NBIS,120,call,5.3,2026-02-20,half,,,1,"{""action"": ""buy"", ""ticker"": ""NBIS"", ""strike"": 120, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 5.3, ""size"": ""half""}"
+1463197261638139944,2026-01-20T15:43:32.065000+00:00,ohiain,"New positions:
+
+$NBIS 120c Feb 20 @ 5.30 (stop LOD)
+$IONQ 55c Feb 20 @ 3.30 (stop LOD)
+
+I will be off the screen for the next 30 minutes, please manage risk.
+
+I've got HARD stops on both positions @ LOD and won't be able to alert if I get stopped.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463203626238349414,2026-01-20T16:08:49.504000+00:00,ohiain,"TRIMMING $IONQ HERE
+
+3.30 -> 4.40 +35%  🔥 
+
+<@&1457740469353058469>",False,,False,False,trim,IONQ,,call,4.4,,half,,,1,"{""action"": ""trim"", ""ticker"": ""IONQ"", ""type"": ""call"", ""price"": 4.4, ""size"": ""half""}"
+1463203931395199274,2026-01-20T16:10:02.259000+00:00,srxtrades,iain is a certified young goat,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463204727327035534,2026-01-20T16:13:12.024000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463204805504929895,2026-01-20T16:13:30.663000+00:00,ohiain,"$IONQ MASSIVE TRADE POTENTIAL. 
+
+We cannot sell these early! ✅",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463204877739102401,2026-01-20T16:13:47.885000+00:00,ohiain,My goat <@1024375625219317812>  !! 🙏,True,iain is a certified young goat,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463206389450150082,2026-01-20T16:19:48.305000+00:00,ohiain,"TRIMMING SMALL $IONQ HERE
+
+3.30 -> 5.15 +58% 🎯 
+
+My next trim is above AVWAP!
+
+<@&1457740469353058469>",True,"TRIMMING $IONQ HERE
+
+3.30 -> 4.40 +35%  🔥 
+
+<@&1457740469353058469>",False,False,trim,IONQ,,call,5.15,,half,,,1,"{""action"": ""trim"", ""ticker"": ""IONQ"", ""type"": ""call"", ""price"": 5.15, ""size"": ""half""}"
+1463208526427066576,2026-01-20T16:28:17.800000+00:00,ohiain,"$NBIS isn't moving, I might cut at b/e if it doesn't push through HOD soon.
+
+I want to see positions move right off entry.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463209242935689396,2026-01-20T16:31:08.629000+00:00,ohiain,"🔥 emoji if you're making money off my ideas and enjoying the commentary.
+
+I promise it won't be this good 24/7 haha... but I will do my best to focus on providing tight asymmetrical r/r entries on momentum names!
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463209724286730385,2026-01-20T16:33:03.392000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463209784760340602,2026-01-20T16:33:17.810000+00:00,ohiain,"$NBIS working now, great look so far, let's see if buyers can fill this gap!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463210053589930097,2026-01-20T16:34:21.904000+00:00,ohiain,"Btw, yes I'm currently in class listening to my professor walk through the syllabus.
+
+(yes I'm printing rn)",True,"🔥 emoji if you're making money off my ideas and enjoying the commentary.
+
+I promise it won't be this good 24/7 haha... but I will do my best to focus on providing tight asymmetrical r/r entries on mom",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463210647289598035,2026-01-20T16:36:43.453000+00:00,ohiain,"$IONQ weekly b/o comes > 55 btw.
+
+This could be HUGE guys...
+
+I'm holding the majority of my position for a move above 55!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463212622869696522,2026-01-20T16:44:34.468000+00:00,ohiain,"TRIMMING $UMAC 17.5c Feb 20
+
+1.70 -> 3.55 +108% 🔥✅
+
+<@&1457740469353058469>",False,,True,False,trim,UMAC,,call,3.55,,full,,,1,"{""action"": ""trim"", ""ticker"": ""UMAC"", ""type"": ""call"", ""price"": 3.55, ""size"": ""full""}"
+1463212985316016148,2026-01-20T16:46:00.882000+00:00,ohiain,"I should've been in $APLD, not $NBIS, I might've made a grand mistake... oh well, we shall see how we close.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463218306445086978,2026-01-20T17:07:09.538000+00:00,ohiain,"I only have a small position left on $UMAC.
+I will trim more above 20 and continue to trail the runners.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463218466764099606,2026-01-20T17:07:47.761000+00:00,ohiain,I will also trim $ASTS on the next leg higher to 125,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463221416269709340,2026-01-20T17:19:30.978000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463221501435314229,2026-01-20T17:19:51.283000+00:00,ohiain,"I fumbled $APLD, congrats on those who caught the lows!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463223162241155326,2026-01-20T17:26:27.250000+00:00,ohiain,"$NBIS not getting much momentum here, moving stop up to 101.10.
+30 min candle low, if it breaks below, we will most likely see LOD flush.
+
+$IONQ working for me, I wish I had my capital in $APLD (not $NBIS).
+
+<@&1457740469353058469>",False,,False,False,stop_update,NBIS,,,,,,101.1,,1,"{""action"": ""stop_update"", ""ticker"": ""NBIS"", ""stop_price"": 101.1}"
+1463223703415558214,2026-01-20T17:28:36.276000+00:00,ohiain,"Really nice setups into tm! Lots of tight daily charts.
+
+I will most likely not be adding anything with markets seeing a PB here.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463224510151921846,2026-01-20T17:31:48.617000+00:00,ohiain,"My current positions:
+
+$UMAC 17.5c 20 Feb @ 1.70 -> 3.55 +108% (last trim)
+$ASTS 120c 20 Feb @ 3.80 -> 14.45 +280% (last trim)
+
+New positions:
+
+$IONQ 55c Feb 20 @ 3.30 -> 5.15 +58% (last trim)
+$NBIS 120c Feb 20 @ 5.30 (stop 101.10)
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463227589878612135,2026-01-20T17:44:02.881000+00:00,ohiain,"Filled on $NBIS @ 4.80 -9%.
+
+<@&1457740469353058469>",False,,False,False,buy,NBIS,,,4.8,,full,,False,1,"{""action"": ""buy"", ""ticker"": ""NBIS"", ""strike"": null, ""type"": null, ""price"": 4.8, ""expiration"": null, ""size"": ""full"", ""stop_price"": null, ""trailing"": false}"
+1463227881399521454,2026-01-20T17:45:12.385000+00:00,ohiain,"This is exactly why I moved my stop up, great risk management here on $NBIS. I noted to be careful about LOD flush.
+
+I'm very happy with this sell, bummed I missed $APLD :((",True,"$NBIS not getting much momentum here, moving stop up to 101.10.
+30 min candle low, if it breaks below, we will most likely see LOD flush.
+
+$IONQ working for me, I wish I had my capital in $APLD (not $",False,False,stop_update,NBIS,,,,,,101.1,,1,"{""action"": ""stop_update"", ""ticker"": ""NBIS"", ""stop_price"": 101.1}"
+1463228464659431631,2026-01-20T17:47:31.445000+00:00,ohiain,"My current positions:
+
+$UMAC 17.5c 20 Feb @ 1.70 -> 3.55 +108% (last trim)
+$ASTS 120c 20 Feb @ 3.80 -> 14.45 +280% (last trim)
+$IONQ 55c Feb 20 @ 3.30 -> 5.15 +58% (last trim)
+
+Awesome first day momentum on $IONQ, could shape up great into EOW.
+I'm off the screens the rest of the day!
+
+(I will swing",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463241119444893727,2026-01-20T18:37:48.581000+00:00,ohiain,"$IONQ retesting prior daily pivot, I like this spot to potentially add weeklies or next week if buyers step in here.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463250818391085168,2026-01-20T19:16:20.990000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463250896690610305,2026-01-20T19:16:39.658000+00:00,ohiain,"So far buyers are stepping in at important pivots, great reaction off daily pivot!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463251504369500313,2026-01-20T19:19:04.540000+00:00,ohiain,"So much RS on this IONQ entry, markets are TANKING and I'm BANKING.
+
+Someone put that onna wall haha. This is why trading RS is so so important!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463253972306624625,2026-01-20T19:28:52.942000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463254280549961852,2026-01-20T19:30:06.433000+00:00,ohiain,"$NIBS: if your stock loses your risk level, GET OUT.
+
+Beautiful exit for a tiny L on $NBIS this morning.
+
+No and ifs or buts people, this is why drawdown control is the only thing you should be focusing on as a trader!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463265073203249174,2026-01-20T20:12:59.602000+00:00,ohiain,"The S&P 500 is dropping, yet there are still plenty of risk-on stocks holding up surprisingly well. That’s notable, especially when you compare it to Q4 of 2025, when the index was strong but growth stocks were getting absolutely crushed.
+
+Different cycle/Different behavior -luke",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463270295564714056,2026-01-20T20:33:44.710000+00:00,ohiain,"My current positions: (swinging all)
+
+$UMAC 17.5c 20 Feb @ 1.70 -> 3.55 +108% (last trim)
+$ASTS 120c 20 Feb @ 3.80 -> 14.45 +280% (last trim)
+$IONQ 55c Feb 20 @ 3.30 -> 5.15 +58% (last trim)
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463271245499072740,2026-01-20T20:37:31.192000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463271436708876530,2026-01-20T20:38:16.780000+00:00,ohiain,"From X:
+
+""RS tells you where to fish, and technical setups tell you how to enter.""
+
+Reverse that order, and you’re just gambling on charts in isolation.
+
+Look at the markets today, everything’s red, high beta momentum names are getting crushed, and yet a handful are still holding up.
+
+Why? Because m",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463313029889528029,2026-01-20T23:23:33.367000+00:00,ohiain,"Today, Jan 20, 2026, the U.S. markets opened sharply lower and closed deeply in the red:
+
+$SPY -2.04%, $QQQ -2.12%, $IWM -1.20%.
+
+The sell off was driven by renewed fears of a transatlantic trade war after President Trump’s weekend posts threatening escalating tariffs on eight European countries unl",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463350520138956922,2026-01-21T01:52:31.739000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463350578238324871,2026-01-21T01:52:45.591000+00:00,ohiain,"Data Processing Services caught my eye, especially $CIFR and $HUT.
+
+Both are holding up while the market collapses, exactly the RS I want to focus on. They’ve been building multi-day bases above the moving averages, showing strength in a weaker environment.
+
+Right now, buying breakouts isn’t the pla",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463531897614499931,2026-01-21T13:53:15.499000+00:00,ohiain,"Good morning, everyone! We’ve got three more days left in the week, and the environment continues to show weakness, with headlines appearing every day, it feels like... I'm just honing my focus to price and volume, because the story is already priced in. $BTC and $ETH took a massive hit, now trading",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463543563093671987,2026-01-21T14:39:36.766000+00:00,ohiain,b/e stop on $IONQ.,False,,False,False,stop_update,IONQ,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""IONQ"", ""stop_price"": ""BE""}"
+1463544125537128582,2026-01-21T14:41:50.863000+00:00,ohiain,"Stopped here on $IONQ
+
+3.40
+
+Unfortunate, but must respect risk.
+
+<@&1457740469353058469>",False,,False,False,exit,IONQ,,,3.4,,,,,1,"{""action"": ""exit"", ""ticker"": ""IONQ"", ""price"": 3.4}"
+1463545684543406261,2026-01-21T14:48:02.559000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463545772262953021,2026-01-21T14:48:23.473000+00:00,ohiain,$SEI trying to stick here at ATH push.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463548409142313092,2026-01-21T14:58:52.154000+00:00,ohiain,"Adding $CIFR 20c Feb 20 @ 1.61
+
+Half size (9 EMA undercut, OP reclaim/VWAP + above 18 pivot)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,True,False,buy,CIFR,20,call,1.61,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""CIFR"", ""strike"": 20, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 1.61, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1463550670245466165,2026-01-21T15:07:51.243000+00:00,ohiain,"Broke PHOD, this could get crazy is we reclaim and close above.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463550843964887144,2026-01-21T15:08:32.661000+00:00,ohiain,"TRIMMMM $CIFR 20c Feb 20
+
+THIS WORKED SO FAST!!!!
+
+1.61 -> 2.02 +25% 🔥
+
+<@&1457740469353058469>",False,,True,False,trim,CIFR,20,call,2.02,,full,,,1,"{""action"": ""trim"", ""ticker"": ""CIFR"", ""strike"": 20, ""type"": ""call"", ""price"": 2.02, ""size"": ""full""}"
+1463551259926593759,2026-01-21T15:10:11.834000+00:00,ohiain,Above > 19.70 is next trim!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463552261845418207,2026-01-21T15:14:10.710000+00:00,ohiain,"GUYSSSS TRIMMMMING $CIFR 20c Feb 20
+
+MORE HERE into 19.70 strength!
+
+1.61 -> 2.25 +40% in 10 MINUTES  🎯 🔥
+
+<@&1457740469353058469>",False,,False,False,trim,CIFR,20,call,2.25,,full,,,1,"{""action"": ""trim"", ""ticker"": ""CIFR"", ""strike"": 20, ""type"": ""call"", ""price"": 2.25, ""size"": ""full""}"
+1463553500041449758,2026-01-21T15:19:05.919000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463553558510178388,2026-01-21T15:19:19.859000+00:00,ohiain,$CIFR looks insanely rippy on the weekly above PWH!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463554269868200037,2026-01-21T15:22:09.460000+00:00,ohiain,"b/e stop onn $CIFR.
+
+I got 2 trims off into strength.
+
+Break above > PWH and these cons will get juiced!
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463554695489650708,2026-01-21T15:23:50.936000+00:00,ohiain,"FINALLY FLAT $ASTS.
+
+With the weakness from $RKLB and $ASTS this morning, I'm finally going to cut my runners and move my capital elsewhere.
+
+What an amazing trade for me personally. I'm definitely going to remember the start of 2026. Insane momentum moving forward!
+
+<@&1457740469353058469>",False,,False,False,exit,ASTS,,,market,,,,,1,"{""action"": ""exit"", ""ticker"": ""ASTS"", ""price"": ""market""}"
+1463554774007025747,2026-01-21T15:24:09.656000+00:00,ohiain,I've still got $UMAC btw!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463556324351807725,2026-01-21T15:30:19.287000+00:00,ohiain,,True,[Could not fetch],False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463556325626876117,2026-01-21T15:30:19.591000+00:00,ohiain,Recognizing this is so so important. That's love Will.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463556761976963199,2026-01-21T15:32:03.625000+00:00,ohiain,"Hopping off the screens for the next 30 mins.
+
+$CIFR stop is at b/e. I might not be able to alert until I'm back on screens.
+
+(Currently retesting PHOD/VWAP, both these pivot needs to hold for next leg)
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463560029830512640,2026-01-21T15:45:02.742000+00:00,ohiain,"I'm back here, that was like 15 mins, not 30 mins lol.
+
+My stop on $UMAC is 17.85.
+My stop on $CIFR is b/e.",True,"Hopping off the screens for the next 30 mins.
+
+$CIFR stop is at b/e. I might not be able to alert until I'm back on screens.
+
+(Currently retesting PHOD/VWAP, both these pivot needs to hold for next le",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463561549657538831,2026-01-21T15:51:05.097000+00:00,ohiain,"AFTER ENTRY, if you're in a position and you're looking at the < 15 min TF...
+
+You're not a Swing Trader.
+
+Hop off the lower TF's, and you won't get shaken out of leading names as much!
+
+Know this please, because it can solve a lot of your problems.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463568351832838289,2026-01-21T16:18:06.862000+00:00,ohiain,"$CIFR: 15 min close below VWAP (not a good sign)
+
+stop is still at b/e",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463569228656545945,2026-01-21T16:21:35.913000+00:00,ohiain,"$CIFR stopped here above b/e!
+
+1.65 (got two trims)
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463575383923359877,2026-01-21T16:46:03.443000+00:00,ohiain,"I'm all cash here.
+
+Clearly not the environment to be extremely aggressive.
+
+There are a few names showing strength, that's my focus moving forward.
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463605181332852893,2026-01-21T18:44:27.699000+00:00,ohiain,"I'm back on screen now, but what great sells this week.
+
+Another weekly reminder of why risk management is all you should be focusing on!
+
+Great stuff everyone! 👏",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463633028210495599,2026-01-21T20:35:06.912000+00:00,ohiain,"I'm all cash heading into close.
+
+I will update the game plan moving forward later.
+
+This is a headline market, so we must adapt constantly.
+
+Things can change in the blink of an eye, PATIENCE people!
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463649757057515656,2026-01-21T21:41:35.380000+00:00,ohiain,"The market doesn’t care about your opinion.
+
+One lesson I’ve learned over and over: the news itself is meaningless until you see how the market responds.
+
+as Druckenmiller said, “If all the news is great and the stock is not acting well, GET OUT.” It sounds simple, but most retail traders ignore thi",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463649926398349607,2026-01-21T21:42:15.754000+00:00,ohiain,"Read the above on my own thoughts... good to note especially in the ""headline"" driven market we are currently in ^!!",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463717479284080833,2026-01-22T02:10:41.617000+00:00,ohiain,"I'm currently going through my focus list, ""replaying"" the intraday action from today.
+
+so far, 9/9 names I've looked at, I could've caught LOD off the 30 min pivot.
+
+Wait for the flush (don't try to time the bottom), wait for the first green candle to form, mark the high of that candle (make sure i",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463891859142348947,2026-01-22T13:43:37.015000+00:00,ohiain,"Good morning, TOC family!! another great morning, and the simple fact that we woke up today means we’re already blessed. Today is a heavy red-folder news day, with multiple events that can inject volatility into the market, most notably CPI q/q. On days like this, price can behave very differently t",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463901156194648136,2026-01-22T14:20:33.605000+00:00,ohiain,"""Big gap up opens are for trimming winners not rushing into new positions"" - Shake",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463904615278842023,2026-01-22T14:34:18.315000+00:00,ohiain,"I'm on live for the first 30 mins off open, come have fun!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463908475343208530,2026-01-22T14:49:38.626000+00:00,ohiain,"$RKLB, $UMAC, $APLD on watch for me.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463908959953096881,2026-01-22T14:51:34.166000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463908996741206236,2026-01-22T14:51:42.937000+00:00,ohiain,$APLD sitting well right at the 9 EMA.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463912881136599094,2026-01-22T15:07:09.049000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463912956038484213,2026-01-22T15:07:26.907000+00:00,ohiain,"$RKLB 21 EMA test, watching for bottoming behavior, no rush to get into anything ATM.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463916579686191293,2026-01-22T15:21:50.852000+00:00,ohiain,"ADDING $RKLB 90c 20 Feb @ 5.65
+
+1/2 Size (21 EMA BUY + RDR + Jan 7 LOD support sweep)
+
+Stop: LOD",False,,True,False,buy,RKLB,90,call,5.65,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""RKLB"", ""strike"": 90, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 5.65, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1463916766798418022,2026-01-22T15:22:35.463000+00:00,ohiain,<@&1457740469353058469>,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463917213177221318,2026-01-22T15:24:21.888000+00:00,ohiain,"Last trade of the week, $EOSE also looks really nice.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463917312183631943,2026-01-22T15:24:45.493000+00:00,ohiain,"Very defined risk at LOD, I don't want to see choppiness at LOD, I want to see buyers step in and push through VWAP!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463918065472508126,2026-01-22T15:27:45.091000+00:00,ohiain,Watching for volume to pour in on this close in 3 mins!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463918816588337277,2026-01-22T15:30:44.171000+00:00,ohiain,,False,,False,False,buy,RKLB,90,call,5.65,2026-02-20,half,,,1,"{""action"": ""buy"", ""ticker"": ""RKLB"", ""strike"": 90, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 5.65, ""size"": ""half""}"
+1463918867502858431,2026-01-22T15:30:56.310000+00:00,ohiain,"So far, really nice 30 min pivot here on $RKLB off the 21 EMA!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463919670456357116,2026-01-22T15:34:07.749000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463919801394270379,2026-01-22T15:34:38.967000+00:00,ohiain,"Really nice momentum right off entry, exactly what I want to see.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463920161043255449,2026-01-22T15:36:04.714000+00:00,ohiain,"Y'all aren't going to like me, but I took weeklies here also... 🥀
+
+The r/r was too good, only alerted my core position...",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463920432603336907,2026-01-22T15:37:09.459000+00:00,ohiain,Trimming 1/2 here and paying for risk on the core position.,True,"Y'all aren't going to like me, but I took weeklies here also... 🥀
+
+The r/r was too good, only alerted my core position...",False,False,trim,RKLB,,call,,,half,,,1,"{""action"": ""trim"", ""ticker"": ""RKLB"", ""type"": ""call"", ""size"": ""half""}"
+1463920701487583390,2026-01-22T15:38:13.566000+00:00,ohiain,"I bought core first, then weeklies guys... it was too far from entry to alert (there was no point)",True,"Y'all aren't going to like me, but I took weeklies here also... 🥀
+
+The r/r was too good, only alerted my core position...",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463920845012467919,2026-01-22T15:38:47.785000+00:00,ohiain,"I'm not doing it on purpose, I just don't want you all chasing especially after seeing how fast it moved off cost basis.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463920947001037003,2026-01-22T15:39:12.101000+00:00,ohiain,Targeting OP to trim core position!!!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463924928108560455,2026-01-22T15:55:01.271000+00:00,ohiain,"VWAP big intraday pivot, needs to hold.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463929068679594027,2026-01-22T16:11:28.460000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463929428890615888,2026-01-22T16:12:54.341000+00:00,ohiain,"I'm not a big fan of how $RKLB is moving here at the 21 EMA. If we get a close below PLOD, I will look to exit. I do not want to hold positions in this market environment that break below key pivots after entries.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463929616988377159,2026-01-22T16:13:39.187000+00:00,ohiain,"Tight risk, always. Especially in this market! I got nice trims on the weeklies to pay for risk, but currently having trouble reclaiming VWAP.",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463935099304415430,2026-01-22T16:35:26.273000+00:00,ohiain,"Watching $RKLB here, we can easily see a flush below, just be cautious.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463942389000573029,2026-01-22T17:04:24.272000+00:00,ohiain,"$ASTS incredible strength over $RKLB, noted.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463953479361101965,2026-01-22T17:48:28.420000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463953518531448875,2026-01-22T17:48:37.759000+00:00,ohiain,"$RKLB pay me this time, please.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463954221467701435,2026-01-22T17:51:25.352000+00:00,ohiain,Targeting OP/NHOD + 9 EMA for first trims on core.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463956011025957070,2026-01-22T17:58:32.016000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463956100649844737,2026-01-22T17:58:53.384000+00:00,ohiain,$APLD getting tight here on the U&R + r/s flip.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463956693741211763,2026-01-22T18:01:14.788000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463956724665815232,2026-01-22T18:01:22.161000+00:00,ohiain,$EOSE looks insane.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463956818274422877,2026-01-22T18:01:44.479000+00:00,ohiain,<@199628210818908160>,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463961347934126166,2026-01-22T18:19:44.434000+00:00,ohiain,"I'm trimming more of my $RKLB 84c 23 Jan weeklies here ITM.
+
+1.63 -> 3.00 +84%
+
+Stop at b/e, first trim on CORE > OP.",True,Trimming 1/2 here and paying for risk on the core position.,False,False,trim,RKLB,,call,3.0,,half,BE,,1,"{""action"": ""trim"", ""ticker"": ""RKLB"", ""type"": ""call"", ""price"": 3.0, ""size"": ""half"", ""stop_price"": ""BE""}"
+1463962242096828521,2026-01-22T18:23:17.619000+00:00,ohiain,"$ASTS was so tight at open, I wish I got in both $RKLB and $ASTS.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463965311903469731,2026-01-22T18:35:29.518000+00:00,ohiain,"TRIMMING small CORE here $RKLB 90c 20 Feb
+
+Paying for risk here @ OP + HOD test.
+
+5.65 -> 7.00 +25% 🔥 
+
+<@&1457740469353058469>",False,,False,False,trim,RKLB,,call,7.0,,full,,,1,"{""action"": ""trim"", ""ticker"": ""RKLB"", ""type"": ""call"", ""price"": 7.0, ""size"": ""full""}"
+1463966680056201484,2026-01-22T18:40:55.711000+00:00,ohiain,"Trimming more $RKLB 84c 23 Jan weeklies (down to runners)
+
+1.63 -> 3.55 + 118%",True,"I'm trimming more of my $RKLB 84c 23 Jan weeklies here ITM.
+
+1.63 -> 3.00 +84%
+
+Stop at b/e, first trim on CORE > OP.",False,False,trim,RKLB,84,call,3.55,,full,,,1,"{""action"": ""trim"", ""ticker"": ""RKLB"", ""strike"": 84, ""type"": ""call"", ""price"": 3.55, ""size"": ""full""}"
+1463966790815059968,2026-01-22T18:41:22.118000+00:00,ohiain,Next trim on CORE comes > 88!,True,"TRIMMING small CORE here $RKLB 90c 20 Feb
+
+Paying for risk here @ OP + HOD test.
+
+5.65 -> 7.00 +25% 🔥 
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463970864923017308,2026-01-22T18:57:33.461000+00:00,ohiain,"FLAT here on $RKLB weeklies.
+
+1.63 -> 4.00 150%+
+
+I'll take it.",True,"Trimming more $RKLB 84c 23 Jan weeklies (down to runners)
+
+1.63 -> 3.55 + 118%",False,False,exit,RKLB,,,4.0,,,,,1,"{""action"": ""exit"", ""ticker"": ""RKLB"", ""price"": 4.0}"
+1463971029495054603,2026-01-22T18:58:12.698000+00:00,ohiain,"Could see heavy momentum to trim more on CORE at this HOD break.
+
+Over > 88 for next trim!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463971373180518675,2026-01-22T18:59:34.639000+00:00,ohiain,"All I'm holding atm.
+
+Stop moved to b/e, let's ride!!",False,,False,False,stop_update,RKLB,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""RKLB"", ""stop_price"": ""BE""}"
+1463972440559456369,2026-01-22T19:03:49.122000+00:00,ohiain,"$RKLB sitting right at 9 EMA, expect some chop or a quick move through > 88.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463974104481927362,2026-01-22T19:10:25.832000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463974248560460060,2026-01-22T19:11:00.183000+00:00,ohiain,"$RKLB TOC, are we having fun??
+
+LOD entry off the 21 EMA, you can't get much better asymmetric risk than that!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463982039123493029,2026-01-22T19:41:57.598000+00:00,ohiain,"SMALL TRIM $RKLB 90c 20 Feb
+
+We're on a heater, this is unreal!
+
+5.65 -> 8.65 +53% 🎯 🔥
+
+TOC 🔥 emoji if you're making money from my ideas!!!
+
+<@&1457740469353058469>",False,,False,False,trim,RKLB,90,call,8.65,,small,,,1,"{""action"": ""trim"", ""ticker"": ""RKLB"", ""strike"": 90, ""type"": ""call"", ""price"": 8.65, ""size"": ""small""}"
+1463982172955476070,2026-01-22T19:42:29.506000+00:00,ohiain,Next trim comes above 91!!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463983079466078219,2026-01-22T19:46:05.635000+00:00,ohiain,"Today's Recap:
+
+Caught 150% (flat) on $RKLB weeklies
+Caught 53% (last trim) on $RKLB monthlies
+
+Been a crazy ride in TOC so far... and were like two weeks in??
+I hope you all are enjoying the ideas/commentary thus far!
+
+Going to recap a lot of X for those interested!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463983354348044433,2026-01-22T19:47:11.172000+00:00,ohiain,"I'll be the designated hype man in TOC!
+
+Let's have us a year family! Excited for what the future holds!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463983749111877662,2026-01-22T19:48:45.291000+00:00,ohiain,,True,[Could not fetch],False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463983751599231136,2026-01-22T19:48:45.884000+00:00,ohiain,"<@199628210818908160> and I were on this in the morning call, did anyone catch this monster??",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463985715070243022,2026-01-22T19:56:34.012000+00:00,ohiain,"$RKLB up 10% from LOD, nuts... just be wary that we can see chop/TPs from early buyers!
+
+$RKLB and $ASTS look insane heading into next week, I can't stress how important being in the hottest themes is...
+
+truly that's all you should be focusing on with stock selection. The rest is all nuances specif",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463986341263179893,2026-01-22T19:59:03.308000+00:00,ohiain,"<@199628210818908160> is in both $RKLB and $ASTS, can we get like like 30 goat emojis for my dear friend??",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463986514135355678,2026-01-22T19:59:44.524000+00:00,ohiain,Who's unliking the message 🤣,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463987101354954772,2026-01-22T20:02:04.528000+00:00,ohiain,"There are so many nice setups for tm, I want to get in 'em all!
+
+""Pay-tience Pays"" my friends.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463988418546630859,2026-01-22T20:07:18.571000+00:00,ohiain,"TOC top fr fr.
+
+Best community.
+Staff/Expert Traders/Analysts all work incredibly hard.
+And the TOC family eats every week, it's insane.
+
+I'm just happy to be here.
+
+(that's my last spam post bf close, sorry)",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1463991305284878337,2026-01-22T20:18:46.823000+00:00,ohiain,"**1/22/26 Daily Recap:**
+
+$RKLB 84c 23 Jan: 1.63 -> 4.00 +150% (flat)
+$RKLB 90c 20 Feb: 5.65 -> 8.65 +53% (last trims) 3/5ths left
+
+**Active Swing Positions:**
+
+$RKLB 90c 20 Feb
+
+I'm off the screen for the rest of the day! Missed $UMAC and $ASTS off open today, but caught $RKLB :)) Updates on X late",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464057396866318420,2026-01-23T00:41:24.284000+00:00,ohiain,https://x.com/ohiain/status/2014497935216566297?s=20,False,,False,True,null,,,,,,,,,0,"{""action"": ""null""}"
+1464057456702263498,2026-01-23T00:41:38.550000+00:00,ohiain,This is a useful write up I just posted on X!,False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464258537545924747,2026-01-23T14:00:39.959000+00:00,ohiain,"Happy Friday, TOC family! Another day to grow, reflect, and sharpen our own craft. Let’s not take today for granted! we’re extremely blessed to be here doing this. We had a cluster of heavy red-folder news overnight, and later this morning at 9:45 AM we’ll get Flash Manufacturing PMI and Flash Servi",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464265286713872481,2026-01-23T14:27:29.086000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464265390082232463,2026-01-23T14:27:53.731000+00:00,ohiain,"$UMAC top watch heading into the AM, I'm being very patient this morning, the goal is to not trade!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464267670441689378,2026-01-23T14:36:57.411000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464267755648712795,2026-01-23T14:37:17.726000+00:00,ohiain,Potential RDRs: $HUT and $APLD.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464268141600182399,2026-01-23T14:38:49.744000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464268153889620038,2026-01-23T14:38:52.674000+00:00,ohiain,$UMAC looks insane here.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464269259273408757,2026-01-23T14:43:16.218000+00:00,ohiain,The spreads aren't the best on $UMAC if I were to take a stab it would be 20c 20 Feb!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464272549075619892,2026-01-23T14:56:20.568000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464272598820192277,2026-01-23T14:56:32.428000+00:00,ohiain,Potential $RKT gap fill + 21 EMA buy.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464273354629320807,2026-01-23T14:59:32.627000+00:00,ohiain,"Watching 30 min pivot on $RKT, $HUT also trying to RDR off 21 EMA.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464275110826606757,2026-01-23T15:06:31.337000+00:00,ohiain,Watching $APLD RDR aswell.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464275919752663050,2026-01-23T15:09:44.200000+00:00,ohiain,"ADDING $APLD 37c 20 Feb @ 2.74
+
+(VWAP reclaim, RDR entry, reclaim OP, 37% LOD dis)
+
+1/2 size
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,True,False,buy,APLD,37,call,2.74,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""APLD"", ""strike"": 37, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 2.74, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1464277369211846820,2026-01-23T15:15:29.778000+00:00,ohiain,"$APLD insane strength right from entry, I'm looking to potentially add next week's cons.
+
+Currently looking at 36c for next week.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464278661690687705,2026-01-23T15:20:37.929000+00:00,ohiain,,True,[Could not fetch],False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464278805031157810,2026-01-23T15:21:12.104000+00:00,ohiain,"Sniper entries only. :))
+
+Yea, I do ts daily 🤪",True,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464279059897778341,2026-01-23T15:22:12.869000+00:00,ohiain,"Sorry, I can't type like the speed of light haha
+
+I still posted my alert the same min I got filled, gotta be quick with it friends!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464279543077408768,2026-01-23T15:24:08.068000+00:00,ohiain,"F it, let's have us a record month TOC.
+
+SNIPER ENTRIES ONLYYYYY!!!!! 🎯 🔥
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464279628272369815,2026-01-23T15:24:28.380000+00:00,ohiain,First trims > 36 !,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464281688292069495,2026-01-23T15:32:39.527000+00:00,ohiain,"ADDING $RKT 23c 20 Feb @ .57
+
+1/2 size
+
+(VWAP reclaim, bids @ gap fill + 21 EMA + RDR buy)
+
+If this doesn't make an NHOD very quickly, I'm out.
+I want to see 30 min pivot high taken out quick.
+
+<@&1457740469353058469>",False,,False,False,buy,RKT,23,call,0.57,2026-02-20,half,,,1,"{""action"": ""buy"", ""ticker"": ""RKT"", ""strike"": 23, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 0.57, ""size"": ""half""}"
+1464282278476648478,2026-01-23T15:35:00.238000+00:00,ohiain,"TRIMMING SMALL $RKLB 90c 20 Feb:
+
+NHOD + 91 test.
+
+5.65 -> 9.20 +63% ✅ 🔥
+
+<@&1457740469353058469>",False,,False,False,trim,RKLB,90,call,9.2,,small,,,1,"{""action"": ""trim"", ""ticker"": ""RKLB"", ""strike"": 90, ""type"": ""call"", ""price"": 9.2, ""size"": ""small""}"
+1464283269540479219,2026-01-23T15:38:56.526000+00:00,ohiain,"TRIMMING $APLD 37c 20 Feb (1/5th trim)
+
+2.74 -> 3.60 +31% 🎯
+
+Wow, amazing RS so far.
+
+<@&1457740469353058469>",False,,False,False,trim,APLD,,call,3.6,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""APLD"", ""type"": ""call"", ""price"": 3.6, ""size"": ""quarter""}"
+1464283956793839669,2026-01-23T15:41:40.380000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464283987135434823,2026-01-23T15:41:47.614000+00:00,ohiain,"I bottomed ticked $RKLB, insane.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464284272952344607,2026-01-23T15:42:55.758000+00:00,ohiain,$APLD next trim > 37,True,"TRIMMING $APLD 37c 20 Feb (1/5th trim)
+
+2.74 -> 3.60 +31% 🎯
+
+Wow, amazing RS so far.
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464284898683781285,2026-01-23T15:45:24.944000+00:00,ohiain,"$RKT NHOD, this could be big big TOC... let's see what they do here.",True,"ADDING $RKT 23c 20 Feb @ .57
+
+1/2 size
+
+(VWAP reclaim, bids @ gap fill + 21 EMA + RDR buy)
+
+If this doesn't make an NHOD very quickly, I'm out.
+I want to see 30 min pivot high taken out quick.
+
+<@&145",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464284945609392291,2026-01-23T15:45:36.132000+00:00,ohiain,21 EMA is the spot buyers need to step in.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464285057899561061,2026-01-23T15:46:02.904000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464285062684999850,2026-01-23T15:46:04.045000+00:00,ohiain,$RKT,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464288705907916831,2026-01-23T16:00:32.657000+00:00,ohiain,"$APLD testing heavy supply right @ 36.82, will watch to see if trims are acceptable around that pivot.",True,$APLD next trim > 37,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464289369643810962,2026-01-23T16:03:10.904000+00:00,ohiain,$RKT working well!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464293748094799986,2026-01-23T16:20:34.808000+00:00,ohiain,"TRIMMING SMALL $APLD 37c 20 Feb
+
+2.74 -> 3.95 +44% 🔥
+
+Small trim into heavy resistance, I've gotta take something off into strength.
+
+<@&1457740469353058469>",False,,False,False,trim,APLD,37,call,3.95,,small,,,1,"{""action"": ""trim"", ""ticker"": ""APLD"", ""strike"": 37, ""type"": ""call"", ""price"": 3.95, ""size"": ""small""}"
+1464294384534294787,2026-01-23T16:23:06.547000+00:00,ohiain,"FIRST TRIM ON $RKT (1/5th trim) paying for risk.
+
+.57 -> .72 +27% 🎯 
+
+Really nice move off the 21 EMA so far!
+
+<@&1457740469353058469>",False,,False,False,trim,RKT,,,0.72,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""RKT"", ""price"": 0.72, ""size"": ""quarter""}"
+1464295702984261713,2026-01-23T16:28:20.890000+00:00,ohiain,"1/23/26 Daily Recap:
+
+$RKLB 90c 20 Feb: @ 5.65 -> 9.20 +63% (last trims)
+$APLD 37c 20 Feb: @ 2.74 -> 3.95 +44% (last trims)
+$RKT 23c 20 Feb: @ .57 -> .72 +27% (last trims)
+
+Active Swing Positions:
+
+$RKLB 90c 20 Feb (b/e stop)
+$APLD 37c 20 Feb (b/e stop)
+$RKT 23c 20 Feb (b/e stop)
+
+I'm off the screen",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464342285981581322,2026-01-23T19:33:27.142000+00:00,ohiain,Back here on screens!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464342681361846415,2026-01-23T19:35:01.408000+00:00,ohiain,"TRIMMMING $APLD
+
+$APLD 37c 20 Feb: @ 2.74 -> 5.25 +92% 🔥
+
+TOC we're so paid it's unreal, killer entry on $APLD!
+
+<@&1457740469353058469>",False,,False,False,trim,APLD,,call,5.25,,full,,,1,"{""action"": ""trim"", ""ticker"": ""APLD"", ""type"": ""call"", ""price"": 5.25, ""size"": ""full""}"
+1464343758777618447,2026-01-23T19:39:18.284000+00:00,ohiain,"Stopping out of $RKT here @ b/e
+
+no followthrough off 21 EMA.
+
+<@&1457740469353058469>",False,,False,False,stop_update,RKT,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""RKT"", ""stop_price"": ""BE""}"
+1464345624634724543,2026-01-23T19:46:43.139000+00:00,ohiain,"$RKLB ran 100% while I was off screens, hopefully you saw that and took trims on strength... however, I did not, and that's the cost of business!
+
+Currently sitting up 65% atm on $RKLB!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464345901018517728,2026-01-23T19:47:49.034000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464346575676375091,2026-01-23T19:50:29.885000+00:00,ohiain,"$APLD is probably one of the craziest charts in the markets right now.
+
+This might be another $ASTS trade for me.
+
+And guess what... we're innit :))
+
+I still have 1/2 of my position left and plan on letting this trade breathe, it's so important not sell these FAT PITCHES too soon.
+
+I will not be tri",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464350155691262093,2026-01-23T20:04:43.427000+00:00,ohiain,"I mentioned $HUT and $APLD first thing off open about possible RDRs, look at them now.
+
+I've mentioned hundreds of times the past two weeks that my focus is on U&R setups.
+
+How much more evidence do we need to see that this is clearly not a b/o environment?
+
+Focus on what's working and get rid of wh",True,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464362234120638588,2026-01-23T20:52:43.149000+00:00,ohiain,"1/23/26 Daily Recap:
+
+$RKLB 90c 20 Feb: @ 5.65 -> 9.20 +63% (last trims) (ran 100%+ offscreens)
+$APLD 37c 20 Feb: @ 2.74 -> 5.25 +92% (last trims)
+$RKT 23c 20 Feb: @ .57 -> .72 +27% (last trims)
+
+Active Swing Positions:
+
+$RKLB 90c 20 Feb (b/e stop)
+$APLD 37c 20 Feb (b/e stop)
+
+What a day to end the ",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464379269752033583,2026-01-23T22:00:24.760000+00:00,ohiain,,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464379379395334373,2026-01-23T22:00:50.901000+00:00,ohiain,"I created this image to help visualize the U&R setup:
+
+Full breakdown posted on my X for those interested!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464726370100973760,2026-01-24T20:59:39.932000+00:00,ohiain,https://x.com/ohiain/status/2015166084194664727?s=20,False,,False,True,null,,,,,,,,,0,"{""action"": ""null""}"
+1464726459439382609,2026-01-24T21:00:01.232000+00:00,ohiain,Recap of my +92% $APLD trade from Friday!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464789269896761619,2026-01-25T01:09:36.412000+00:00,ohiain,https://x.com/ohiain/status/2015228926759432356?s=20,False,,False,True,null,,,,,,,,,0,"{""action"": ""null""}"
+1464789743450718364,2026-01-25T01:11:29.316000+00:00,ohiain,"**What do I mean when I reference a stock that is digesting?**
+
+Stocks don’t go straight up in a vacuum... they move in staircase patterns: up, sideways, up, sideways.
+
+Imagine the market just ate a massive buffet (say, 40% gains). It can’t just keep shoving food in... it needs to digest. It needs t",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1464793978468565250,2026-01-25T01:28:19.023000+00:00,ohiain,"Btw, it was always $USAR. Don't ever forget that! 😉",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465147778224095364,2026-01-26T00:54:11.458000+00:00,ohiain,"I posted a bunch of charts on X for those interested. I will finalize my list tomorrow morning and send it here!
+
+BTW starting tomorrow, I will have two channels.
+
+1 for alerts
+and another for intraday commentary + education.
+
+I got multiple requests to create two different channels. It should be a ",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465351692030574592,2026-01-26T14:24:28.298000+00:00,ohiain,"This will be my alert channel moving forward.
+
+I will send my morning list as soon as I'm given access! Sorry peeps!
+
+I will be managing $APLD and $RKLB off open.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465354119895322793,2026-01-26T14:34:07.146000+00:00,ohiain,"Closing the rest of my $RKLB position here.
+
+$RKLB 90c 20 Feb: @ 5.65 -> 6.10 +10%
+
+If we didn't gap n go, I wasn't holding that nasty daily candle.
+
+<@&1457740469353058469>",False,,False,False,exit,RKLB,,,6.1,,,,,1,"{""action"": ""exit"", ""ticker"": ""RKLB"", ""price"": 6.1}"
+1465354712281776329,2026-01-26T14:36:28.382000+00:00,ohiain,"YOO TRIMMING $APLD 37c 20 Feb:
+
+2.74 -> 6.15 +125% 🔥
+
+The weekly b/o is just starting!!
+
+<@&1457740469353058469>",False,,False,False,trim,APLD,37,call,6.15,,half,,,1,"{""action"": ""trim"", ""ticker"": ""APLD"", ""strike"": 37, ""type"": ""call"", ""price"": 6.15, ""size"": ""half""}"
+1465357511396819240,2026-01-26T14:47:35.743000+00:00,ohiain,Trying to bid $ONDS 15c 20 Feb @ .65,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465357666934325453,2026-01-26T14:48:12.826000+00:00,overbaycap,Good job now they never letting you get filled,True,Trying to bid $ONDS 15c 20 Feb @ .65,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465357773553401907,2026-01-26T14:48:38.246000+00:00,ohiain,"42 is next trim on $APLD, currently sitting up 150% on cons!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465359816204488918,2026-01-26T14:56:45.252000+00:00,ohiain,"ADDING $ONDS 15c 20 Feb @ .65
+
+1/2 size
+
+Stop: LOD
+
+(PLOD sweep, VWAP reclaim, OP reclaim + 21 EMA buy)
+
+<@&1457740469353058469>",True,Trying to bid $ONDS 15c 20 Feb @ .65,True,False,buy,ONDS,15,call,0.65,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""ONDS"", ""strike"": 15, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 0.65, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1465360096489111694,2026-01-26T14:57:52.077000+00:00,ohiain,"This needs to work right away, 5 min upper wicks aren't the prettiest. Stop is tight on this at LOD.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465361439870025789,2026-01-26T15:03:12.364000+00:00,ohiain,"Watching $ONDS here at LOD, might be a quick cut if buyers don't step in.
+
+I'm willing to re-enter again off U&R of 11.80 + 21 EMA support.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465361683085000735,2026-01-26T15:04:10.351000+00:00,ohiain,"I'm cutting $ONDS here.
+
+.65 -> .56 -12%
+
+<@&1457740469353058469>",True,"ADDING $ONDS 15c 20 Feb @ .65
+
+1/2 size
+
+Stop: LOD
+
+(PLOD sweep, VWAP reclaim, OP reclaim + 21 EMA buy)
+
+<@&1457740469353058469>",False,False,exit,ONDS,,,0.56,,,,,1,"{""action"": ""exit"", ""ticker"": ""ONDS"", ""price"": 0.56}"
+1465361852656517202,2026-01-26T15:04:50.780000+00:00,ohiain,"I'm looking for a re-entry on $ONDS.
+
+It might come quick.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465369942160445624,2026-01-26T15:36:59.468000+00:00,ohiain,I'm not interested until 21 EMA gets reclaimed.,True,"I'm looking for a re-entry on $ONDS.
+
+It might come quick.",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465370856426573987,2026-01-26T15:40:37.446000+00:00,ohiain,"Moving my stop on $APLD to 38.
+
+No reason to hold if $APLD breaks LOD to the downside.
+
+<@&1457740469353058469>",True,"YOO TRIMMING $APLD 37c 20 Feb:
+
+2.74 -> 6.15 +125% 🔥
+
+The weekly b/o is just starting!!
+
+<@&1457740469353058469>",False,False,stop_update,APLD,,,,,,38,,1,"{""action"": ""stop_update"", ""ticker"": ""APLD"", ""stop_price"": 38}"
+1465385336652824677,2026-01-26T16:38:09.801000+00:00,ohiain,"Stopped here on $APLD 37c 20 Feb in profit!
+
+Broke LOD.
+
+<@&1457740469353058469>",True,"Moving my stop on $APLD to 38.
+
+No reason to hold if $APLD breaks LOD to the downside.
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465417239271313564,2026-01-26T18:44:55.978000+00:00,ohiain,Watching $HUT 65c 20 Feb,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465418179390996554,2026-01-26T18:48:40.120000+00:00,ohiain,"ADDING $HUT 65c 20 Feb @ 3.50
+
+1/2 size
+
+Stop: LOD
+
+(VWAP reclaim, OP reclaim + 9 EMA buy)
+
+<@&1457740469353058469>",False,,False,False,buy,HUT,65,call,3.5,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""HUT"", ""strike"": 65, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 3.5, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1465418824449790133,2026-01-26T18:51:13.914000+00:00,ohiain,WOWWWW sniper entry my friends!!,False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465430314133360720,2026-01-26T19:36:53.268000+00:00,ohiain,$HUT back to b/e.,False,,False,False,stop_update,HUT,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""HUT"", ""stop_price"": ""BE""}"
+1465431156534022187,2026-01-26T19:40:14.112000+00:00,ohiain,"What a rollercoaster... I don't want a name I'm in to come back to cost basis after seeing such a strong move after entry. $HUT gave back all of its gains after entry, not a good sign.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465431567307378844,2026-01-26T19:41:52.048000+00:00,ohiain,I'm watching this 15 min close.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465432800261046396,2026-01-26T19:46:46.007000+00:00,ohiain,"I'm flat $HUT here at LOD.
+
+3.50 -> 3.15 -10%
+
+<@&1457740469353058469>",True,I'm watching this 15 min close.,False,False,exit,HUT,,,market,,,,,1,"{""action"": ""exit"", ""ticker"": ""HUT"", ""price"": ""market""}"
+1465432863876059196,2026-01-26T19:47:01.174000+00:00,ohiain,"15 min close below VWAP and will likely push through LOD.
+
+I do not want to see VWAP fail after entry, will revist later this week.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465433454760956066,2026-01-26T19:49:22.052000+00:00,ohiain,"3 cents from NHOD push + first trim.... thanks $HUT.
+
+Very unfortunate timing, however, I hope you realize that I ONLY take small losses. That's the key!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465738002197250111,2026-01-27T15:59:31.819000+00:00,ohiain,"ADDING $EOSE 18c 20 Feb @ .85 (30 min pivot)
+
+1/2 size
+
+Stop: LOD
+
+Frontrunning this candle close (riskier), I like this volume off LOD.
+
+<@&1457740469353058469>",False,,False,False,buy,EOSE,18,call,0.85,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""EOSE"", ""strike"": 18, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 0.85, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1465739708222013645,2026-01-27T16:06:18.567000+00:00,ohiain,"ADDING $RKT 22c 20 Feb @ .71
+
+1/2 size
+
+Stop: LOD
+
+LOP: (RDR, VWAP/OP Reclaim, LOD Dis < 30%)
+
+<@&1457740469353058469>",False,,False,False,buy,RKT,22,call,0.71,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""RKT"", ""strike"": 22, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 0.71, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1465773702116413512,2026-01-27T18:21:23.343000+00:00,ohiain,"Cutting $EOSE here at .71 -16%
+
+<@&1457740469353058469>",False,,False,False,exit,EOSE,,,0.71,,,,,1,"{""action"": ""exit"", ""ticker"": ""EOSE"", ""price"": 0.71}"
+1465774644207292511,2026-01-27T18:25:07.955000+00:00,ohiain,"Everything I've touched this week apparently isn't golden. I really liked my entries on names this past week, clear signs of a choppy market, so protecting this month's profits into EOM is the goal.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1465782586256392488,2026-01-27T18:56:41.487000+00:00,ohiain,"Cutting $RKT here at .64 -11%
+
+<@&1457740469353058469>",False,,False,False,exit,RKT,,,0.64,,,,,1,"{""action"": ""exit"", ""ticker"": ""RKT"", ""price"": 0.64}"
+1466159575819620444,2026-01-28T19:54:42.803000+00:00,ohiain,,True,[Could not fetch],False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1466159584153440439,2026-01-28T19:54:44.790000+00:00,ohiain,"I'm tailing, I like this a lot.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1466444421091426395,2026-01-29T14:46:35.208000+00:00,ohiain,"ADDING $APLD 40c 20 Feb  @ 3.65
+
+1/2 size (9EMA buy)
+
+Stop: LOD
+
+LOP: (15 min PLOD sweep, VWAP reclaim, 32% LOD)
+
+<@&1457740469353058469>",False,,False,False,buy,APLD,40,call,3.65,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""APLD"", ""strike"": 40, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 3.65, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1466444521888809165,2026-01-29T14:46:59.240000+00:00,ohiain,Also layering this week 40c @ .84,False,,True,False,buy,APLD,40,call,0.84,2026-02-20,half,,,1,"{""action"": ""buy"", ""ticker"": ""APLD"", ""strike"": 40, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 0.84, ""size"": ""half""}"
+1466445536604328233,2026-01-29T14:51:01.167000+00:00,ohiain,"Trimming $APLD 40c 30 Jan
+
+.84 -> 1.28 +50% 🔥
+
+Holding core still!
+
+<@&1457740469353058469>",True,Also layering this week 40c @ .84,False,False,trim,APLD,,call,1.28,,half,,,1,"{""action"": ""trim"", ""ticker"": ""APLD"", ""type"": ""call"", ""price"": 1.28, ""size"": ""half""}"
+1466448599004090579,2026-01-29T15:03:11.300000+00:00,ohiain,"TOC, I'm just reading this. I meant to say this week 🤦 (I thought I was buying next week)",True,Also layering this week 40c @ .84,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1466450373710446792,2026-01-29T15:10:14.423000+00:00,ohiain,"Flat here at .54 LOD test.
+
+Pretty much b/e trade here, got trims at +50% and stopped profits at b/e.",True,Also layering this week 40c @ .84,False,False,exit,APLD,,,0.54,,,,,1,"{""action"": ""exit"", ""ticker"": ""APLD"", ""price"": 0.54}"
+1466450594943205559,2026-01-29T15:11:07.169000+00:00,ohiain,Watching close under LOD to exit core. (sitting right at 9 EMA),False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1466528523043995752,2026-01-29T20:20:46.676000+00:00,ohiain,"Flat $APLD 40c 20 Feb 3.05 -16%
+
+Broke below VWAP.
+
+<@&1457740469353058469>",False,,False,False,exit,APLD,,,3.05,,,,,1,"{""action"": ""exit"", ""ticker"": ""APLD"", ""price"": 3.05}"
+1466529034941759488,2026-01-29T20:22:48.722000+00:00,ohiain,"Papercut after papercut this week, very hard environment to work with.
+I will recap week/month tomorrow.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1466529187144794145,2026-01-29T20:23:25.010000+00:00,ohiain,"I'm not holding something that hasn't given me cushion into close, that's a rule I have, better tides ahead!",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1468273977469440060,2026-02-03T15:56:35.440000+00:00,ohiain,"ADDING $CIFR 18c 20 Feb @ 1.07
+
+1/2 size (day trade)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,False,False,buy,CIFR,18,call,1.07,2026-02-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""CIFR"", ""strike"": 18, ""type"": ""call"", ""expiration"": ""2026-02-20"", ""price"": 1.07, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1468282532146577509,2026-02-03T16:30:35.034000+00:00,ohiain,"I'm taking $CIFR off here, really weird volume off the 16.50 pivot/OP
+
+@ .95 -10%
+
+<@&1457740469353058469>",False,,False,False,exit,CIFR,,,0.95,,,,,1,"{""action"": ""exit"", ""ticker"": ""CIFR"", ""price"": 0.95}"
+1468995166973988956,2026-02-05T15:42:20.417000+00:00,ohiain,"ADDING $IBIT 38.5c 6 Feb @ .93
+
+(lotto size) capitulation idea.
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,False,False,buy,IBIT,38.5,call,0.93,2026-02-06,lotto,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""IBIT"", ""strike"": 38.5, ""type"": ""call"", ""expiration"": ""2026-02-06"", ""price"": 0.93, ""size"": ""lotto"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1468995591538475100,2026-02-05T15:44:01.641000+00:00,ohiain,Lotto = Sized for 0 ^!!,True,"ADDING $IBIT 38.5c 6 Feb @ .93
+
+(lotto size) capitulation idea.
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1469368060417675286,2026-02-06T16:24:05.142000+00:00,ohiain,"I have to take trims into this NHOD push.
+
+1.11 +20%
+
+<@&1457740469353058469>",True,"ADDING $IBIT 38.5c 6 Feb @ .93
+
+(lotto size) capitulation idea.
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,trim,IBIT,,call,market,,half,,,1,"{""action"": ""trim"", ""ticker"": ""IBIT"", ""type"": ""call"", ""price"": ""market"", ""size"": ""half""}"
+1469368169968832613,2026-02-06T16:24:31.261000+00:00,ohiain,I want to see a move to 70k.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1469375536466759721,2026-02-06T16:53:47.571000+00:00,ohiain,"Trimming more into strength + 70k psych level.
+
+.93 -> 1.34 +44%
+
+Here we go >70k!! 🔥
+
+<@&1457740469353058469>",False,,False,False,trim,CIFR,,call,1.34,,full,,,1,"{""action"": ""trim"", ""ticker"": ""CIFR"", ""type"": ""call"", ""price"": 1.34, ""size"": ""full""}"
+1469375902839472302,2026-02-06T16:55:14.921000+00:00,ohiain,"This is shaping up to be a huge trade for me, averaged up to 39c today as well.
+
+Capitulation on $BTC so short-term bottom idea.",False,,True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1469381938027434016,2026-02-06T17:19:13.822000+00:00,ohiain,"Off screens now, but taking last trims until power hour.
+
+.93 -> 1.60 +70%
+
+<@&1457740469353058469>",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1469408721397612596,2026-02-06T19:05:39.475000+00:00,ohiain,"Setting a b/e stop on these into close, no reason to let the trade go red.",True,"Off screens now, but taking last trims until power hour.
+
+.93 -> 1.60 +70%
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1469427168713900246,2026-02-06T20:18:57.658000+00:00,ohiain,"Flat $IBIT position @ 1.45!!
+
+<@&1457740469353058469>",True,"Off screens now, but taking last trims until power hour.
+
+.93 -> 1.60 +70%
+
+<@&1457740469353058469>",False,False,exit,IBIT,,,1.45,,,,,1,"{""action"": ""exit"", ""ticker"": ""IBIT"", ""price"": 1.45}"
+1470436180112969989,2026-02-09T15:08:24.722000+00:00,ohiain,"ADDING $ZM 100c 20 Mar @ 3.05
+
+1/2 size
+
+LOP: (VWAP/OP Reclaim, 9 EMA buy, 40% LOD Dis)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,False,False,buy,ZM,100,call,3.05,2026-03-20,half,,,1,"{""action"": ""buy"", ""ticker"": ""ZM"", ""strike"": 100, ""type"": ""call"", ""expiration"": ""2026-03-20"", ""price"": 3.05, ""size"": ""half""}"
+1470444698006061087,2026-02-09T15:42:15.546000+00:00,ohiain,"Taking a small trim here and paying for risk as we come into prior supply!
+
+3.05 -> 3.85 +27% 🔥
+
+<@&1457740469353058469>",True,"ADDING $ZM 100c 20 Mar @ 3.05
+
+1/2 size
+
+LOP: (VWAP/OP Reclaim, 9 EMA buy, 40% LOD Dis)
+
+Stop: LOD
+
+<@&1457740469353058469>",True,False,trim,ZM,,call,3.85,,half,,,1,"{""action"": ""trim"", ""ticker"": ""ZM"", ""type"": ""call"", ""price"": 3.85, ""size"": ""half""}"
+1470498735351140383,2026-02-09T19:16:59.053000+00:00,ohiain,"Trimming 1/4th $ZM here in 95 + gap fill.
+
+3.05 -> 4.25 +40% ✅
+
+<@&1457740469353058469>",True,"Taking a small trim here and paying for risk as we come into prior supply!
+
+3.05 -> 3.85 +27% 🔥
+
+<@&1457740469353058469>",False,False,trim,ZM,,call,4.25,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""ZM"", ""type"": ""call"", ""price"": 4.25, ""size"": ""quarter""}"
+1470505054099472384,2026-02-09T19:42:05.560000+00:00,ohiain,Looking to target resistance gap fill for next trim!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1470790188966875229,2026-02-10T14:35:07.010000+00:00,ohiain,"Trimming $ZM 100c 20 Mar
+
+Gap fill target hit!
+
+3.05 -> 4.90 +60% 🔥 🎯
+
+<@&1457740469353058469>",True,"Trimming 1/4th $ZM here in 95 + gap fill.
+
+3.05 -> 4.25 +40% ✅
+
+<@&1457740469353058469>",False,False,trim,ZM,100,call,4.9,,half,,,1,"{""action"": ""trim"", ""ticker"": ""ZM"", ""strike"": 100, ""type"": ""call"", ""price"": 4.9, ""size"": ""half""}"
+1470795876887953562,2026-02-10T14:57:43.116000+00:00,ohiain,"ADDING $INTC 55c 20 Mar @ 2.00
+
+1/2 size (9EMA Buy)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,False,False,buy,INTC,55,call,2.0,2026-03-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""INTC"", ""strike"": 55, ""type"": ""call"", ""expiration"": ""2026-03-20"", ""price"": 2.0, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1470796095998136538,2026-02-10T14:58:35.356000+00:00,ohiain,Frontrunning this 30 min candle close ^!! (riskier),False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1470796296800702504,2026-02-10T14:59:23.231000+00:00,ohiain,Might look to add $INTC 50c 20 Febs as well.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1470806126705639447,2026-02-10T15:38:26.863000+00:00,ohiain,"ADDING $AA 65c 20 Mar @ 3.75
+
+1/2 size
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,False,False,buy,AA,65,call,3.75,2026-03-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""AA"", ""strike"": 65, ""type"": ""call"", ""expiration"": ""2026-03-20"", ""price"": 3.75, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1470809207379984497,2026-02-10T15:50:41.353000+00:00,ohiain,"Setting a -20% hard stop on these cons to manage risk, I’ll be off the charts the next 30 mins.",True,"ADDING $INTC 55c 20 Mar @ 2.00
+
+1/2 size (9EMA Buy)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1470813178114867409,2026-02-10T16:06:28.050000+00:00,ohiain,"Stopped here on $INTC 55c 20 Mar
+
+2.00 -> 1.68 -16%
+
+<@&1457740469353058469>",True,"ADDING $INTC 55c 20 Mar @ 2.00
+
+1/2 size (9EMA Buy)
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,stop_update,INTC,,call,,,,1.68,,1,"{""action"": ""stop_update"", ""ticker"": ""INTC"", ""type"": ""call"", ""stop_price"": 1.68}"
+1470813590570143977,2026-02-10T16:08:06.387000+00:00,ohiain,"$INTC is still on watch, we just lost LOD + gap support so clearly needs more time.
+
+$ZM and $AA are holding up very well intraday.",False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1471152368451195094,2026-02-11T14:34:17.328000+00:00,ohiain,"Trimming $AA 6c 20 Mar
+
+3.75 -> 4.80  +29% 🔥 
+
+<@&1457740469353058469>",True,"ADDING $AA 65c 20 Mar @ 3.75
+
+1/2 size
+
+Stop: LOD
+
+<@&1457740469353058469>",False,False,trim,AA,6,call,4.8,,quarter,,,1,"{""action"": ""trim"", ""ticker"": ""AA"", ""strike"": 6, ""type"": ""call"", ""price"": 4.8, ""size"": ""quarter""}"
+1471152522646523966,2026-02-11T14:34:54.091000+00:00,ohiain,I'm looking for a move through 65 on $AA next!,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1471153521205186782,2026-02-11T14:38:52.166000+00:00,ohiain,$ZM is at b/e.,False,,False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1471156949394395197,2026-02-11T14:52:29.510000+00:00,ohiain,"After first trims, stop always goes to b/e btw!",True,"Trimming $AA 6c 20 Mar
+
+3.75 -> 4.80  +29% 🔥 
+
+<@&1457740469353058469>",False,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1471158223758295060,2026-02-11T14:57:33.342000+00:00,ohiain,"$ZM stopped here at b/e.
+
+<@&1457740469353058469>",True,"ADDING $ZM 100c 20 Mar @ 3.05
+
+1/2 size
+
+LOP: (VWAP/OP Reclaim, 9 EMA buy, 40% LOD Dis)
+
+Stop: LOD
+
+<@&1457740469353058469>",True,False,null,,,,,,,,,0,"{""action"": ""null""}"
+1471162953716728004,2026-02-11T15:16:21.052000+00:00,ohiain,"$AA stop is set to b/e, I might not be able to alert if stopped, so manage risk!",False,,False,False,stop_update,AA,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""AA"", ""stop_price"": ""BE""}"
+1471172837967397152,2026-02-11T15:55:37.641000+00:00,ohiain,"Back on screens, I got stopped at b/e on $AA.
+
+<@&1457740469353058469>",False,,False,False,stop_update,AA,,,,,,BE,,1,"{""action"": ""stop_update"", ""ticker"": ""AA"", ""stop_price"": ""BE""}"
+1471177473399197746,2026-02-11T16:14:02.814000+00:00,ohiain,"ADDING $SMCI 35c 20 Mar @ 2.02
+
+1/2 size
+
+Stop: LOD
+
+<@&1457740469353058469>",False,,False,False,buy,SMCI,35,call,2.02,2026-03-20,half,LOD,False,1,"{""action"": ""buy"", ""ticker"": ""SMCI"", ""strike"": 35, ""type"": ""call"", ""expiration"": ""2026-03-20"", ""price"": 2.02, ""size"": ""half"", ""stop_price"": ""LOD"", ""trailing"": false}"
+1471194567234814055,2026-02-11T17:21:58.302000+00:00,ohiain,"I will be off the screens for an hourish +
+
+I'm setting a hard stop on $SMCI 35c 20 Mar
+
+@ 1.75 (LOD) -13%
+
+<@&1457740469353058469>",True,"ADDING $SMCI 35c 20 Mar @ 2.02
+
+1/2 size
+
+Stop: LOD
+
+<@&1457740469353058469>",True,False,stop_update,SMCI,,call,,,,1.75,False,1,"{""action"": ""stop_update"", ""ticker"": ""SMCI"", ""type"": ""call"", ""stop_price"": 1.75, ""trailing"": false}"
+1471216315695108188,2026-02-11T18:48:23.539000+00:00,ohiain,"Back on the screens here.
+
+I got stopped on $SMCI while away (all cash).
+
+<@&1457740469353058469>",True,"I will be off the screens for an hourish +
+
+I'm setting a hard stop on $SMCI 35c 20 Mar
+
+@ 1.75 (LOD) -13%
+
+<@&1457740469353058469>",False,False,exit,SMCI,,,market,,,,,1,"{""action"": ""exit"", ""ticker"": ""SMCI"", ""price"": ""market""}"

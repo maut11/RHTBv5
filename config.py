@@ -1,8 +1,8 @@
 # config.py - Enhanced RHTB v4 Configuration with Channel Isolation and Symbol Mapping
 MAX_PCT_PORTFOLIO = 0.10
 MAX_DOLLAR_AMOUNT = 25000
-MIN_CONTRACTS = 2      # Minimum contracts per trade
-MAX_CONTRACTS = 3      # Maximum contracts per trade (reduced for live testing)
+MIN_CONTRACTS = 1      # Minimum contracts per trade
+MAX_CONTRACTS = 2      # Maximum contracts per trade (testing: locked to 2)
 
 # Default paddings (can be overridden per channel)
 DEFAULT_BUY_PRICE_PADDING = 0.020
@@ -25,19 +25,29 @@ TRIM_PERCENTAGE = 0.25  # Trim 25% of position (not 50%)
 FILL_MONITORING_INTERVAL = 10  # Seconds between fill checks
 FILL_TIMEOUT_SECONDS = 600     # 10 minute timeout for unfilled orders
 
-# Cascade sell configurations
+# Cascade sell configurations (optimized for 0DTE SPX — short waits, more steps)
 TRIM_CASCADE_STEPS = [
-    {'price_type': 'mark', 'multiplier': 1.0, 'wait_seconds': 60},
-    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 60},
-    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 60},
-    {'price_type': 'bid', 'multiplier': 0.97, 'wait_seconds': 0},  # Final step
+    {'price_type': 'ask', 'multiplier': 1.0, 'wait_seconds': 5},        # Fish for spread capture
+    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 10},  # Fair value
+    {'price_type': 'mark', 'multiplier': 1.0, 'wait_seconds': 10},      # Market consensus
+    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 10},       # Liquidity
+    {'price_type': 'bid', 'multiplier': 0.99, 'wait_seconds': 0},       # Gentle force fill
 ]
 
 EXIT_CASCADE_STEPS = [
-    {'price_type': 'mark', 'multiplier': 1.0, 'wait_seconds': 30},
-    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 30},
-    {'price_type': 'bid', 'multiplier': 0.97, 'wait_seconds': 30},
-    {'price_type': 'bid', 'multiplier': 0.95, 'wait_seconds': 0},  # Final step
+    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 10},  # Quick fair value
+    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 10},       # Hit the bid
+    {'price_type': 'bid', 'multiplier': 0.98, 'wait_seconds': 5},       # Slight drop
+    {'price_type': 'bid', 'multiplier': 0.95, 'wait_seconds': 0},       # Emergency exit
+]
+
+# Cascade buy configurations — stepped price discovery with hard cap
+# Cap = parsed_price × (1 + buy_padding). NEVER exceed cap.
+BUY_CASCADE_STEPS = [
+    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 30},   # Fish inside spread
+    {'price_type': 'ask',      'multiplier': 0.99, 'wait_seconds': 30},  # Slight discount off ask
+    {'price_type': 'ask',      'multiplier': 1.0, 'wait_seconds': 30},   # Full ask price
+    {'price_type': 'cap',      'multiplier': 1.0, 'wait_seconds': 0},    # Resting order at cap
 ]
 
 # ========================================
@@ -119,14 +129,15 @@ CHANNELS_CONFIG = {
         "description": "Sean's technical analysis based trades",
         "risk_level": "medium-high",
         "typical_hold_time": "1-4 hours",
-        "trade_first_mode": True     # Execute trades before alerts
+        "trade_first_mode": True,     # Execute trades before alerts
+        "resting_order_timeout": 300  # 5 minutes for resting buy order
     },
     "FiFi": {
-        "live_id": 1368713891072315483,  # fifi-alerts
+        "live_id": 0,                    # DISABLED - no alerts, no trading
         "test_id": 1468477705270988833,  # fifi simulation channel
         "parser": "FiFiParser",
         "multiplier": 0.5,             # 5% portfolio (0.10 * 0.5)
-        "min_trade_contracts": 1,      # Live trading, min 1 contract
+        "min_trade_contracts": 0,      # DISABLED - tracking only (sundown)
         "initial_stop_loss": 0.50,
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,
@@ -137,14 +148,15 @@ CHANNELS_CONFIG = {
         "risk_level": "medium",
         "typical_hold_time": "30 minutes - 4 hours",
         "trade_first_mode": True,
-        "message_history_limit": 10    # More context for conversational style
+        "message_history_limit": 10
     },
     "Ryan": {
-        "live_id": 1072559822366576780,  # ryan-alerts
+        "live_id": 0,  # DISABLED - 0DTE SPX latency issues
+        # "live_id": 1072559822366576780,  # ryan-alerts (original)
         "test_id": 1468487671893721233,  # ryan simulation channel
         "parser": "RyanParser",
-        "multiplier": 0.5,              # 5% portfolio (0.10 * 0.5)
-        "min_trade_contracts": 1,        # Minimum 1 contract
+        "multiplier": 1.0,              # 10% portfolio (0.10 * 1.0) — testing
+        "min_trade_contracts": 2,        # Minimum 2 contracts (testing)
         "initial_stop_loss": 0.30,
         "trailing_stop_loss_pct": 0.20,
         "buy_padding": 0.025,
@@ -155,7 +167,28 @@ CHANNELS_CONFIG = {
         "risk_level": "high",
         "typical_hold_time": "5-30 minutes",
         "trade_first_mode": True,
-        "message_history_limit": 0       # Embeds are self-contained
+        "message_history_limit": 0,      # Embeds are self-contained
+        "resting_order_timeout": 60      # 1 minute for resting buy order (0DTE speed)
+    },
+    "Ian": {
+        "live_id": 0,                    # TRACKING ONLY - initial onboarding
+        # "live_id": 1457490555016839289,  # ian-alerts (to enable later)
+        "test_id": 1457490555016839289,  # ian channel for testing/tracking
+        "parser": "IanParser",
+        "multiplier": 0.5,               # 5% portfolio (0.10 * 0.5) when enabled
+        "min_trade_contracts": 0,        # DISABLED - tracking only (onboarding)
+        "initial_stop_loss": 0.30,
+        "trailing_stop_loss_pct": 0.20,
+        "buy_padding": 0.025,
+        "sell_padding": 0.01,
+        "model": "gpt-4o-2024-08-06",
+        "color": 3447003,                # Blue (0x3498DB)
+        "description": "Ian's structured swing trades with stop management",
+        "risk_level": "medium",
+        "typical_hold_time": "1-5 days",
+        "trade_first_mode": True,
+        "message_history_limit": 10,     # Ian uses replies frequently
+        "resting_order_timeout": 300     # 5 minutes for resting buy order
     }
 }
 
@@ -256,6 +289,17 @@ ORDER_MANAGEMENT_CONFIG = {
     "trade_first_alert_last": True,   # Global setting for trade-first workflow
     "async_non_critical_updates": True,  # Fire alerts/tracking async
     "fast_execution_logging": True    # Minimal logging during execution
+}
+
+# Auto-exit configuration (Ryan 0DTE SPX tiered profit-taking + stop-loss)
+AUTO_EXIT_CONFIG = {
+    "tier1_profit_pct": 0.25,             # +25% profit target (Tier 1)
+    "tier2_profit_pct": 0.50,             # +50% profit target (Tier 2)
+    "stop_loss_pct": 0.25,               # -25% triggers stop exit
+    "stop_loss_delay_seconds": 300,       # 5 min grace period before stop activates
+    "poll_interval_seconds": 3,           # Price monitoring frequency
+    "single_contract_target_pct": 0.25,   # Single contract uses +25% only
+    "aggressive_exit_discount": 0.10,     # Stop exit at bid x 0.90
 }
 
 # Symbol normalization configuration

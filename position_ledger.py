@@ -209,12 +209,32 @@ class PositionLedger:
                 )
             ''')
 
+            # Auto-exit strategies table (tiered profit-taking + stop-loss for Ryan 0DTE)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS auto_exit_strategies (
+                    ccid TEXT PRIMARY KEY,
+                    entry_price REAL NOT NULL,
+                    tier1_target REAL NOT NULL,
+                    tier2_target REAL NOT NULL,
+                    stop_price REAL NOT NULL,
+                    tier1_qty INTEGER NOT NULL,
+                    tier2_qty INTEGER NOT NULL,
+                    tier1_order_id TEXT,
+                    tier2_order_id TEXT,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (ccid) REFERENCES positions(ccid)
+                )
+            ''')
+
             # Create indexes for fast lookups
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_positions_ticker ON positions(ticker)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_positions_status ON positions(status)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_positions_expiration ON positions(expiration)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_lots_ccid ON position_lots(ccid)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_lots_status ON position_lots(status)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_auto_exit_status ON auto_exit_strategies(status)')
 
             logger.debug("Database schema initialized")
 
@@ -1287,6 +1307,79 @@ class PositionLedger:
                 'open_positions': status_counts.get('open', {}).get('count', 0),
                 'total_open_contracts': status_counts.get('open', {}).get('quantity', 0)
             }
+
+    # ========================================
+    # AUTO-EXIT STRATEGY METHODS
+    # ========================================
+
+    def save_auto_exit_strategy(self, data: dict):
+        """Save a new auto-exit strategy for tiered profit-taking."""
+        with self.lock:
+            with self._get_connection() as conn:
+                now = datetime.now().isoformat()
+                conn.execute('''
+                    INSERT OR REPLACE INTO auto_exit_strategies
+                    (ccid, entry_price, tier1_target, tier2_target, stop_price,
+                     tier1_qty, tier2_qty, tier1_order_id, tier2_order_id, status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
+                ''', (data['ccid'], data['entry_price'], data['tier1_target'], data['tier2_target'],
+                      data['stop_price'], data['tier1_qty'], data['tier2_qty'],
+                      data.get('tier1_order_id'), data.get('tier2_order_id'), now, now))
+                logger.info(f"Saved auto-exit strategy for {data['ccid']}: "
+                           f"T1=${data['tier1_target']:.2f} T2=${data['tier2_target']:.2f} Stop=${data['stop_price']:.2f}")
+
+    def get_active_auto_exit_strategies(self) -> list:
+        """Get all active auto-exit strategies with position details."""
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT s.*, p.ticker, p.strike, p.option_type, p.expiration, p.total_quantity
+                FROM auto_exit_strategies s
+                JOIN positions p ON s.ccid = p.ccid
+                WHERE s.status IN ('active', 'tier1_filled')
+            ''')
+            return [dict(row) for row in cursor.fetchall()]
+
+    def update_auto_exit_status(self, ccid: str, status: str, stop_price: float = None):
+        """Update auto-exit strategy status and optionally the stop price."""
+        with self.lock:
+            with self._get_connection() as conn:
+                now = datetime.now().isoformat()
+                if stop_price is not None:
+                    conn.execute('''
+                        UPDATE auto_exit_strategies
+                        SET status = ?, stop_price = ?, updated_at = ?
+                        WHERE ccid = ?
+                    ''', (status, stop_price, now, ccid))
+                else:
+                    conn.execute('''
+                        UPDATE auto_exit_strategies
+                        SET status = ?, updated_at = ?
+                        WHERE ccid = ?
+                    ''', (status, now, ccid))
+                logger.info(f"Auto-exit {ccid} -> {status}" +
+                           (f" (stop=${stop_price:.2f})" if stop_price is not None else ""))
+
+    def get_auto_exit_strategy(self, ccid: str) -> dict:
+        """Get a single auto-exit strategy by CCID."""
+        with self._get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM auto_exit_strategies WHERE ccid = ?', (ccid,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    def has_active_auto_exit(self, ccid: str) -> bool:
+        """Check if a CCID has an active or tier1_filled auto-exit strategy."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT 1 FROM auto_exit_strategies
+                WHERE ccid = ? AND status IN ('active', 'tier1_filled')
+                LIMIT 1
+            ''', (ccid,))
+            return cursor.fetchone() is not None
 
     def __repr__(self) -> str:
         summary = self.get_position_summary()

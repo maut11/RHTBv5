@@ -1,0 +1,297 @@
+message_id,timestamp,author,content,is_reply,reply_context,has_alert_ping,action,ticker,strike,type,price,expiration,size,trade_count,raw_parsed
+1468263711276794001,2026-02-03T15:15:47.789000+00:00,sauced2002,small trim $5 from 4.05 <@&1369304547356311564>,True,"Added another 1/4 here 3.80 on XOm
+<@&1369304547356311564>",True,null,,,,,,,0,"{""action"": ""null""}"
+1468265784823250946,2026-02-03T15:24:02.161000+00:00,sauced2002,Good spot to take profits on weekly spy/qqq puts. I didn’t give an exact price and i added so can’t alert/manage for you <@&1369304547356311564>,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468265845552713923,2026-02-03T15:24:16.640000+00:00,sauced2002,QQQs might flush here under 50day,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468275501905875024,2026-02-03T16:02:38.894000+00:00,sauced2002,,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468275566389231979,2026-02-03T16:02:54.268000+00:00,sauced2002,"Heading into meetings. 
+
+Have a limit sell for 1/2 of PLTR at 5.4 for 100%",False,,False,trim,PLTR,,,5.4,,half,1,"{""action"": ""trim"", ""ticker"": ""PLTR"", ""strike"": null, ""type"": null, ""price"": 5.4, ""expiration"": null, ""size"": ""half""}"
+1468275582776377457,2026-02-03T16:02:58.175000+00:00,sauced2002,<@&1369304547356311564>,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468278458806173707,2026-02-03T16:14:23.874000+00:00,sauced2002,Sold some more XOM 6.50 <@&1369304547356311564>,False,,True,trim,XOM,6.5,null,market,,half,1,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": 6.5, ""type"": ""null"", ""price"": ""market"", ""size"": ""half""}"
+1468281298580934976,2026-02-03T16:25:40.929000+00:00,sauced2002,👆,True,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468288624838705326,2026-02-03T16:54:47.645000+00:00,sauced2002,,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468288635861205146,2026-02-03T16:54:50.273000+00:00,sauced2002,🚀,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468295590659231940,2026-02-03T17:22:28.426000+00:00,sauced2002,"Out PLTR BE here. Iran news can move it,",False,,False,exit,PLTR,,,BE,,,1,"{""action"": ""exit"", ""ticker"": ""PLTR"", ""price"": ""BE""}"
+1468295602659131473,2026-02-03T17:22:31.287000+00:00,sauced2002,<@&1369304547356311564>,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468297079993667806,2026-02-03T17:28:23.511000+00:00,sauced2002,Trimmed XOM 7.5 <@&1369304547356311564>,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468301220866298040,2026-02-03T17:44:50.772000+00:00,sauced2002,"Trimmed weekly and 2/20 puts 
+
+Holding April. Will add on any bounces",True,Initial buys for now. This is 1st out of potentially 4,False,null,,,,,,,0,"{""action"": ""null""}"
+1468313692566454372,2026-02-03T18:34:24.257000+00:00,sauced2002,Trim spy weekly $7,True,Initial buys for now. This is 1st out of potentially 4,False,null,,,,,,,0,"{""action"": ""null""}"
+1468313785910558875,2026-02-03T18:34:46.512000+00:00,sauced2002,<@&1369304547356311564>,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468317319255163085,2026-02-03T18:48:48.927000+00:00,sauced2002,"Trimmed QQQ 2/20 at $10.60 here from 6.60 
+
+<@&1369304547356311564>",False,,True,trim,QQQ,,,10.6,2026-02-20,full,1,"{""action"": ""trim"", ""ticker"": ""QQQ"", ""strike"": null, ""type"": null, ""price"": 10.6, ""expiration"": ""2026-02-20"", ""size"": ""full""}"
+1468317720725426518,2026-02-03T18:50:24.645000+00:00,sauced2002,Trimmed spy 7.20 from 4.60 for 2/20,False,,False,trim,SPY,,,7.2,2026-02-20,full,1,"{""action"": ""trim"", ""ticker"": ""SPY"", ""strike"": null, ""type"": null, ""price"": 7.2, ""expiration"": ""2026-02-20"", ""size"": ""full""}"
+1468332729157292152,2026-02-03T19:50:02.934000+00:00,sauced2002,"Trims 💇‍♀️
+
+PLTR $2.70 to $4.00
+XOM $4.05 to $7.50 
+SPY $3.70 to $7.
+SPY $4.57 to $7.20
+QQQ $6.37 to $10.60
+
+
+You’re welcome <@1004836651018764318> 😘",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468333111879143565,2026-02-03T19:51:34.182000+00:00,sauced2002,<@&1369304547356311564> 🐾,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468368199845150873,2026-02-03T22:10:59.805000+00:00,sauced2002,Ugh,True,out of WMT $1.25 <@&1369304547356311564>,False,null,,,,,,,0,"{""action"": ""null""}"
+1468368446608638076,2026-02-03T22:11:58.638000+00:00,sauced2002,This is why i tend to give a longer leash on most plays.,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468368484378476565,2026-02-03T22:12:07.643000+00:00,sauced2002,But didn’t this time 🤦🏽‍♂️,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468414091747000541,2026-02-04T01:13:21.287000+00:00,sauced2002,Eyeing SMH short on the next bounce,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468655702372519977,2026-02-04T17:13:25.749000+00:00,sauced2002,"trim SPY weekly puts here $6.50 from 3.70
+trim QQQ 2/20 13.50
+trim XOM 9
+
+<@&1369304547356311564>",False,,True,trim,SPY,,put,6.5,2026-02-09,full,3,"{""action"": ""trim"", ""ticker"": ""SPY"", ""strike"": null, ""type"": ""put"", ""price"": 6.5, ""expiration"": ""2026-02-09"", ""size"": ""full""}"
+1468655702372519977,2026-02-04T17:13:25.749000+00:00,sauced2002,"trim SPY weekly puts here $6.50 from 3.70
+trim QQQ 2/20 13.50
+trim XOM 9
+
+<@&1369304547356311564>",False,,True,trim,QQQ,13.5,,,2026-02-20,full,3,"{""action"": ""trim"", ""ticker"": ""QQQ"", ""strike"": 13.5, ""type"": null, ""price"": null, ""expiration"": ""2026-02-20"", ""size"": ""full""}"
+1468655702372519977,2026-02-04T17:13:25.749000+00:00,sauced2002,"trim SPY weekly puts here $6.50 from 3.70
+trim QQQ 2/20 13.50
+trim XOM 9
+
+<@&1369304547356311564>",False,,True,trim,XOM,,,,,full,3,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": ""full""}"
+1468655987924799518,2026-02-04T17:14:33.830000+00:00,sauced2002,in TSLA weekly 410c 5.80 <@&1369304547356311564>,False,,True,buy,TSLA,410,call,5.8,2026-02-09,full,1,"{""action"": ""buy"", ""ticker"": ""TSLA"", ""strike"": 410, ""type"": ""call"", ""expiration"": ""2026-02-09"", ""price"": 5.8, ""size"": ""full""}"
+1468655996326121554,2026-02-04T17:14:35.833000+00:00,sauced2002,SL LOD,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468660063836049448,2026-02-04T17:30:45.603000+00:00,sauced2002,all out weekly SPY 8.60 <@&1369304547356311564>  from 3.7,False,,True,exit,SPY,,,8.6,,,1,"{""action"": ""exit"", ""ticker"": ""SPY"", ""price"": 8.6}"
+1468660123517063252,2026-02-04T17:30:59.832000+00:00,sauced2002,out tsla 4.2 <@&1369304547356311564>,False,,True,exit,TSLA,,,4.2,,,1,"{""action"": ""exit"", ""ticker"": ""TSLA"", ""price"": 4.2}"
+1468660153405542573,2026-02-04T17:31:06.958000+00:00,sauced2002,was looking for a bounce,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468660572512981248,2026-02-04T17:32:46.881000+00:00,sauced2002,https://klipy.com/gifs/ryan-stiles-middle-finger-1,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468660594864553984,2026-02-04T17:32:52.210000+00:00,sauced2002,to all the TSLA to $500 folks tho,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468660625365405978,2026-02-04T17:32:59.482000+00:00,sauced2002,https://tenor.com/view/mjpersonal-gif-12910757661639197726,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468660637608448184,2026-02-04T17:33:02.401000+00:00,sauced2002,<@&1369304547356311564>,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468663084640895171,2026-02-04T17:42:45.819000+00:00,sauced2002,"sold an April con of QQQ and SPY
+SPY $15 from $11
+QQQ $22.50 from 13.50 <@&1369304547356311564>",False,,True,exit,SPY,15,call,11,2026-04-01,full,2,"{""action"": ""exit"", ""ticker"": ""SPY"", ""strike"": 15, ""type"": ""call"", ""price"": 11, ""expiration"": ""2026-04-01"", ""size"": ""full""}"
+1468663084640895171,2026-02-04T17:42:45.819000+00:00,sauced2002,"sold an April con of QQQ and SPY
+SPY $15 from $11
+QQQ $22.50 from 13.50 <@&1369304547356311564>",False,,True,exit,QQQ,22.5,call,13.5,2026-04-01,full,2,"{""action"": ""exit"", ""ticker"": ""QQQ"", ""strike"": 22.5, ""type"": ""call"", ""price"": 13.5, ""expiration"": ""2026-04-01"", ""size"": ""full""}"
+1468669000455295117,2026-02-04T18:06:16.259000+00:00,sauced2002,"out of short dated puts
+will re enter tomorrow <@&1369304547356311564>",False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468669007874887750,2026-02-04T18:06:18.028000+00:00,sauced2002,holding april,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468669048672878898,2026-02-04T18:06:27.755000+00:00,sauced2002,"all out of XOM here too 9.30 
+bit extended",False,,False,exit,XOM,,,9.3,,,1,"{""action"": ""exit"", ""ticker"": ""XOM"", ""price"": 9.3}"
+1468673041062957128,2026-02-04T18:22:19.615000+00:00,sauced2002,"Actually, all out of all positions for now. I’m all cash <@&1369304547356311564>",False,,True,exit,TSLA,,,4.2,,,1,"{""action"": ""exit"", ""ticker"": ""TSLA"", ""price"": 4.2}"
+1468673099598659625,2026-02-04T18:22:33.571000+00:00,sauced2002,Gonna wait for set up again,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468673221984391230,2026-02-04T18:23:02.750000+00:00,sauced2002,Don’t see 600 cracking on QQQ yet,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468678928867660042,2026-02-04T18:45:43.377000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $4.05 to 9.30
+💰 SPY $3.70 to $8.60
+💰 SPY $11 to $15
+💰 QQQ $13.50 o $22.50
+💰 QQQ $6.37 to $13.50
+🩸TSLA $5.80 to $4.20
+
+
+
+<@&1369304547356311564> 🐾",False,,True,trim,XOM,,,9.3,,full,6,"{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 9.3, ""size"": ""full""}"
+1468678928867660042,2026-02-04T18:45:43.377000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $4.05 to 9.30
+💰 SPY $3.70 to $8.60
+💰 SPY $11 to $15
+💰 QQQ $13.50 o $22.50
+💰 QQQ $6.37 to $13.50
+🩸TSLA $5.80 to $4.20
+
+
+
+<@&1369304547356311564> 🐾",False,,True,trim,SPY,,,8.6,,full,6,"{""action"": ""trim"", ""ticker"": ""SPY"", ""price"": 8.6, ""size"": ""full""}"
+1468678928867660042,2026-02-04T18:45:43.377000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $4.05 to 9.30
+💰 SPY $3.70 to $8.60
+💰 SPY $11 to $15
+💰 QQQ $13.50 o $22.50
+💰 QQQ $6.37 to $13.50
+🩸TSLA $5.80 to $4.20
+
+
+
+<@&1369304547356311564> 🐾",False,,True,trim,SPY,,,15,,full,6,"{""action"": ""trim"", ""ticker"": ""SPY"", ""price"": 15, ""size"": ""full""}"
+1468678928867660042,2026-02-04T18:45:43.377000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $4.05 to 9.30
+💰 SPY $3.70 to $8.60
+💰 SPY $11 to $15
+💰 QQQ $13.50 o $22.50
+💰 QQQ $6.37 to $13.50
+🩸TSLA $5.80 to $4.20
+
+
+
+<@&1369304547356311564> 🐾",False,,True,trim,QQQ,,,22.5,,full,6,"{""action"": ""trim"", ""ticker"": ""QQQ"", ""price"": 22.5, ""size"": ""full""}"
+1468678928867660042,2026-02-04T18:45:43.377000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $4.05 to 9.30
+💰 SPY $3.70 to $8.60
+💰 SPY $11 to $15
+💰 QQQ $13.50 o $22.50
+💰 QQQ $6.37 to $13.50
+🩸TSLA $5.80 to $4.20
+
+
+
+<@&1369304547356311564> 🐾",False,,True,trim,QQQ,,,13.5,,full,6,"{""action"": ""trim"", ""ticker"": ""QQQ"", ""price"": 13.5, ""size"": ""full""}"
+1468678928867660042,2026-02-04T18:45:43.377000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $4.05 to 9.30
+💰 SPY $3.70 to $8.60
+💰 SPY $11 to $15
+💰 QQQ $13.50 o $22.50
+💰 QQQ $6.37 to $13.50
+🩸TSLA $5.80 to $4.20
+
+
+
+<@&1369304547356311564> 🐾",False,,True,trim,TSLA,,,4.2,,full,6,"{""action"": ""trim"", ""ticker"": ""TSLA"", ""price"": 4.2, ""size"": ""full""}"
+1468707767870033950,2026-02-04T20:40:19.131000+00:00,sauced2002,Looking to reenter NVDA puts tomorrow,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468800653336907920,2026-02-05T02:49:24.752000+00:00,sauced2002,"$AAPL 🩸
+2/6 $275p or 2/20 $270p
+Rejection of $278 or Under $276.50
+TP: $272, $266, $262
+
+$SMH 🩸
+2/20 $370p
+Rejection of $390 or Under $382
+TP: $378.50, $370, $355
+
+$HAL
+3/20 $35c
+Pullback to $33.60 or Over $34.50
+TP: $35.50, $36.80, $38
+
+
+
+<@&1369304547356311564> 🐾",False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1468825789977067551,2026-02-05T04:29:17.794000+00:00,sauced2002,😉,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468979392792363190,2026-02-05T14:39:39.559000+00:00,sauced2002,"$HAL 
+3/20
+$35c
+$1.35
+
+1/2 size <@&1369304547356311564>",False,,True,buy,HAL,35,call,1.35,2026-03-20,half,1,"{""action"": ""buy"", ""ticker"": ""HAL"", ""strike"": 35, ""type"": ""call"", ""expiration"": ""2026-03-20"", ""price"": 1.35, ""size"": ""half""}"
+1468979963137884181,2026-02-05T14:41:55.540000+00:00,sauced2002,looking to reshort QQQ at 606 potentially,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468983167368167656,2026-02-05T14:54:39.488000+00:00,sauced2002,"in AAPL 
+3/20 
+$260p
+4.20 <@&1369304547356311564>",False,,True,buy,AAPL,260,put,4.2,2026-03-20,full,1,"{""action"": ""buy"", ""ticker"": ""AAPL"", ""strike"": 260, ""type"": ""put"", ""expiration"": ""2026-03-20"", ""price"": 4.2, ""size"": ""full""}"
+1468983211538251981,2026-02-05T14:54:50.019000+00:00,sauced2002,full size for me. SL is close over 278,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468983865287643218,2026-02-05T14:57:25.885000+00:00,sauced2002,"if you want some spice, 270p weekly on AAPL",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468983909097275649,2026-02-05T14:57:36.330000+00:00,sauced2002,flying back today so cant alert/manage it,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468988160796004606,2026-02-05T15:14:30.014000+00:00,sauced2002,"scaling back into XOM
+1st buy 
+3/20 $150c
+$3.30
+
+Will likely buy 3-4 more times <@&1369304547356311564>",False,,True,buy,XOM,150,call,3.3,2026-03-20,full,1,"{""action"": ""buy"", ""ticker"": ""XOM"", ""strike"": 150, ""type"": ""call"", ""expiration"": ""2026-03-20"", ""price"": 3.3, ""size"": ""full""}"
+1468989023543492792,2026-02-05T15:17:55.709000+00:00,sauced2002,"$HAL
+
+
+TP: $35.50, $36.80, $38
+
+SL is LOD",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468991554742915185,2026-02-05T15:27:59.194000+00:00,sauced2002,Out HAL $1.20 <@&1369304547356311564>,False,,True,exit,HAL,,,1.2,,,1,"{""action"": ""exit"", ""ticker"": ""HAL"", ""price"": 1.2}"
+1468996555074830361,2026-02-05T15:47:51.366000+00:00,sauced2002,AAPL wicks are telling...,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1468996572653031475,2026-02-05T15:47:55.557000+00:00,sauced2002,<:blood:1467026339205877790>,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469001732695658507,2026-02-05T16:08:25.807000+00:00,sauced2002,At $5 if you’re scurreed,True,"in AAPL 
+3/20 
+$260p
+4.20 <@&1369304547356311564>",False,null,,,,,,,0,"{""action"": ""null""}"
+1469005962181480542,2026-02-05T16:25:14.195000+00:00,sauced2002,"Hopping on flight. Word of advice, don’t trade based on your PnL.",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469056104158986462,2026-02-05T19:44:28.974000+00:00,sauced2002,"AAPL working fine. 
+
+If it sweeps $277 again tomorrow and fails, I’ll likely add to my March cons",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469056111255621632,2026-02-05T19:44:30.666000+00:00,sauced2002,,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469114214869241927,2026-02-05T23:35:23.647000+00:00,sauced2002,Congrats if you held,True,"I’m short SLV on rejection of 50d here. 
+
+Fridays 65p $1.80
+
+Manage your own trade",False,null,,,,,,,0,"{""action"": ""null""}"
+1469120721396568289,2026-02-06T00:01:14.924000+00:00,sauced2002,"Had a bunch of people asking me for a new user discount... so here's a code for 1/2 off first month on FiFi's TQE Suite. 
+
+Use Code “PUTS” Limited to 10 Spots.  
+
+ https://whop.com/badgirlfifi-trading/the-a-trading-suite-5/
+
+
+<@&1369304547356311564>",False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1469330054696665274,2026-02-06T13:53:03.872000+00:00,sauced2002,"Odte watch list: SLV, NVDA, COIN, XOM",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469330855477510306,2026-02-06T13:56:14.793000+00:00,sauced2002,Nvda could be setting up to short into 180,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469332854583459850,2026-02-06T14:04:11.417000+00:00,sauced2002,"still not an environment i'd be ready to swing longs, would of wanted a bigger gap down into the open.",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469341162820341904,2026-02-06T14:37:12.255000+00:00,sauced2002,"SLV 0dte $70c .60 
+SL is LOW <@&1369304547356311564>",False,,True,buy,SLV,70,call,0.6,2026-02-09,full,1,"{""action"": ""buy"", ""ticker"": ""SLV"", ""strike"": 70, ""type"": ""call"", ""expiration"": ""2026-02-09"", ""price"": 0.6, ""size"": ""full""}"
+1469346644406566984,2026-02-06T14:58:59.167000+00:00,sauced2002,XOM 148c 0dte .68 <@&1369304547356311564>,False,,True,buy,XOM,148,call,0.68,2026-02-09,full,1,"{""action"": ""buy"", ""ticker"": ""XOM"", ""strike"": 148, ""type"": ""call"", ""expiration"": ""2026-02-09"", ""price"": 0.68, ""size"": ""full""}"
+1469348758058700811,2026-02-06T15:07:23.101000+00:00,sauced2002,trim XOM 1.22 <@&1369304547356311564>,False,,True,trim,XOM,,,1.22,,,1,"{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 1.22}"
+1469350152232894677,2026-02-06T15:12:55.498000+00:00,sauced2002,next TP 150 on XOM,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469351006721671431,2026-02-06T15:16:19.224000+00:00,sauced2002,took a small trum 1.50 on XOM <@&1369304547356311564>,False,,True,trim,XOM,,,1.5,,,1,"{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 1.5}"
+1469355534338494666,2026-02-06T15:34:18.692000+00:00,sauced2002,SLV TPS 70.20 AND 71.43,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469359591811711252,2026-02-06T15:50:26.069000+00:00,sauced2002,come on down apple,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469360705181319270,2026-02-06T15:54:51.517000+00:00,sauced2002,out SLV at BE <@&1369304547356311564>,False,,True,exit,SLV,,,BE,,,1,"{""action"": ""exit"", ""ticker"": ""SLV"", ""price"": ""BE""}"
+1469363157624684617,2026-02-06T16:04:36.225000+00:00,sauced2002,stops at BE on XOM,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469364586523394216,2026-02-06T16:10:16.901000+00:00,sauced2002,"in WMT 130c 0dte .32 <@&1369304547356311564> 
+risk to zero",False,,True,buy,WMT,130,call,0.32,2026-02-09,full,1,"{""action"": ""buy"", ""ticker"": ""WMT"", ""strike"": 130, ""type"": ""call"", ""expiration"": ""2026-02-09"", ""price"": 0.32, ""size"": ""full""}"
+1469365356920307883,2026-02-06T16:13:20.578000+00:00,sauced2002,trim WMT .45 <@&1369304547356311564>,False,,True,trim,WMT,130,call,0.45,,,1,"{""action"": ""trim"", ""ticker"": ""WMT"", ""strike"": 130, ""type"": ""call"", ""price"": 0.45}"
+1469368838960185364,2026-02-06T16:27:10.761000+00:00,sauced2002,out XOM in profit,False,,False,exit,XOM,,,market,,,1,"{""action"": ""exit"", ""ticker"": ""XOM"", ""price"": ""market""}"
+1469369059345957048,2026-02-06T16:28:03.305000+00:00,sauced2002,stopat BE on WMT <@&1369304547356311564>,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1469377715969851628,2026-02-06T17:02:27.205000+00:00,sauced2002,bacj in SLV 70c 0dte <@&1369304547356311564> .50,False,,True,buy,SLV,70,call,0.5,2026-02-09,full,1,"{""action"": ""buy"", ""ticker"": ""SLV"", ""strike"": 70, ""type"": ""call"", ""expiration"": ""2026-02-09"", ""price"": 0.5, ""size"": ""full""}"
+1469379863453634570,2026-02-06T17:10:59.205000+00:00,sauced2002,"trim XOM March 4.50 from 3.25 
+will add full size if we get a pullback next week <@&1369304547356311564>",False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1469379986267050034,2026-02-06T17:11:28.486000+00:00,sauced2002,"looking for SLV EOD squeeze, shorts covering",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469380480712315093,2026-02-06T17:13:26.371000+00:00,sauced2002,"super lotto XOM 0dte 150c
+.11 <@&1369304547356311564>",False,,True,buy,XOM,150,call,0.11,2026-02-09,lotto,1,"{""action"": ""buy"", ""ticker"": ""XOM"", ""strike"": 150, ""type"": ""call"", ""expiration"": ""2026-02-09"", ""price"": 0.11, ""size"": ""lotto""}"
+1469381844003848273,2026-02-06T17:18:51.405000+00:00,sauced2002,have a sell in for .22 for 1/2 <@&1369304547356311564>,True,"super lotto XOM 0dte 150c
+.11 <@&1369304547356311564>",True,trim,XOM,150,call,0.22,,half,1,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": 150, ""type"": ""call"", ""price"": 0.22, ""size"": ""half""}"
+1469387925660893216,2026-02-06T17:43:01.385000+00:00,sauced2002,sold some here .15 <@&1369304547356311564>,True,"looking for SLV EOD squeeze, shorts covering",True,trim,SLV,,,0.15,,,1,"{""action"": ""trim"", ""ticker"": ""SLV"", ""price"": 0.15}"
+1469387943620641033,2026-02-06T17:43:05.667000+00:00,sauced2002,have 1/2 sell in at .22,False,,False,trim,XOM,,,0.22,,half,1,"{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 0.22, ""size"": ""half""}"
+1469391421923397767,2026-02-06T17:56:54.959000+00:00,sauced2002,"trim .75 SLV 
+
++50%
+
+<@&1369304547356311564>",True,bacj in SLV 70c 0dte <@&1369304547356311564> .50,True,trim,SLV,,,0.75,,,1,"{""action"": ""trim"", ""ticker"": ""SLV"", ""price"": 0.75}"
+1469391492593352737,2026-02-06T17:57:11.808000+00:00,sauced2002,looking for 50 day ema test of 71.45,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469393252930289735,2026-02-06T18:04:11.505000+00:00,sauced2002,out of XOM lotto at bE,False,,False,exit,XOM,,,BE,,,1,"{""action"": ""exit"", ""ticker"": ""XOM"", ""price"": ""BE""}"
+1469393692065530115,2026-02-06T18:05:56.203000+00:00,sauced2002,have sell in for $1.50 on SLV,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469396553180512432,2026-02-06T18:17:18.346000+00:00,sauced2002,took another tim .90 on SLV,False,,False,trim,SLV,,,0.9,,,1,"{""action"": ""trim"", ""ticker"": ""SLV"", ""price"": 0.9}"
+1469396581177626634,2026-02-06T18:17:25.021000+00:00,sauced2002,having a tough time over YDH <@&1369304547356311564>,False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1469398792443924531,2026-02-06T18:26:12.228000+00:00,sauced2002,"added to AAPL here at $3.15
+added 5 cons to my 20 original 
+
+new average is $4.00 <@&1369304547356311564>",False,,True,buy,AAPL,,,3.15,2026-02-09,full,1,"{""action"": ""buy"", ""ticker"": ""AAPL"", ""strike"": null, ""type"": null, ""price"": 3.15, ""expiration"": ""2026-02-09"", ""size"": ""full""}"
+1469398930599968948,2026-02-06T18:26:45.167000+00:00,sauced2002,have your trade plan,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469398997243396168,2026-02-06T18:27:01.056000+00:00,sauced2002,"cons have time, so im comfortable",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469411410424500256,2026-02-06T19:16:20.589000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $3.25 to $4.50
+💰 XOM .68 to $1.50
+💰 WMT .32 to .45
+💰 XOM .11 to .15
+💰 SLV .50 to .90 
+
+
+🐶 FiFi’s Open Positions 
+
+▪️XOM 3/20 $150c @ $3.25
+▪️AAPL 3/20 $260p @ $4 average 
+
+
+HAGW 🐾
+
+<@&1369304547356311564>",False,,True,null,,,,,,,0,"{""action"": ""null""}"
+1469477311765283047,2026-02-06T23:38:12.693000+00:00,sauced2002,"Will be looking to enter puts Monday before close. 
+
+Looking for sweep of 695 area, and downside target of $670 
+
+🩸😬",False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469477338285604968,2026-02-06T23:38:19.016000+00:00,sauced2002,,True,"Will be looking to enter puts Monday before close. 
+
+Looking for sweep of 695 area, and downside target of $670 
+
+🩸😬",False,null,,,,,,,0,"{""action"": ""null""}"
+1469508344279601297,2026-02-07T01:41:31.421000+00:00,sauced2002,Just gonna say this… AAPL chart reminds me of TSLA in December 😬,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469508462479278262,2026-02-07T01:41:59.602000+00:00,sauced2002,Deep research time,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1469838377393066201,2026-02-07T23:32:57.447000+00:00,sauced2002,Looking at MSFT for a dead cat bounce towards $440 also.,False,,False,null,,,,,,,0,"{""action"": ""null""}"

@@ -131,7 +131,8 @@
       "quantity": 3,
       "channel": "Sean",
       "created_at": "2026-02-03T19:55:33.546840+00:00",
-      "status": "open"
+      "status": "closed",
+      "closed_at": "2026-02-03T19:59:07.576088+00:00"
     }
   ],
   "1072555808832888945": [
@@ -154,6 +155,164 @@
       "created_at": "2026-01-29T17:19:23.569686+00:00",
       "status": "closed",
       "closed_at": "2026-01-29T17:20:36.428805+00:00"
+    },
+    {
+      "trade_id": "trade_1770215688256",
+      "symbol": "MU",
+      "trader_symbol": "MU",
+      "broker_symbol": "MU",
+      "symbol_variants": [
+        "MU"
+      ],
+      "strike": 380.0,
+      "type": "put",
+      "expiration": "2026-02-13",
+      "purchase_price": 10.9,
+      "entry_price": 10.9,
+      "size": "full",
+      "quantity": 2,
+      "channel": "Sean",
+      "created_at": "2026-02-04T14:34:48.371780+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1770649758278",
+      "symbol": "LOW",
+      "trader_symbol": "LOW",
+      "broker_symbol": "LOW",
+      "symbol_variants": [
+        "LOW"
+      ],
+      "strike": 300.0,
+      "type": "call",
+      "expiration": "2026-03-20",
+      "purchase_price": 3.2,
+      "entry_price": 3.2,
+      "size": "half",
+      "quantity": 2,
+      "channel": "Sean",
+      "created_at": "2026-02-09T15:09:18.286021+00:00",
+      "status": "open"
+    }
+  ],
+  "1368713891072315483": [
+    {
+      "trade_id": "trade_1770225277622",
+      "symbol": "TSLA",
+      "trader_symbol": "TSLA",
+      "broker_symbol": "TSLA",
+      "symbol_variants": [
+        "TSLA"
+      ],
+      "strike": 410.0,
+      "type": "call",
+      "expiration": "2026-02-04",
+      "purchase_price": 5.95,
+      "entry_price": 5.95,
+      "size": "full",
+      "quantity": 1,
+      "channel": "FiFi",
+      "created_at": "2026-02-04T17:14:37.627745+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1770648723160",
+      "symbol": "AAPL",
+      "trader_symbol": "AAPL",
+      "broker_symbol": "AAPL",
+      "symbol_variants": [
+        "AAPL"
+      ],
+      "strike": 270.0,
+      "type": "put",
+      "expiration": "2026-02-09",
+      "purchase_price": 0.25,
+      "entry_price": 0.25,
+      "size": "lotto",
+      "quantity": 1,
+      "channel": "FiFi",
+      "created_at": "2026-02-09T14:52:03.278416+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1770649358038",
+      "symbol": "XOM",
+      "trader_symbol": "XOM",
+      "broker_symbol": "XOM",
+      "symbol_variants": [
+        "XOM"
+      ],
+      "strike": 160.0,
+      "type": "call",
+      "expiration": "2026-04-17",
+      "purchase_price": 2.85,
+      "entry_price": 2.85,
+      "size": "lotto",
+      "quantity": 1,
+      "channel": "FiFi",
+      "created_at": "2026-02-09T15:02:38.157260+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1770650194145",
+      "symbol": "SPY",
+      "trader_symbol": "SPY",
+      "broker_symbol": "SPY",
+      "symbol_variants": [
+        "SPY"
+      ],
+      "strike": 680.0,
+      "type": "put",
+      "expiration": "2026-02-27",
+      "purchase_price": 4.95,
+      "entry_price": 4.95,
+      "size": "half",
+      "quantity": 1,
+      "channel": "FiFi",
+      "created_at": "2026-02-09T15:16:34.251159+00:00",
+      "status": "open"
+    }
+  ],
+  "1072559822366576780": [
+    {
+      "trade_id": "trade_1770226729723",
+      "symbol": "SPX",
+      "trader_symbol": "SPX",
+      "broker_symbol": "SPXW",
+      "symbol_variants": [
+        "SPX",
+        "SPXW"
+      ],
+      "strike": 6780,
+      "type": "put",
+      "expiration": "2026-02-04",
+      "purchase_price": 2.55,
+      "entry_price": 2.55,
+      "size": "full",
+      "quantity": 1,
+      "channel": "Ryan",
+      "created_at": "2026-02-04T17:38:49.730113+00:00",
+      "status": "open"
+    },
+    {
+      "trade_id": "trade_1770308316037",
+      "symbol": "SPX",
+      "trader_symbol": "SPX",
+      "broker_symbol": "SPXW",
+      "symbol_variants": [
+        "SPXW",
+        "SPX"
+      ],
+      "strike": 6720,
+      "type": "put",
+      "expiration": "2026-02-05",
+      "purchase_price": 2.6,
+      "entry_price": 2.6,
+      "size": "full",
+      "quantity": 2,
+      "channel": "Ryan",
+      "created_at": "2026-02-05T16:18:37.767012+00:00",
+      "status": "open"
     }
   ]
 }

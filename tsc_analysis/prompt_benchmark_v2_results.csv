@@ -1,0 +1,247 @@
+msg,current_ms,fixed_ms,delta_ms,current_result,fixed_result
+small trim $5 from 4.05 <@&1369304547356311564>,824.8968124389648,563.7362003326416,-261.16061210632324,"{""action"": ""trim"", ""ticker"": null, ""strike"": null, ""type"": null, ""price"": 4.05, ""expiration"": null, ""size"": 5}","{""action"": ""trim"", ""ticker"": ""UNKNOWN"", ""price"": 5}"
+Good spot to take profits on weekly spy/qqq puts. ,265.2850151062012,695.3411102294922,430.056095123291,"{""action"": ""null""}","{""action"": ""null""}"
+QQQs might flush here under 50day,396.04663848876953,305.51695823669434,-90.5296802520752,"{""action"": ""null""}","{""action"": ""null""}"
+,426.1670112609863,981.0607433319092,554.8937320709229,"{""action"": ""null""}","{""action"": ""null""}"
+Heading into meetings.   Have a limit sell for 1/2,211.9612693786621,311.53011322021484,99.56884384155273,"{""action"": ""null""}","{""action"": ""null""}"
+<@&1369304547356311564>,238.29293251037598,437.5760555267334,199.28312301635742,"{""action"": ""null""}","{""action"": ""null""}"
+Sold some more XOM 6.50 <@&1369304547356311564>,711.7569446563721,514.5270824432373,-197.22986221313477,"{
+  ""action"": ""trim"",
+  ""ticker"": ""XOM"",
+  ""strike"": ""6.50"",
+  ""type"": null,
+  ""price"": null,
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 6.50}"
+👆,297.0240116119385,271.838903427124,-25.185108184814453,"{""action"": ""null""}","{""action"": ""null""}"
+,243.14093589782715,496.74177169799805,253.6008358001709,"{""action"": ""null""}","{""action"": ""null""}"
+🚀,250.4899501800537,261.27099990844727,10.781049728393555,"{""action"": ""null""}","{""action"": ""null""}"
+"Out PLTR BE here. Iran news can move it,",542.3281192779541,489.4900321960449,-52.83808708190918,"{""action"": ""exit"", ""ticker"": ""PLTR"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","{""action"": ""exit"", ""ticker"": ""PLTR"", ""price"": ""market""}"
+<@&1369304547356311564>,406.73089027404785,310.95099449157715,-95.7798957824707,"{""action"": ""null""}","{""action"": ""null""}"
+Trimmed XOM 7.5 <@&1369304547356311564>,783.3600044250488,401.01099014282227,-382.34901428222656,"{
+  ""action"": ""trim"",
+  ""ticker"": ""XOM"",
+  ""strike"": ""7.5"",
+  ""type"": null,
+  ""price"": null,
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 7.5}"
+Trimmed weekly and 2/20 puts   Holding April. Will,292.01579093933105,327.7299404144287,35.714149475097656,"{""action"": ""null""}","{""action"": ""null""}"
+Trim spy weekly $7,1020.1969146728516,321.87390327453613,-698.3230113983154,"{""action"": ""trim"", ""ticker"": ""SPY"", ""strike"": null, ""type"": null, ""price"": 7, ""expiration"": null, ""size"": null}","{""action"": ""null""}"
+<@&1369304547356311564>,516.934871673584,436.54608726501465,-80.38878440856934,"{""action"": ""null""}","{""action"": ""null""}"
+Trimmed QQQ 2/20 at $10.60 here from 6.60   <@&136,636.8241310119629,619.7330951690674,-17.091035842895508,"{
+  ""action"": ""trim"",
+  ""ticker"": ""QQQ"",
+  ""strike"": null,
+  ""type"": null,
+  ""price"": 10.60,
+  ""expiration"": ""2026-02-20"",
+  ""size"": null
+}","{""action"": ""trim"", ""ticker"": ""QQQ"", ""price"": 10.60}"
+Trimmed spy 7.20 from 4.60 for 2/20,817.2512054443359,637.1822357177734,-180.0689697265625,"{
+  ""action"": ""trim"",
+  ""ticker"": ""SPY"",
+  ""strike"": ""7.20"",
+  ""type"": ""call"",
+  ""price"": ""4.60"",
+  ""expiration"": ""2026-02-20"",
+  ""size"": null
+}","{""action"": ""trim"", ""ticker"": ""SPY"", ""price"": 7.20, ""expiration"": ""2026-02-20""}"
+Trims 💇‍♀️  PLTR $2.70 to $4.00 XOM $4.05 to $7.50,237.02096939086914,253.18312644958496,16.16215705871582,"{""action"": ""null""}","{""action"": ""null""}"
+<@&1369304547356311564> 🐾,376.7280578613281,1881.2737464904785,1504.5456886291504,"{""action"": ""null""}","{""action"": ""null""}"
+Ugh,355.78203201293945,437.2880458831787,81.50601387023926,"{""action"": ""null""}","{""action"": ""null""}"
+This is why i tend to give a longer leash on most ,219.1910743713379,312.50619888305664,93.31512451171875,"{""action"": ""null""}","{""action"": ""null""}"
+But didn’t this time 🤦🏽‍♂️,310.3020191192627,469.2869186401367,158.98489952087402,"{""action"": ""null""}","{""action"": ""null""}"
+Eyeing SMH short on the next bounce,284.7270965576172,307.97410011291504,23.24700355529785,"{""action"": ""null""}","{""action"": ""null""}"
+trim SPY weekly puts here $6.50 from 3.70 trim QQQ,2444.434881210327,0,-2444.434881210327,"{
+  ""trades"": [
+    {
+      ""action"": ""trim"",
+      ""ticker"": ""SPY"",
+      ""strike"": null,
+      ""type"": ""put"",
+      ""price"": 6.50,
+      ""expiration"": ""weekly"",
+      ""size"": null
+    },
+    {
+      ""action"": ""trim"",
+      ""ticker"": ""QQQ"",
+      ""strike"": 13.50,
+      ""type"": null,
+      ""price"": null,
+      ""expiration"": ""2/20"",
+      ""size"": null
+    },
+    {
+      ""action"": ""trim"",
+      ""ticker"": ""XOM"",
+      ""strike"": null,
+      ""type"": null,
+      ""price"": null,
+      ""expiration"": null,
+      ""size"": 9
+    }
+  ]
+}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+in TSLA weekly 410c 5.80 <@&1369304547356311564>,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+SL LOD,0,292.92917251586914,292.92917251586914,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+all out weekly SPY 8.60 <@&1369304547356311564>  f,1211.7629051208496,594.3858623504639,-617.3770427703857,"{
+  ""action"": ""exit"",
+  ""ticker"": ""SPY"",
+  ""strike"": null,
+  ""type"": ""weekly"",
+  ""price"": ""8.60"",
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""exit"", ""ticker"": ""SPY"", ""price"": 8.60}"
+out tsla 4.2 <@&1369304547356311564>,1381.5999031066895,0,-1381.5999031066895,"{
+  ""action"": ""exit"",
+  ""ticker"": ""TSLA"",
+  ""strike"": null,
+  ""type"": null,
+  ""price"": ""4.2"",
+  ""expiration"": null,
+  ""size"": null
+}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+was looking for a bounce,0,379.41765785217285,379.41765785217285,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+https://klipy.com/gifs/ryan-stiles-middle-finger-1,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+to all the TSLA to $500 folks tho,874.3932247161865,0,-874.3932247161865,"{""action"": ""null""}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+https://tenor.com/view/mjpersonal-gif-129107576616,227.56695747375488,0,-227.56695747375488,"{""action"": ""null""}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+<@&1369304547356311564>,307.3129653930664,283.1592559814453,-24.153709411621094,"{""action"": ""null""}","{""action"": ""null""}"
+sold an April con of QQQ and SPY SPY $15 from $11 ,1978.5902500152588,2241.142988204956,262.55273818969727,"{
+  ""trades"": [
+    {
+      ""action"": ""exit"",
+      ""ticker"": ""SPY"",
+      ""strike"": ""$15"",
+      ""type"": ""call"",
+      ""price"": ""$11"",
+      ""expiration"": ""April"",
+      ""size"": null
+    },
+    {
+      ""action"": ""exit"",
+      ""ticker"": ""QQQ"",
+      ""strike"": ""$22.50"",
+      ""type"": ""call"",
+      ""price"": ""$13.50"",
+      ""expiration"": ""April"",
+      ""size"": null
+    }
+  ]
+}","{
+  ""trades"": [
+    {
+      ""action"": ""trim"",
+      ""ticker"": ""SPY"",
+      ""strike"": 15,
+      ""type"": ""call"",
+      ""price"": 15,
+      ""expiration"": ""2026-04-01"",
+      ""size"": ""full""
+    },
+    {
+      ""action"": ""trim"",
+      ""ticker"": ""QQQ"",
+      ""strike"": 22.50,
+      ""type"": ""call"",
+      ""price"": 22.50,
+      ""expiration"": ""2026-04-01"",
+      ""size"": ""full""
+    }
+  ]
+}"
+out of short dated puts will re enter tomorrow <@&,1654.7610759735107,1770.8051204681396,116.0440444946289,"{""action"": ""null""}","{""action"": ""null""}"
+holding april,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+all out of XOM here too 9.30  bit extended,0,2601.317882537842,2601.317882537842,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""exit"", ""ticker"": ""XOM"", ""price"": 9.30}"
+"Actually, all out of all positions for now. I’m al",0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+Gonna wait for set up again,768.9709663391113,1000.2062320709229,231.23526573181152,"{""action"": ""null""}","{""action"": ""null""}"
+Don’t see 600 cracking on QQQ yet,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+💇‍♀️ TRIMS  💰 XOM $4.05 to 9.30 💰 SPY $3.70 to $8.,0,921.4739799499512,921.4739799499512,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+Looking to reenter NVDA puts tomorrow,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+$AAPL 🩸 2/6 $275p or 2/20 $270p Rejection of $278 ,302.001953125,0,-302.001953125,"{
+  ""action"": ""null""
+}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+😉,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+$HAL  3/20 $35c $1.35  1/2 size <@&136930454735631,798.56276512146,0,-798.56276512146,"{""action"": ""null""}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+looking to reshort QQQ at 606 potentially,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+in AAPL  3/20  $260p 4.20 <@&1369304547356311564>,765.0477886199951,1264.359951019287,499.312162399292,"{
+  ""action"": ""buy"",
+  ""ticker"": ""AAPL"",
+  ""strike"": ""$260p"",
+  ""type"": ""put"",
+  ""price"": ""4.20"",
+  ""expiration"": ""3/20"",
+  ""size"": null
+}","{""action"": ""buy"", ""ticker"": ""AAPL"", ""strike"": 260, ""type"": ""put"", ""price"": 4.20, ""expiration"": ""2026-03-20"", ""size"": ""full""}"
+full size for me. SL is close over 278,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+"if you want some spice, 270p weekly on AAPL",0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+flying back today so cant alert/manage it,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+scaling back into XOM 1st buy  3/20 $150c $3.30  W,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+"$HAL   TP: $35.50, $36.80, $38  SL is LOD",0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+Out HAL $1.20 <@&1369304547356311564>,626.4119148254395,1258.636713027954,632.2247982025146,"{
+  ""action"": ""exit"",
+  ""ticker"": ""HAL"",
+  ""strike"": null,
+  ""type"": null,
+  ""price"": ""1.20"",
+  ""expiration"": null,
+  ""size"": null
+}","{""action"": ""exit"", ""ticker"": ""HAL"", ""price"": 1.20}"
+AAPL wicks are telling...,0,953.0239105224609,953.0239105224609,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+<:blood:1467026339205877790>,0,597.2051620483398,597.2051620483398,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+At $5 if you’re scurreed,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+"Hopping on flight. Word of advice, don’t trade bas",231.63604736328125,0,-231.63604736328125,"{""action"": ""null""}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+AAPL working fine.   If it sweeps $277 again tomor,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+,0,939.2421245574951,939.2421245574951,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+Congrats if you held,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+Had a bunch of people asking me for a new user dis,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+"Odte watch list: SLV, NVDA, COIN, XOM",0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+Nvda could be setting up to short into 180,383.9762210845947,0,-383.9762210845947,"{""action"": ""null""}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+still not an environment i'd be ready to swing lon,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+SLV 0dte $70c .60  SL is LOW <@&136930454735631156,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+XOM 148c 0dte .68 <@&1369304547356311564>,0,1117.1369552612305,1117.1369552612305,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+trim XOM 1.22 <@&1369304547356311564>,0,545.1209545135498,545.1209545135498,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 1.22}"
+next TP 150 on XOM,781.4679145812988,2133.800983428955,1352.3330688476562,"{""action"": ""null""}","{""action"": ""null""}"
+took a small trum 1.50 on XOM <@&13693045473563115,1201.598882675171,1276.7791748046875,75.1802921295166,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": ""1.50"", ""expiration"": null, ""size"": null}","{""action"": ""null""}"
+SLV TPS 70.20 AND 71.43,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+come on down apple,0,1000.0531673431396,1000.0531673431396,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+out SLV at BE <@&1369304547356311564>,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+stops at BE on XOM,0,385.1649761199951,385.1649761199951,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+in WMT 130c 0dte .32 <@&1369304547356311564>  risk,653.5208225250244,0,-653.5208225250244,"{
+  ""action"": ""buy"",
+  ""ticker"": ""WMT"",
+  ""strike"": ""130c"",
+  ""type"": ""call"",
+  ""price"": "".32"",
+  ""expiration"": ""0dte"",
+  ""size"": null
+}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+trim WMT .45 <@&1369304547356311564>,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+out XOM in profit,2115.2877807617188,0,-2115.2877807617188,"{""action"": ""exit"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+stopat BE on WMT <@&1369304547356311564>,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+bacj in SLV 70c 0dte <@&1369304547356311564> .50,1289.5219326019287,0,-1289.5219326019287,"{""action"": ""buy"", ""ticker"": ""SLV"", ""strike"": ""70c"", ""type"": ""call"", ""price"": 0.50, ""expiration"": ""0dte"", ""size"": null}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+trim XOM March 4.50 from 3.25  will add full size ,0,1985.1536750793457,1985.1536750793457,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+"looking for SLV EOD squeeze, shorts covering",0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+super lotto XOM 0dte 150c .11 <@&13693045473563115,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+have a sell in for .22 for 1/2 <@&1369304547356311,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+sold some here .15 <@&1369304547356311564>,0,1771.104097366333,1771.104097366333,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+have 1/2 sell in at .22,249.4361400604248,0,-249.4361400604248,"{""action"": ""null""}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+trim .75 SLV   +50%  <@&1369304547356311564>,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+looking for 50 day ema test of 71.45,794.7349548339844,0,-794.7349548339844,"{""action"": ""null""}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+out of XOM lotto at bE,1133.0649852752686,0,-1133.0649852752686,"{""action"": ""exit"", ""ticker"": ""XOM"", ""strike"": null, ""type"": null, ""price"": null, ""expiration"": null, ""size"": null}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+have sell in for $1.50 on SLV,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+took another tim .90 on SLV,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+having a tough time over YDH <@&136930454735631156,0,960.0939750671387,960.0939750671387,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+added to AAPL here at $3.15 added 5 cons to my 20 ,0,2253.944158554077,2253.944158554077,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""buy"", ""ticker"": ""AAPL"", ""price"": 3.15, ""strike"": null, ""type"": null, ""expiration"": null, ""size"": ""full""}"
+have your trade plan,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+"cons have time, so im comfortable",0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+💇‍♀️ TRIMS  💰 XOM $3.25 to $4.50 💰 XOM .68 to $1.5,0,952.4359703063965,952.4359703063965,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+Will be looking to enter puts Monday before close.,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+,0,898.8292217254639,898.8292217254639,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","{""action"": ""null""}"
+Just gonna say this… AAPL chart reminds me of TSLA,217.38004684448242,0,-217.38004684448242,"{""action"": ""null""}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+Deep research time,0,0,0,"Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}","Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+Looking at MSFT for a dead cat bounce towards $440,1932.9779148101807,369.9479103088379,-1563.0300045013428,"{""action"": ""null""}","{""action"": ""null""}"

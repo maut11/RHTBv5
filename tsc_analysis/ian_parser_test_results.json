@@ -1,0 +1,849 @@
+{
+  "stats": {
+    "total": 200,
+    "actions": {
+      "null": 123,
+      "stop_update": 5,
+      "exit": 17,
+      "empty": 21,
+      "buy": 17,
+      "trim": 17
+    },
+    "errors": 0,
+    "avg_parse_time_ms": 1138.021830073948
+  },
+  "actionable_results": [
+    {
+      "msg_id": "1463554269868200037",
+      "content": "b/e stop onn $CIFR.\n\nI got 2 trims off into strength.\n\nBreak above > PWH and these cons will get jui",
+      "action": "stop_update",
+      "parsed": {
+        "action": "stop_update",
+        "ticker": "CIFR",
+        "new_stop": "b/e",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:03.831137+00:00"
+      },
+      "parse_time": 1.9390625953674316
+    },
+    {
+      "msg_id": "1463554695489650708",
+      "content": "FINALLY FLAT $ASTS.\n\nWith the weakness from $RKLB and $ASTS this morning, I'm finally going to cut m",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "ASTS",
+        "price": "b/e",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:05.177664+00:00"
+      },
+      "parse_time": 1.3477509021759033
+    },
+    {
+      "msg_id": "1463916579686191293",
+      "content": "ADDING $RKLB 90c 20 Feb @ 5.65\n\n1/2 Size (21 EMA BUY + RDR + Jan 7 LOD support sweep)\n\nStop: LOD",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "RKLB",
+        "strike": 90.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 5.65,
+        "size": "half",
+        "new_stop": "LOD",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:34.192646+00:00"
+      },
+      "parse_time": 4.795587062835693
+    },
+    {
+      "msg_id": "1463916766798418022",
+      "content": "<@&1457740469353058469>",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "RKLB",
+        "strike": 90.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 5.65,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:35.523199+00:00"
+      },
+      "parse_time": 1.3302431106567383
+    },
+    {
+      "msg_id": "1463961347934126166",
+      "content": "I'm trimming more of my $RKLB 84c 23 Jan weeklies here ITM.\n\n1.63 -> 3.00 +84%\n\nStop at b/e, first t",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "RKLB",
+        "strike": 84.0,
+        "type": "call",
+        "expiration": "2026-01-23",
+        "price": 3.0,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:49.958070+00:00"
+      },
+      "parse_time": 1.1781461238861084
+    },
+    {
+      "msg_id": "1463965311903469731",
+      "content": "TRIMMING small CORE here $RKLB 90c 20 Feb\n\nPaying for risk here @ OP + HOD test.\n\n5.65 -> 7.00 +25% ",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "RKLB",
+        "strike": 90.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 7.0,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:51.920424+00:00"
+      },
+      "parse_time": 1.3442151546478271
+    },
+    {
+      "msg_id": "1463966680056201484",
+      "content": "Trimming more $RKLB 84c 23 Jan weeklies (down to runners)\n\n1.63 -> 3.55 + 118%",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "RKLB",
+        "strike": 84.0,
+        "type": "call",
+        "expiration": "2026-01-23",
+        "price": 3.55,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:53.093477+00:00"
+      },
+      "parse_time": 1.1730308532714844
+    },
+    {
+      "msg_id": "1463970864923017308",
+      "content": "FLAT here on $RKLB weeklies.\n\n1.63 -> 4.00 150%+\n\nI'll take it.",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "RKLB",
+        "price": 4.0,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:54.325340+00:00"
+      },
+      "parse_time": 0.6847989559173584
+    },
+    {
+      "msg_id": "1463982039123493029",
+      "content": "SMALL TRIM $RKLB 90c 20 Feb\n\nWe're on a heater, this is unreal!\n\n5.65 -> 8.65 +53% \ud83c\udfaf \ud83d\udd25\n\nTOC \ud83d\udd25 emoji ",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "RKLB",
+        "strike": 90.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 8.65,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:44:57.611360+00:00"
+      },
+      "parse_time": 0.9659488201141357
+    },
+    {
+      "msg_id": "1464275919752663050",
+      "content": "ADDING $APLD 37c 20 Feb @ 2.74\n\n(VWAP reclaim, RDR entry, reclaim OP, 37% LOD dis)\n\n1/2 size\n\nStop: ",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "APLD",
+        "strike": 37.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 2.74,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:09.494949+00:00"
+      },
+      "parse_time": 1.0778329372406006
+    },
+    {
+      "msg_id": "1464281688292069495",
+      "content": "ADDING $RKT 23c 20 Feb @ .57\n\n1/2 size\n\n(VWAP reclaim, bids @ gap fill + 21 EMA + RDR buy)\n\nIf this ",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "RKT",
+        "strike": 23.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 0.57,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:16.432792+00:00"
+      },
+      "parse_time": 1.2144896984100342
+    },
+    {
+      "msg_id": "1464282278476648478",
+      "content": "TRIMMING SMALL $RKLB 90c 20 Feb:\n\nNHOD + 91 test.\n\n5.65 -> 9.20 +63% \u2705 \ud83d\udd25\n\n<@&1457740469353058469>",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "RKLB",
+        "strike": 90.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 9.2,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:17.896613+00:00"
+      },
+      "parse_time": 1.4637649059295654
+    },
+    {
+      "msg_id": "1464283269540479219",
+      "content": "TRIMMING $APLD 37c 20 Feb (1/5th trim)\n\n2.74 -> 3.60 +31% \ud83c\udfaf\n\nWow, amazing RS so far.\n\n<@&14577404693",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "APLD",
+        "strike": 37.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 3.6,
+        "size": "lotto",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:19.045668+00:00"
+      },
+      "parse_time": 1.1489229202270508
+    },
+    {
+      "msg_id": "1464285062684999850",
+      "content": "$RKT",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "RKT",
+        "strike": 23.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 0.57,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:28.837571+00:00"
+      },
+      "parse_time": 1.6020207405090332
+    },
+    {
+      "msg_id": "1464293748094799986",
+      "content": "TRIMMING SMALL $APLD 37c 20 Feb\n\n2.74 -> 3.95 +44% \ud83d\udd25\n\nSmall trim into heavy resistance, I've gotta t",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "APLD",
+        "strike": 37.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 3.95,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:31.227628+00:00"
+      },
+      "parse_time": 1.355652093887329
+    },
+    {
+      "msg_id": "1464294384534294787",
+      "content": "FIRST TRIM ON $RKT (1/5th trim) paying for risk.\n\n.57 -> .72 +27% \ud83c\udfaf \n\nReally nice move off the 21 EM",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "RKT",
+        "price": 0.72,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:32.118758+00:00"
+      },
+      "parse_time": 0.891038179397583
+    },
+    {
+      "msg_id": "1464342681361846415",
+      "content": "TRIMMMING $APLD\n\n$APLD 37c 20 Feb: @ 2.74 -> 5.25 +92% \ud83d\udd25\n\nTOC we're so paid it's unreal, killer entr",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "APLD",
+        "strike": 37.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 5.25,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:34.505089+00:00"
+      },
+      "parse_time": 1.1338188648223877
+    },
+    {
+      "msg_id": "1464343758777618447",
+      "content": "Stopping out of $RKT here @ b/e\n\nno followthrough off 21 EMA.\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "RKT",
+        "price": "b/e",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:35.326365+00:00"
+      },
+      "parse_time": 0.8212201595306396
+    },
+    {
+      "msg_id": "1465354119895322793",
+      "content": "Closing the rest of my $RKLB position here.\n\n$RKLB 90c 20 Feb: @ 5.65 -> 6.10 +10%\n\nIf we didn't gap",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "RKLB",
+        "price": 6.1,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:46.755191+00:00"
+      },
+      "parse_time": 1.395263910293579
+    },
+    {
+      "msg_id": "1465354712281776329",
+      "content": "YOO TRIMMING $APLD 37c 20 Feb:\n\n2.74 -> 6.15 +125% \ud83d\udd25\n\nThe weekly b/o is just starting!!\n\n<@&14577404",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "APLD",
+        "strike": 37.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 6.15,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:47.952874+00:00"
+      },
+      "parse_time": 1.197695016860962
+    },
+    {
+      "msg_id": "1465359816204488918",
+      "content": "ADDING $ONDS 15c 20 Feb @ .65\n\n1/2 size\n\nStop: LOD\n\n(PLOD sweep, VWAP reclaim, OP reclaim + 21 EMA b",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "ONDS",
+        "strike": 15.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 0.65,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:50.704218+00:00"
+      },
+      "parse_time": 1.3318982124328613
+    },
+    {
+      "msg_id": "1465361683085000735",
+      "content": "I'm cutting $ONDS here.\n\n.65 -> .56 -12%\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "ONDS",
+        "price": 0.56,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:52.660985+00:00"
+      },
+      "parse_time": 0.8071589469909668
+    },
+    {
+      "msg_id": "1465370856426573987",
+      "content": "Moving my stop on $APLD to 38.\n\nNo reason to hold if $APLD breaks LOD to the downside.\n\n<@&145774046",
+      "action": "stop_update",
+      "parsed": {
+        "action": "stop_update",
+        "ticker": "APLD",
+        "new_stop": 38,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:54.744376+00:00"
+      },
+      "parse_time": 0.6473169326782227
+    },
+    {
+      "msg_id": "1465385336652824677",
+      "content": "Stopped here on $APLD 37c 20 Feb in profit!\n\nBroke LOD.\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "APLD",
+        "price": "market",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:56.851957+00:00"
+      },
+      "parse_time": 2.1074631214141846
+    },
+    {
+      "msg_id": "1465418179390996554",
+      "content": "ADDING $HUT 65c 20 Feb @ 3.50\n\n1/2 size\n\nStop: LOD\n\n(VWAP reclaim, OP reclaim + 9 EMA buy)\n\n<@&14577",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "HUT",
+        "strike": 65.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 3.5,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:45:59.460540+00:00"
+      },
+      "parse_time": 1.3257200717926025
+    },
+    {
+      "msg_id": "1465432800261046396",
+      "content": "I'm flat $HUT here at LOD.\n\n3.50 -> 3.15 -10%\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "HUT",
+        "price": "LOD",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:04.602064+00:00"
+      },
+      "parse_time": 2.586524248123169
+    },
+    {
+      "msg_id": "1465738002197250111",
+      "content": "ADDING $EOSE 18c 20 Feb @ .85 (30 min pivot)\n\n1/2 size\n\nStop: LOD\n\nFrontrunning this candle close (r",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "EOSE",
+        "strike": 18.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 0.85,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:12.424454+00:00"
+      },
+      "parse_time": 1.2432000637054443
+    },
+    {
+      "msg_id": "1465739708222013645",
+      "content": "ADDING $RKT 22c 20 Feb @ .71\n\n1/2 size\n\nStop: LOD\n\nLOP: (RDR, VWAP/OP Reclaim, LOD Dis < 30%)\n\n<@&14",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "RKT",
+        "strike": 22.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 0.71,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:13.991700+00:00"
+      },
+      "parse_time": 1.5671172142028809
+    },
+    {
+      "msg_id": "1465773702116413512",
+      "content": "Cutting $EOSE here at .71 -16%\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "EOSE",
+        "price": 0.71,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:14.852752+00:00"
+      },
+      "parse_time": 0.8609218597412109
+    },
+    {
+      "msg_id": "1465782586256392488",
+      "content": "Cutting $RKT here at .64 -11%\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "RKT",
+        "price": 0.64,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:16.181778+00:00"
+      },
+      "parse_time": 0.7180118560791016
+    },
+    {
+      "msg_id": "1466444421091426395",
+      "content": "ADDING $APLD 40c 20 Feb  @ 3.65\n\n1/2 size (9EMA buy)\n\nStop: LOD\n\nLOP: (15 min PLOD sweep, VWAP recla",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "APLD",
+        "strike": 40.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 3.65,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:18.793148+00:00"
+      },
+      "parse_time": 2.0931501388549805
+    },
+    {
+      "msg_id": "1466444521888809165",
+      "content": "Also layering this week 40c @ .84",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "APLD",
+        "strike": 40.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 0.84,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:19.977777+00:00"
+      },
+      "parse_time": 1.18461012840271
+    },
+    {
+      "msg_id": "1466445536604328233",
+      "content": "Trimming $APLD 40c 30 Jan\n\n.84 -> 1.28 +50% \ud83d\udd25\n\nHolding core still!\n\n<@&1457740469353058469>",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "APLD",
+        "strike": 40.0,
+        "type": "call",
+        "expiration": "2026-01-30",
+        "price": 1.28,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:21.489126+00:00"
+      },
+      "parse_time": 1.5113489627838135
+    },
+    {
+      "msg_id": "1466450373710446792",
+      "content": "Flat here at .54 LOD test.\n\nPretty much b/e trade here, got trims at +50% and stopped profits at b/e",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "APLD",
+        "price": 0.54,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:23.295389+00:00"
+      },
+      "parse_time": 0.7595939636230469
+    },
+    {
+      "msg_id": "1466528523043995752",
+      "content": "Flat $APLD 40c 20 Feb 3.05 -16%\n\nBroke below VWAP.\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "APLD",
+        "price": 3.05,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:24.871088+00:00"
+      },
+      "parse_time": 1.044194221496582
+    },
+    {
+      "msg_id": "1468273977469440060",
+      "content": "ADDING $CIFR 18c 20 Feb @ 1.07\n\n1/2 size (day trade)\n\nStop: LOD\n\n<@&1457740469353058469>",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "CIFR",
+        "strike": 18.0,
+        "type": "call",
+        "expiration": "2026-02-20",
+        "price": 1.07,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:49.156511+00:00"
+      },
+      "parse_time": 22.81310796737671
+    },
+    {
+      "msg_id": "1468282532146577509",
+      "content": "I'm taking $CIFR off here, really weird volume off the 16.50 pivot/OP\n\n@ .95 -10%\n\n<@&14577404693530",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "CIFR",
+        "price": 0.95,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:49.959974+00:00"
+      },
+      "parse_time": 0.8033421039581299
+    },
+    {
+      "msg_id": "1468995166973988956",
+      "content": "ADDING $IBIT 38.5c 6 Feb @ .93\n\n(lotto size) capitulation idea.\n\nStop: LOD\n\n<@&1457740469353058469>",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "IBIT",
+        "strike": 38.5,
+        "type": "call",
+        "expiration": "2026-02-06",
+        "price": 0.93,
+        "size": "lotto",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:53.076573+00:00"
+      },
+      "parse_time": 3.116558074951172
+    },
+    {
+      "msg_id": "1469368060417675286",
+      "content": "I have to take trims into this NHOD push.\n\n1.11 +20%\n\n<@&1457740469353058469>",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "IBIT",
+        "price": 1.11,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:54.482348+00:00"
+      },
+      "parse_time": 0.8230960369110107
+    },
+    {
+      "msg_id": "1469375536466759721",
+      "content": "Trimming more into strength + 70k psych level.\n\n.93 -> 1.34 +44%\n\nHere we go >70k!! \ud83d\udd25\n\n<@&1457740469",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "CIFR",
+        "price": 1.34,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:56.141063+00:00"
+      },
+      "parse_time": 1.1638538837432861
+    },
+    {
+      "msg_id": "1469408721397612596",
+      "content": "Setting a b/e stop on these into close, no reason to let the trade go red.",
+      "action": "stop_update",
+      "parsed": {
+        "action": "stop_update",
+        "new_stop": "b/e",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:58.010229+00:00"
+      },
+      "parse_time": 0.6596510410308838
+    },
+    {
+      "msg_id": "1469427168713900246",
+      "content": "Flat $IBIT position @ 1.45!!\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "IBIT",
+        "price": 1.45,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:46:58.668940+00:00"
+      },
+      "parse_time": 0.6586563587188721
+    },
+    {
+      "msg_id": "1470436180112969989",
+      "content": "ADDING $ZM 100c 20 Mar @ 3.05\n\n1/2 size\n\nLOP: (VWAP/OP Reclaim, 9 EMA buy, 40% LOD Dis)\n\nStop: LOD\n\n",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "ZM",
+        "strike": 100.0,
+        "type": "call",
+        "expiration": "2026-03-20",
+        "price": 3.05,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:00.086382+00:00"
+      },
+      "parse_time": 1.4172921180725098
+    },
+    {
+      "msg_id": "1470444698006061087",
+      "content": "Taking a small trim here and paying for risk as we come into prior supply!\n\n3.05 -> 3.85 +27% \ud83d\udd25\n\n<@&",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "ZM",
+        "price": 3.85,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:00.832333+00:00"
+      },
+      "parse_time": 0.7458722591400146
+    },
+    {
+      "msg_id": "1470498735351140383",
+      "content": "Trimming 1/4th $ZM here in 95 + gap fill.\n\n3.05 -> 4.25 +40% \u2705\n\n<@&1457740469353058469>",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "ZM",
+        "price": 95.0,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:01.647366+00:00"
+      },
+      "parse_time": 0.8150558471679688
+    },
+    {
+      "msg_id": "1470790188966875229",
+      "content": "Trimming $ZM 100c 20 Mar\n\nGap fill target hit!\n\n3.05 -> 4.90 +60% \ud83d\udd25 \ud83c\udfaf\n\n<@&1457740469353058469>",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "ZM",
+        "strike": 100.0,
+        "type": "call",
+        "expiration": "2026-03-20",
+        "price": 4.9,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:03.491068+00:00"
+      },
+      "parse_time": 1.229170799255371
+    },
+    {
+      "msg_id": "1470795876887953562",
+      "content": "ADDING $INTC 55c 20 Mar @ 2.00\n\n1/2 size (9EMA Buy)\n\nStop: LOD\n\n<@&1457740469353058469>",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "INTC",
+        "strike": 55.0,
+        "type": "call",
+        "expiration": "2026-03-20",
+        "price": 2.0,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:04.788939+00:00"
+      },
+      "parse_time": 1.2977659702301025
+    },
+    {
+      "msg_id": "1470806126705639447",
+      "content": "ADDING $AA 65c 20 Mar @ 3.75\n\n1/2 size\n\nStop: LOD\n\n<@&1457740469353058469>",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "AA",
+        "strike": 65.0,
+        "type": "call",
+        "expiration": "2026-03-20",
+        "price": 3.75,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:07.482217+00:00"
+      },
+      "parse_time": 1.2264008522033691
+    },
+    {
+      "msg_id": "1470809207379984497",
+      "content": "Setting a -20% hard stop on these cons to manage risk, I\u2019ll be off the charts the next 30 mins.",
+      "action": "stop_update",
+      "parsed": {
+        "action": "stop_update",
+        "new_stop": -0.2,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:08.129874+00:00"
+      },
+      "parse_time": 0.6476500034332275
+    },
+    {
+      "msg_id": "1470813178114867409",
+      "content": "Stopped here on $INTC 55c 20 Mar\n\n2.00 -> 1.68 -16%\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "INTC",
+        "price": 1.68,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:08.945495+00:00"
+      },
+      "parse_time": 0.8153951168060303
+    },
+    {
+      "msg_id": "1471152368451195094",
+      "content": "Trimming $AA 6c 20 Mar\n\n3.75 -> 4.80  +29% \ud83d\udd25 \n\n<@&1457740469353058469>",
+      "action": "trim",
+      "parsed": {
+        "action": "trim",
+        "ticker": "AA",
+        "strike": 6.0,
+        "type": "call",
+        "expiration": "2026-03-20",
+        "price": 4.8,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:10.511630+00:00"
+      },
+      "parse_time": 1.0864861011505127
+    },
+    {
+      "msg_id": "1471158223758295060",
+      "content": "$ZM stopped here at b/e.\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "ZM",
+        "price": "b/e",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:13.862074+00:00"
+      },
+      "parse_time": 1.0986158847808838
+    },
+    {
+      "msg_id": "1471172837967397152",
+      "content": "Back on screens, I got stopped at b/e on $AA.\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "AA",
+        "price": "b/e",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:15.577251+00:00"
+      },
+      "parse_time": 0.8221349716186523
+    },
+    {
+      "msg_id": "1471177473399197746",
+      "content": "ADDING $SMCI 35c 20 Mar @ 2.02\n\n1/2 size\n\nStop: LOD\n\n<@&1457740469353058469>",
+      "action": "buy",
+      "parsed": {
+        "action": "buy",
+        "ticker": "SMCI",
+        "strike": 35.0,
+        "type": "call",
+        "expiration": "2026-03-20",
+        "price": 2.02,
+        "size": "half",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:17.459913+00:00"
+      },
+      "parse_time": 1.8824741840362549
+    },
+    {
+      "msg_id": "1471194567234814055",
+      "content": "I will be off the screens for an hourish +\n\nI'm setting a hard stop on $SMCI 35c 20 Mar\n\n@ 1.75 (LOD",
+      "action": "stop_update",
+      "parsed": {
+        "action": "stop_update",
+        "ticker": "SMCI",
+        "new_stop": 1.75,
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:18.239749+00:00"
+      },
+      "parse_time": 0.7797319889068604
+    },
+    {
+      "msg_id": "1471216315695108188",
+      "content": "Back on the screens here.\n\nI got stopped on $SMCI while away (all cash).\n\n<@&1457740469353058469>",
+      "action": "exit",
+      "parsed": {
+        "action": "exit",
+        "ticker": "SMCI",
+        "price": "b/e",
+        "channel_id": 1457490555016839289,
+        "received_ts": "2026-02-12T16:47:20.481705+00:00"
+      },
+      "parse_time": 2.24202299118042
+    }
+  ]
+}

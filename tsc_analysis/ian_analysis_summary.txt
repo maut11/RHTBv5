@@ -1,0 +1,19 @@
+Ian Channel Analysis - 2026-02-12 20:38
+============================================================
+
+Total Messages: 100
+Actionable Alerts: 40 (40.0%)
+
+Action Distribution:
+  buy: 12
+  trim: 12
+  exit: 10
+  stop_update: 6
+  null: 60
+  error: 0
+
+Edited Messages: 8
+Stop Updates: 6
+
+Efficiency: HIGH
+Recommendation: Ian's channel has a high signal-to-noise ratio. Copy trading is viable.

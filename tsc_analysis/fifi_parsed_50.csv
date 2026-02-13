@@ -1,0 +1,95 @@
+message_id,timestamp,author,content,is_reply,reply_context,is_edited,action,ticker,strike,type,price,expiration,size,parse_time_ms,raw_parsed
+1470476267588419828,2026-02-09T17:47:42.321000+00:00,sauced2002,really looking for them to be ITM by friday,False,,False,null,,,,,,,1035.4459285736084,"{""action"": ""null""}"
+1470511113023258644,2026-02-09T20:06:10.120000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $3.25 to $4.80
+💰 AAPL $1.90 to $2.35
+🩸 TSLA $3.30 to $2
+
+🐶 FiFi’s Open Positions 
+
+▪️AAPL 2/13 $270p @ $1.90 
+▪️XOM 4/17 $160c @ $2.75 (starter) 
+▪️AAPL 3/20 $260p @ $4 average 
+▪️SPY 2/27 $670p @ $4.90 (starter)",False,,False,null,,,,,,,610.3439331054688,"{""action"": ""null""}"
+1470518310155063492,2026-02-09T20:34:46.050000+00:00,sauced2002,I plan on adding to SPY and XOM tomorrow,False,,False,null,,,,,,,711.6212844848633,"{""action"": ""null""}"
+1470789160158888038,2026-02-10T14:31:01.723000+00:00,sauced2002,Added to spy puts 3.88 <@&1369304547356311564>,False,,False,buy,SPY,,,3.88,2026-02-12,half,1567.3987865447998,"{""action"": ""buy"", ""ticker"": ""SPY"", ""price"": 3.88, ""size"": ""half"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:03:55.019439+00:00"", ""expiration"": ""2026-02-12""}"
+1470791103199314219,2026-02-10T14:38:44.980000+00:00,sauced2002,Average 4.40,False,,False,null,,,,,,,730.7097911834717,"{""action"": ""null""}"
+1470792003343220736,2026-02-10T14:42:19.591000+00:00,sauced2002,"Added XOM 3/20 $160c
+$1.70
+
+Half size <@&1369304547356311564>",False,,False,buy,XOM,160.0,call,1.7,2026-03-20,half,2895.561933517456,"{""action"": ""buy"", ""ticker"": ""XOM"", ""strike"": 160.0, ""type"": ""call"", ""expiration"": ""2026-03-20"", ""price"": 1.7, ""size"": ""half"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:03:58.847890+00:00""}"
+1470800412880932936,2026-02-10T15:15:44.581000+00:00,sauced2002,https://tenor.com/view/cat-ping-pong-funny-animals-cats-gif-8766860,False,,False,null,,,,,,,369.1561222076416,"{""action"": ""null""}"
+1470800430333296650,2026-02-10T15:15:48.742000+00:00,sauced2002,Market rn,False,,False,null,,,,,,,514.301061630249,"{""action"": ""null""}"
+1470876358212190422,2026-02-10T20:17:31.359000+00:00,sauced2002,"🐶 FiFi’s Open Positions 
+
+▪️AAPL 2/13 $270p @ $1.90 
+▪️XOM 4/17 $160c @ $2.75  (1/4 size)
+▪️XOM 3/20 $160c @ $1.70 (1/2 size) 
+▪️AAPL 3/20 $260p @ $4 average 
+▪️SPY 2/27 $670p @ $4.40 (1/2 size)",False,,True,null,,,,,,,581.2921524047852,"{""action"": ""null""}"
+1470973429187477625,2026-02-11T02:43:14.883000+00:00,sauced2002,AMD short on watch,False,,False,null,,,,,,,557.4369430541992,"{""action"": ""null""}"
+1471147354559090790,2026-02-11T14:14:21.923000+00:00,sauced2002,Plan on trimming 1/4 of XOM March calls at open. Should be around $2.50,False,,False,null,,,,,,,439.26191329956055,"{""action"": ""null""}"
+1471151873439305791,2026-02-11T14:32:19.308000+00:00,sauced2002,trim March XOM 2.60 <@&1369304547356311564>,False,,False,trim,XOM,160.0,call,2.6,,,1038.39111328125,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": 160.0, ""type"": ""call"", ""price"": 2.6, ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:02.956130+00:00""}"
+1471154184962310215,2026-02-11T14:41:30.418000+00:00,sauced2002,trim XOM april 4.6 <@&1369304547356311564>,False,,False,trim,XOM,4.6,call,market,2026-04-17,full,1582.1421146392822,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": 4.6, ""type"": ""call"", ""price"": ""market"", ""expiration"": ""2026-04-17"", ""size"": ""full"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:04.639489+00:00""}"
+1471165927134462094,2026-02-11T15:28:09.970000+00:00,sauced2002,"trim SPY 2/27 puts $5.7 from $4. 
+<@&1369304547356311564>",False,,False,trim,SPY,670.0,put,5.7,2026-02-27,,1218.6269760131836,"{""action"": ""trim"", ""ticker"": ""SPY"", ""strike"": 670.0, ""type"": ""put"", ""price"": 5.7, ""expiration"": ""2026-02-27"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:05.959425+00:00""}"
+1471172596790857981,2026-02-11T15:54:40.140000+00:00,sauced2002,"will make a decision on AAPL at close... as of now, im chillin",False,,False,null,,,,,,,3951.188802719116,"{""action"": ""null""}"
+1471174315327225987,2026-02-11T16:01:29.871000+00:00,sauced2002,"trim 
+XOM March 3.30 
+ <@&1369304547356311564>",False,,False,trim,XOM,3.3,call,market,,,1050.8239269256592,"{""action"": ""trim"", ""ticker"": ""XOM"", ""strike"": 3.3, ""type"": ""call"", ""price"": ""market"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:11.163329+00:00""}"
+1471185311961972826,2026-02-11T16:45:11.673000+00:00,sauced2002,sold some April XOM 5.35 <@&1369304547356311564>,False,,False,trim,XOM,,,5.35,,,772.8888988494873,"{""action"": ""trim"", ""ticker"": ""XOM"", ""price"": 5.35, ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:12.037325+00:00""}"
+1471185332866384087,2026-02-11T16:45:16.657000+00:00,sauced2002,getting really extended,False,,False,null,,,,,,,3222.3470211029053,"{""action"": ""null""}"
+1471188566313795604,2026-02-11T16:58:07.571000+00:00,sauced2002,come on down Apple,False,,False,null,,,,,,,2551.131010055542,"{""action"": ""null""}"
+1471188577709719634,2026-02-11T16:58:10.288000+00:00,sauced2002,you dont like it up there,False,,False,null,,,,,,,3004.4198036193848,"{""action"": ""null""}"
+1471194544006496443,2026-02-11T17:21:52.764000+00:00,sauced2002,"down to runners on XOM positions... would like to have it set back up to go full size again, rinse and repeat",False,,False,null,,,,,,,2330.4059505462646,"{""action"": ""null""}"
+1471194646536257681,2026-02-11T17:22:17.209000+00:00,sauced2002,its been an ATM,False,,False,null,,,,,,,724.5841026306152,"{""action"": ""null""}"
+1471215501421187082,2026-02-11T18:45:09.401000+00:00,sauced2002,all out of XOM positions.. 9x extension right now <@&1369304547356311564>,False,,False,exit,XOM,,,market,,,679.7308921813965,"{""action"": ""exit"", ""ticker"": ""XOM"", ""price"": ""market"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:25.156996+00:00""}"
+1471216267007623440,2026-02-11T18:48:11.931000+00:00,sauced2002,"💇‍♀️ TRIMS
+
+💰 XOM $2.75 to $5.35
+💰 XOM $1.70 to $3.30 
+💰 SPY $4.40 to $5.70
+
+🐶 FiFi’s Open Positions 
+
+▪️AAPL 2/13 $270p @ $1.90 (lotto size) 
+▪️AAPL 3/20 $260p @ $4 average 
+▪️SPY 2/27 $670p @ $4.40 (1/2 size)",False,,False,null,,,,,,,889.4720077514648,"{""action"": ""null""}"
+1471216393008578662,2026-02-11T18:48:41.972000+00:00,sauced2002,"As long as aapl closes under 280, im staying in.",False,,False,null,,,,,,,4501.252889633179,"{""action"": ""null""}"
+1471330194621988961,2026-02-12T02:20:54.391000+00:00,sauced2002,"Too watch for me
+
+$MRK 
+
+Looking for a pullback to $117-118 to load 3/20 $120c",False,,False,null,,,,,,,4986.391067504883,"{""action"": ""null""}"
+1471489744105115832,2026-02-12T12:54:53.952000+00:00,sauced2002,Looking for entry on CCL over PDH,False,,False,null,,,,,,,3338.5329246520996,"{""action"": ""null""}"
+1471504386273448016,2026-02-12T13:53:04.917000+00:00,sauced2002,"looking at FSLY off 5m ORB also 
++40% gapper",False,,False,null,,,,,,,499.3453025817871,"{""action"": ""null""}"
+1471511150750335127,2026-02-12T14:19:57.694000+00:00,sauced2002,,True,,False,null,,,,,,,0,"{""action"": ""null""}"
+1471511151341994118,2026-02-12T14:19:57.835000+00:00,sauced2002,"sorry for confusion, i kept saying 670p after this... im in 680p",False,,False,null,,,,,,,384.61899757385254,"{""action"": ""null""}"
+1471516333454790799,2026-02-12T14:40:33.347000+00:00,sauced2002,"3/20 
+OLN 
+$27.50c 
+1.80
+1/2 size <@&1369304547356311564>",False,,False,buy,OLN,27.5,call,1.8,2026-03-20,half,1557.8093528747559,"{""action"": ""buy"", ""ticker"": ""OLN"", ""strike"": 27.5, ""type"": ""call"", ""expiration"": ""2026-03-20"", ""price"": 1.8, ""size"": ""half"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:42.022003+00:00""}"
+1471518429369471118,2026-02-12T14:48:53.052000+00:00,sauced2002,"RDDT 2/20 130p 4.50 
+1/8 size <@&1369304547356311564>",False,,False,buy,RDDT,130.0,put,4.5,2026-02-20,lotto,1735.069751739502,"{""action"": ""buy"", ""ticker"": ""RDDT"", ""strike"": 130.0, ""type"": ""put"", ""expiration"": ""2026-02-20"", ""price"": 4.5, ""size"": ""lotto"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:43.858553+00:00""}"
+1471523120199499967,2026-02-12T15:07:31.433000+00:00,sauced2002,TP on RDDT is 127,False,,False,null,,,,,,,382.30204582214355,"{""action"": ""null""}"
+1471524618228732029,2026-02-12T15:13:28.591000+00:00,sauced2002,,False,,False,null,,,,,,,0,"{""action"": ""null""}"
+1471524635320254655,2026-02-12T15:13:32.666000+00:00,sauced2002,https://tenor.com/view/hey-stick-to-the-plan-plan-dont-make-mistake-tenoch-huerta-gif-15876651,False,,False,null,,,,,,,405.9257507324219,"{""action"": ""null""}"
+1471529867857231986,2026-02-12T15:34:20.200000+00:00,sauced2002,out OLN 1.30 <@&1369304547356311564>,False,,False,exit,OLN,,,1.3,,,833.5890769958496,"{""action"": ""exit"", ""ticker"": ""OLN"", ""price"": 1.3, ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:45.783936+00:00""}"
+1471534662613598329,2026-02-12T15:53:23.359000+00:00,sauced2002,weekly AAPL 270p are back alive!,False,,False,null,,,,,,,337.65602111816406,"{""action"": ""null""}"
+1471536082439901356,2026-02-12T15:59:01.872000+00:00,sauced2002,AAPL March puts are WELL into profit,False,,False,null,,,,,,,563.0199909210205,"{""action"": ""null""}"
+1471536095803215933,2026-02-12T15:59:05.058000+00:00,sauced2002,i havent trimed,False,,False,null,,,,,,,381.69312477111816,"{""action"": ""null""}"
+1471536201298219061,2026-02-12T15:59:30.210000+00:00,sauced2002,will take a trim at 266,False,,False,null,,,,,,,456.38036727905273,"{""action"": ""null""}"
+1471536212249546772,2026-02-12T15:59:32.821000+00:00,sauced2002,EMA cluster,False,,False,null,,,,,,,1339.057207107544,"{""action"": ""null""}"
+1471536750978535497,2026-02-12T16:01:41.264000+00:00,sauced2002,"trim weekly AAPL 270p 
+$3.2 from $1.90 <@&1369304547356311564>",False,,False,trim,AAPL,270.0,put,3.2,,,1144.7091102600098,"{""action"": ""trim"", ""ticker"": ""AAPL"", ""strike"": 270.0, ""type"": ""put"", ""price"": 3.2, ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:50.614780+00:00""}"
+1471539735897051332,2026-02-12T16:13:32.924000+00:00,sauced2002,ttrimmed weeklyt again 3.4 down to a runner <@&1369304547356311564>,False,,False,null,,,,,,,572.3929405212402,"{""action"": ""null""}"
+1471540848587046945,2026-02-12T16:17:58.210000+00:00,sauced2002,trimmed RDDT $6 <@&1369304547356311564> sorry didnt realize it filled,False,,False,trim,RDDT,,,6.0,,,949.1119384765625,"{""action"": ""trim"", ""ticker"": ""RDDT"", ""price"": 6.0, ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:04:52.338844+00:00""}"
+1471541087670898780,2026-02-12T16:18:55.212000+00:00,sauced2002,trim SPY 2/27 puts $7.20 from 4.40 <@&1369304547356311564>,False,,False,trim,SPY,0.0,put,7.2,2026-02-27,full,9431.730031967163,"{""action"": ""trim"", ""ticker"": ""SPY"", ""strike"": 0.0, ""type"": ""put"", ""price"": 7.2, ""expiration"": ""2026-02-27"", ""size"": ""full"", ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:05:01.871632+00:00""}"
+1471544204445356271,2026-02-12T16:31:18.309000+00:00,sauced2002,im all out of weekly AAPL here 4.65 from 1.90 <@&1369304547356311564>,False,,False,exit,AAPL,,,4.65,,,827.4612426757812,"{""action"": ""exit"", ""ticker"": ""AAPL"", ""price"": 4.65, ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:05:02.800429+00:00""}"
+1471548082037588089,2026-02-12T16:46:42.799000+00:00,sauced2002,took a trim here on march cons $6 <@&1369304547356311564>,False,,False,trim,MARCH,,,6.0,,,1026.3068675994873,"{""action"": ""trim"", ""ticker"": ""MARCH"", ""price"": 6.0, ""channel_id"": 1368713891072315483, ""received_ts"": ""2026-02-12T17:05:03.928308+00:00""}"
+1471548110860849318,2026-02-12T16:46:49.671000+00:00,sauced2002,like 1/8 of my position trim,False,,False,null,,,,,,,714.1611576080322,"{""action"": ""null""}"
+1471548855630692454,2026-02-12T16:49:47.238000+00:00,sauced2002,next TP 260 for me,False,,False,null,,,,,,,431.80084228515625,"{""action"": ""null""}"
+1471549037827199056,2026-02-12T16:50:30.677000+00:00,sauced2002,stops at BE on RDDT,False,,False,null,,,,,,,492.91300773620605,"{""action"": ""null""}"

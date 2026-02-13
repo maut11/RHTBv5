@@ -18,12 +18,14 @@ from trade_executor import TradeExecutor
 from performance_tracker import EnhancedPerformanceTracker
 from position_manager import EnhancedPositionManager
 from position_ledger import PositionLedger
+from auto_exit_manager import AutoExitManager
 from trader import EnhancedRobinhoodTrader, EnhancedSimulatedTrader
 
 # Import channel parsers
 from channels.sean import SeanParser
 from channels.fifi import FiFiParser
 from channels.ryan import RyanParser
+from channels.ian import IanParser
 from channels.price_parser import PriceParser
 
 # Import AI logging system
@@ -125,8 +127,35 @@ class EnhancedDiscordClient(discord.Client):
             self.position_ledger = PositionLedger(POSITION_LEDGER_DB)
             logger.info("Position ledger initialized")
 
-            # Initialize traders
-            self.live_trader = EnhancedRobinhoodTrader()
+            # Initialize traders with MFA callback for 2FA alerts
+            def mfa_alert_callback():
+                """Send 2FA verification alert to live feed (sync, runs during login)"""
+                import requests
+                try:
+                    mfa_embed = {
+                        "title": "🔐 Robinhood 2FA Verification Required",
+                        "description": "The trading bot needs 2FA verification to log in.\n\n**Action Required:** Check the terminal/console immediately and enter the verification code.",
+                        "color": 0xFF0000,  # Red
+                        "fields": [
+                            {
+                                "name": "⚠️ Status",
+                                "value": "Bot login is BLOCKED until 2FA is completed",
+                                "inline": False
+                            }
+                        ],
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "footer": {"text": "URGENT - Manual action required"}
+                    }
+                    payload = {
+                        "content": "@everyone ⚠️ **ROBINHOOD 2FA VERIFICATION NEEDED** ⚠️",
+                        "embeds": [mfa_embed]
+                    }
+                    requests.post(LIVE_FEED_WEBHOOK, json=payload, timeout=10)
+                    logger.info("2FA alert sent to live feed")
+                except Exception as e:
+                    logger.error(f"Failed to send 2FA alert: {e}")
+
+            self.live_trader = EnhancedRobinhoodTrader(mfa_callback=mfa_alert_callback)
             logger.info("Live trader initialized")
             
             self.sim_trader = EnhancedSimulatedTrader()
@@ -137,6 +166,16 @@ class EnhancedDiscordClient(discord.Client):
             self.price_parser = PriceParser(self.openai_client)
             self.edit_tracker = MessageEditTracker()
             
+            # Initialize auto-exit manager (tiered profit-taking for Ryan 0DTE)
+            # event_loop is set later when async context is available
+            self.auto_exit_manager = AutoExitManager(
+                self.live_trader,
+                self.position_ledger,
+                alert_manager=self.alert_manager,
+                event_loop=None  # Set in _auto_exit_monitor_task
+            )
+            logger.info("Auto-exit manager initialized")
+
             # Initialize trade executor with proper event loop reference
             self.trade_executor = TradeExecutor(
                 self.live_trader,
@@ -144,7 +183,8 @@ class EnhancedDiscordClient(discord.Client):
                 self.performance_tracker,
                 self.position_manager,
                 self.alert_manager,
-                self.position_ledger
+                self.position_ledger,
+                auto_exit_manager=self.auto_exit_manager
             )
             logger.info("Trade executor initialized")
             
@@ -155,7 +195,18 @@ class EnhancedDiscordClient(discord.Client):
             self.fill_monitor_task = None  # Monitors pending buy orders for fills
             self.connection_lost_count = 0
             self.last_ready_time = None
-            
+            self.auto_exit_task = None  # Auto-exit monitor for tiered profit-taking
+
+            # Watchdog system for detecting frozen tasks
+            self.watchdog_task = None
+            self._task_last_seen = {
+                'heartbeat': None,
+                'ledger_sync': None,
+                'fill_monitor': None,
+                'auto_exit': None,
+            }
+            self._event_loop_last_seen = time.monotonic()
+
             logger.info("Discord client initialization complete")
             
         except Exception as e:
@@ -205,6 +256,17 @@ class EnhancedDiscordClient(discord.Client):
                     self.fill_monitor_task = asyncio.create_task(self._fill_monitor_task())
                     logger.info("Fill monitor task started")
 
+            # Start auto-exit monitoring task (3s polling for Ryan 0DTE profit/stop)
+            if not TESTING_MODE:
+                if not hasattr(self, 'auto_exit_task') or not self.auto_exit_task or self.auto_exit_task.done():
+                    self.auto_exit_task = asyncio.create_task(self._auto_exit_monitor_task())
+                    logger.info("Auto-exit monitor task started")
+
+            # Start master watchdog task (monitors all background tasks for freezes)
+            if not self.watchdog_task or self.watchdog_task.done():
+                self.watchdog_task = asyncio.create_task(self._watchdog_task())
+                logger.info("Master watchdog task started")
+
             # Send startup notification
             await self._send_startup_notification()
             
@@ -212,57 +274,104 @@ class EnhancedDiscordClient(discord.Client):
             logger.error(f"Error in on_ready: {e}", exc_info=True)
     
     async def on_resumed(self):
-        """Called when Discord resumes after disconnection"""
-        logger.info("Discord connection resumed - checking services...")
-        
+        """Called when Discord resumes after disconnection. Verifies all services."""
+        logger.warning("Discord connection resumed - verifying all background services...")
+
         try:
-            # Check and restart alert system if needed
-            metrics = await self.alert_manager.get_metrics()
-            if not metrics.get('is_running'):
-                logger.warning("Alert system stopped during disconnect - restarting...")
-                await self.alert_manager.start()
-            else:
-                # Verify processors are alive
-                if not metrics.get('primary_alive') or not metrics.get('backup_alive'):
-                    logger.warning("Dead alert processors detected - restarting...")
+            service_statuses = []
+
+            # 1. Verify Alert Manager
+            try:
+                metrics = await self.alert_manager.get_metrics()
+                if not metrics.get('is_running'):
+                    logger.error("Alert system stopped during disconnect - restarting...")
+                    await self.alert_manager.start()
+                    service_statuses.append("🟡 Alert System (Restarted)")
+                elif not metrics.get('primary_alive') or not metrics.get('backup_alive'):
+                    logger.error("Dead alert processors detected - performing emergency restart...")
                     await self.alert_manager.emergency_restart()
-            
-            # Restart heartbeat if needed
+                    service_statuses.append("🟡 Alert System (Emergency Restart)")
+                else:
+                    service_statuses.append("✅ Alert System")
+                    logger.info("Alert system verified: OK")
+            except Exception as e:
+                logger.error(f"Failed to verify alert manager: {e}", exc_info=True)
+                service_statuses.append("❌ Alert System")
+
+            # 2. Verify Heartbeat Task
             if not self.heartbeat_task or self.heartbeat_task.done():
-                logger.warning("Heartbeat task dead - restarting...")
+                logger.warning("Heartbeat task was dead - restarting...")
                 self.heartbeat_task = asyncio.create_task(self._heartbeat_task())
-            
-            # Send reconnection notification
+                service_statuses.append("🟡 Heartbeat (Restarted)")
+            else:
+                service_statuses.append("✅ Heartbeat")
+                logger.info("Heartbeat task verified: OK")
+
+            # 3. Verify Ledger Sync Task
+            if not TESTING_MODE:
+                if not self.ledger_sync_task or self.ledger_sync_task.done():
+                    logger.warning("Ledger sync task was dead - restarting...")
+                    self.ledger_sync_task = asyncio.create_task(self._ledger_sync_task())
+                    service_statuses.append("🟡 Ledger Sync (Restarted)")
+                else:
+                    service_statuses.append("✅ Ledger Sync")
+                    logger.info("Ledger sync task verified: OK")
+
+            # 4. Verify Fill Monitor Task
+            if not TESTING_MODE:
+                if not self.fill_monitor_task or self.fill_monitor_task.done():
+                    logger.warning("Fill monitor task was dead - restarting...")
+                    self.fill_monitor_task = asyncio.create_task(self._fill_monitor_task())
+                    service_statuses.append("🟡 Fill Monitor (Restarted)")
+                else:
+                    service_statuses.append("✅ Fill Monitor")
+                    logger.info("Fill monitor task verified: OK")
+
+            # 5. Verify Auto-Exit Monitor Task
+            if not TESTING_MODE:
+                if not hasattr(self, 'auto_exit_task') or not self.auto_exit_task or self.auto_exit_task.done():
+                    logger.warning("Auto-exit monitor task was dead - restarting...")
+                    self.auto_exit_task = asyncio.create_task(self._auto_exit_monitor_task())
+                    service_statuses.append("🟡 Auto-Exit Monitor (Restarted)")
+                else:
+                    service_statuses.append("✅ Auto-Exit Monitor")
+                    logger.info("Auto-exit monitor task verified: OK")
+
+            # Send reconnection notification with detailed status
             reconnect_embed = {
                 "title": "🔄 Bot Reconnected",
-                "description": "Discord session resumed, all services checked",
+                "description": "Discord session resumed. All background services verified.",
                 "color": 0x00ff00,
                 "fields": [
                     {
-                        "name": "Status",
-                        "value": "✅ Alert system verified\n✅ Heartbeat active\n✅ All services operational",
+                        "name": "Service Status",
+                        "value": "\n".join(service_statuses),
                         "inline": False
                     },
                     {
                         "name": "Connection Info",
-                        "value": f"**Disconnection Count:** {self.connection_lost_count}\n**Session Age:** {(datetime.now(timezone.utc) - self.start_time).total_seconds() / 3600:.1f} hours",
+                        "value": f"**Disconnects this session:** {self.connection_lost_count}\n**Session Age:** {(datetime.now(timezone.utc) - self.start_time).total_seconds() / 3600:.1f} hours",
                         "inline": False
                     }
                 ],
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
-            
+
             await self.alert_manager.add_alert(
                 HEARTBEAT_WEBHOOK,
                 {"embeds": [reconnect_embed]},
                 "reconnection",
                 priority=1
             )
-            
-            logger.info("All services verified after reconnection")
-            
+
+            logger.info("All services successfully verified after reconnection")
+
         except Exception as e:
-            logger.error(f"Error in on_resumed: {e}", exc_info=True)
+            logger.error(f"Critical error during on_resumed: {e}", exc_info=True)
+            try:
+                await self.alert_manager.send_error_alert(f"Critical error in on_resumed: {e}")
+            except:
+                pass
     
     async def on_disconnect(self):
         """Called when Discord disconnects"""
@@ -279,17 +388,103 @@ class EnhancedDiscordClient(discord.Client):
         """Send periodic heartbeat to dedicated heartbeat channel"""
         while True:
             try:
+                self._task_last_seen['heartbeat'] = time.monotonic()  # Watchdog check-in
                 await asyncio.sleep(1800)  # Every 30 minutes
-                
+
                 uptime = datetime.now(timezone.utc) - self.start_time
                 uptime_str = str(uptime).split('.')[0]
-                
+
                 # Get current metrics
                 queue_metrics = await self.alert_manager.get_metrics()
                 recent_trades = self.performance_tracker.get_recent_trades(5)
-                
+
+                # Fetch open positions with P&L
+                positions_text = "No open positions"
+                total_pnl = 0.0
+                positions_count = 0
+
+                if self.live_trader and self.live_trader.logged_in:
+                    try:
+                        loop = asyncio.get_event_loop()
+                        positions = await loop.run_in_executor(None, self.live_trader.get_open_option_positions)
+
+                        if positions:
+                            positions_count = len(positions)
+                            pos_lines = []
+
+                            for pos in positions[:5]:  # Limit to 5 positions
+                                try:
+                                    symbol = pos.get('chain_symbol', 'UNK')
+                                    quantity = int(float(pos.get('quantity', 0)))
+                                    avg_price = float(pos.get('average_price', 0) or 0)
+
+                                    # Get current price from market data
+                                    option_data = pos.get('option', {})
+                                    strike = option_data.get('strike_price', '')
+                                    expiry = option_data.get('expiration_date', '')
+                                    opt_type = option_data.get('type', 'call')
+
+                                    # Format position line
+                                    current_price = avg_price  # Default to avg if no market data
+                                    pnl = 0.0
+                                    pnl_pct = 0.0
+
+                                    # Try to get current mark price
+                                    if strike and expiry:
+                                        try:
+                                            market_data = await loop.run_in_executor(
+                                                None,
+                                                lambda: self.live_trader.get_option_market_data(
+                                                    symbol, expiry, float(strike), opt_type
+                                                )
+                                            )
+                                            if market_data and len(market_data) > 0:
+                                                data = market_data[0]
+                                                if isinstance(data, list) and len(data) > 0:
+                                                    data = data[0]
+                                                if isinstance(data, dict):
+                                                    current_price = float(data.get('mark_price', avg_price) or avg_price)
+                                        except Exception:
+                                            pass  # Use avg_price as fallback
+
+                                    if avg_price > 0:
+                                        pnl = (current_price - avg_price) * quantity * 100
+                                        pnl_pct = ((current_price - avg_price) / avg_price) * 100
+                                        total_pnl += pnl
+
+                                    # Format: SPY 600C 01/31 | 2x | +$150 (+25%)
+                                    strike_fmt = f"${float(strike):.0f}" if strike else ""
+                                    opt_char = opt_type[0].upper() if opt_type else "C"
+                                    exp_fmt = expiry[5:10].replace('-', '/') if expiry else ""
+                                    pnl_sign = "+" if pnl >= 0 else ""
+
+                                    pos_lines.append(
+                                        f"• {symbol} {strike_fmt}{opt_char} {exp_fmt} | {quantity}x | "
+                                        f"{pnl_sign}${pnl:.0f} ({pnl_sign}{pnl_pct:.0f}%)"
+                                    )
+                                except Exception as pos_err:
+                                    logger.debug(f"Error formatting position: {pos_err}")
+                                    continue
+
+                            if pos_lines:
+                                positions_text = "\n".join(pos_lines)
+                                if positions_count > 5:
+                                    positions_text += f"\n... and {positions_count - 5} more"
+
+                    except Exception as e:
+                        logger.error(f"Error fetching positions for heartbeat: {e}")
+                        positions_text = "Error fetching positions"
+
+                # Build position field
+                pnl_sign = "+" if total_pnl >= 0 else ""
+                positions_field = {
+                    "name": f"💼 Open Positions ({positions_count}) | Total: {pnl_sign}${total_pnl:.0f}",
+                    "value": positions_text,
+                    "inline": False
+                }
+
                 heartbeat_embed = {
-                    "title": "💓 RHTB v4 Enhanced Heartbeat",
+                    "title": "💓 RHTB v5 Enhanced Heartbeat",
                     "description": "Bot is alive and running normally",
                     "color": 0x00ff00,
                     "fields": [
@@ -320,20 +515,21 @@ class EnhancedDiscordClient(discord.Client):
 **Recent Trades:** {len(recent_trades)}
                             """,
                             "inline": True
-                        }
+                        },
+                        positions_field
                     ],
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "footer": {"text": "Automatic heartbeat every 30 minutes"}
                 }
-                
+
                 await self.alert_manager.add_alert(
-                    HEARTBEAT_WEBHOOK, 
-                    {"embeds": [heartbeat_embed]}, 
+                    HEARTBEAT_WEBHOOK,
+                    {"embeds": [heartbeat_embed]},
                     "heartbeat"
                 )
-                
+
                 logger.info("Heartbeat sent successfully")
-                
+
             except asyncio.CancelledError:
                 logger.info("Heartbeat task cancelled")
                 break
@@ -345,6 +541,7 @@ class EnhancedDiscordClient(discord.Client):
         """Periodic reconciliation of position ledger with Robinhood."""
         while True:
             try:
+                self._task_last_seen['ledger_sync'] = time.monotonic()  # Watchdog check-in
                 await asyncio.sleep(LEDGER_SYNC_INTERVAL)
 
                 if self.live_trader and self.position_ledger:
@@ -375,6 +572,7 @@ class EnhancedDiscordClient(discord.Client):
         """Monitor pending buy orders and transition positions when filled."""
         while True:
             try:
+                self._task_last_seen['fill_monitor'] = time.monotonic()  # Watchdog check-in
                 await asyncio.sleep(FILL_MONITORING_INTERVAL)
 
                 if not self.live_trader or not self.position_ledger:
@@ -414,7 +612,33 @@ class EnhancedDiscordClient(discord.Client):
                         # Handle different order states
                         if order_state == 'filled':
                             # Order filled - transition to 'open'
-                            fill_price = float(order_info.get('average_price', 0) or position.avg_cost_basis)
+                            # Try order API average_price first (per-share for orders)
+                            raw_avg = order_info.get('average_price')
+                            fill_price = float(raw_avg) if raw_avg and float(raw_avg) > 0 else 0
+
+                            # If order API didn't return price, try position API as fallback
+                            if fill_price <= 0:
+                                try:
+                                    all_pos = await self.loop.run_in_executor(
+                                        None, self.live_trader.get_open_option_positions)
+                                    rh_pos = await self.loop.run_in_executor(
+                                        None, self.live_trader.find_open_option_position,
+                                        all_pos, position.symbol, position.strike,
+                                        position.expiration, position.option_type)
+                                    if rh_pos:
+                                        rh_avg = float(rh_pos.get('average_price', 0))
+                                        if rh_avg > 0:
+                                            # Position API returns per-contract cost, divide by 100
+                                            fill_price = rh_avg / 100.0
+                                            logger.info(f"Fill price from position API: ${fill_price:.2f}")
+                                except Exception as pos_err:
+                                    logger.warning(f"Position API fallback failed: {pos_err}")
+
+                            # Last resort: use ledger price (stale but non-zero)
+                            if fill_price <= 0:
+                                fill_price = position.avg_cost_basis
+                                logger.warning(f"⚠️ Using stale ledger price as fill: ${fill_price:.2f}")
+
                             fill_qty = int(float(order_info.get('cumulative_quantity', 0) or position.total_quantity))
 
                             self.position_ledger.transition_to_open(ccid, fill_price)
@@ -482,6 +706,132 @@ class EnhancedDiscordClient(discord.Client):
             logger.error(f"Error cancelling order {order_id}: {e}")
             return False
 
+    async def _auto_exit_monitor_task(self):
+        """Poll auto-exit strategies every 3 seconds for stop-loss and tier fill detection."""
+        poll_interval = AUTO_EXIT_CONFIG.get('poll_interval_seconds', 3)
+
+        # Set the event_loop on auto_exit_manager once we're in async context
+        if self.auto_exit_manager and not self.auto_exit_manager.event_loop:
+            self.auto_exit_manager.event_loop = asyncio.get_event_loop()
+            logger.info("Auto-exit manager event_loop set")
+
+        while True:
+            try:
+                self._task_last_seen['auto_exit'] = time.monotonic()  # Watchdog check-in
+                await asyncio.sleep(poll_interval)
+                if SIM_MODE or not self.auto_exit_manager:
+                    continue
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(None, self.auto_exit_manager.check_strategies)
+            except Exception as e:
+                logger.error(f"Auto-exit monitor error: {e}")
+                await asyncio.sleep(5)
+
+    def _update_event_loop_seen(self):
+        """Callback to update the event loop's last seen time."""
+        self._event_loop_last_seen = time.monotonic()
+
+    async def _restart_task(self, task_name: str):
+        """Helper function to restart a background task by name."""
+        logger.warning(f"Watchdog: Attempting to restart task: {task_name}")
+
+        task_map = {
+            'heartbeat': ('heartbeat_task', self._heartbeat_task),
+            'ledger_sync': ('ledger_sync_task', self._ledger_sync_task),
+            'fill_monitor': ('fill_monitor_task', self._fill_monitor_task),
+            'auto_exit': ('auto_exit_task', self._auto_exit_monitor_task)
+        }
+
+        if task_name not in task_map:
+            logger.error(f"Unknown task name '{task_name}' passed to _restart_task")
+            return
+
+        attr_name, task_coro = task_map[task_name]
+        current_task = getattr(self, attr_name, None)
+
+        # Cancel the existing task if it's still running (though likely stuck)
+        if current_task and not current_task.done():
+            current_task.cancel()
+            try:
+                await current_task
+            except asyncio.CancelledError:
+                pass
+
+        # Create and start the new task
+        new_task = asyncio.create_task(task_coro())
+        setattr(self, attr_name, new_task)
+        self._task_last_seen[task_name] = time.monotonic()
+
+        logger.info(f"Watchdog: Task '{task_name}' has been successfully restarted")
+
+        # Send alert about the restart
+        try:
+            await self.alert_manager.add_alert(
+                HEARTBEAT_WEBHOOK,
+                {"embeds": [{
+                    "title": "🐕 Watchdog Restarted Task",
+                    "description": f"Task `{task_name}` was detected as frozen and has been restarted.",
+                    "color": 0xFFA500,  # Orange
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }]},
+                "watchdog",
+                priority=1
+            )
+        except Exception as e:
+            logger.error(f"Failed to send watchdog alert: {e}")
+
+    async def _watchdog_task(self):
+        """Monitors the health of the event loop and critical background tasks."""
+        # Wait for bot to fully initialize before starting monitoring
+        await asyncio.sleep(120)
+        logger.info("Watchdog is now active and monitoring system health")
+
+        # Timeouts: expected interval + grace period
+        TASK_TIMEOUTS = {
+            'heartbeat': 1800 + 120,  # 30 min + 2 min grace
+            'ledger_sync': LEDGER_SYNC_INTERVAL + 120,  # sync interval + 2 min grace
+            'fill_monitor': FILL_MONITORING_INTERVAL + 60,  # fill interval + 1 min grace
+            'auto_exit': AUTO_EXIT_CONFIG.get('poll_interval_seconds', 3) + 60,  # poll + 1 min grace
+            'event_loop': 60.0  # Event loop should respond within 60 seconds
+        }
+
+        while True:
+            try:
+                await asyncio.sleep(30)  # Check every 30 seconds
+                now = time.monotonic()
+
+                # Check event loop responsiveness
+                self.loop.call_soon(self._update_event_loop_seen)
+                await asyncio.sleep(0.1)  # Give the callback a chance to run
+                loop_lag = now - self._event_loop_last_seen
+                if loop_lag > TASK_TIMEOUTS['event_loop']:
+                    logger.critical(
+                        f"WATCHDOG CRITICAL: Event loop appears blocked for {loop_lag:.1f}s! "
+                        "This indicates a severe freeze from a blocking call."
+                    )
+
+                # Check each background task
+                for task_name, last_seen in self._task_last_seen.items():
+                    if last_seen is None:
+                        continue  # Task hasn't started yet
+
+                    lag = now - last_seen
+                    timeout = TASK_TIMEOUTS.get(task_name, 180)
+
+                    if lag > timeout:
+                        logger.warning(
+                            f"WATCHDOG ALERT: Task '{task_name}' appears frozen! "
+                            f"Last check-in was {lag:.0f}s ago (timeout: {timeout}s). Restarting..."
+                        )
+                        await self._restart_task(task_name)
+
+            except asyncio.CancelledError:
+                logger.info("Watchdog task cancelled")
+                break
+            except Exception as e:
+                logger.error(f"Watchdog error: {e}", exc_info=True)
+                await asyncio.sleep(30)
+
     async def _handle_fill_complete(self, position, fill_price: float, fill_qty: int):
         """Handle post-fill updates (position manager, performance tracker, alerts)."""
         try:
@@ -508,6 +858,22 @@ class EnhancedDiscordClient(discord.Client):
             # Update performance tracker
             if self.performance_tracker:
                 self.performance_tracker.record_entry(trade_obj)
+
+            # Backup auto-exit trigger for Ryan fills (primary trigger is in trade_executor)
+            # This catches resting orders that fill via fill monitor after cascade timeout
+            if position.channel == 'Ryan' and self.auto_exit_manager:
+                if not self.position_ledger.has_active_auto_exit(position.ccid):
+                    try:
+                        logger.info(f"Backup auto-exit setup for {position.ccid}")
+                        loop = asyncio.get_event_loop()
+                        await loop.run_in_executor(
+                            None, self.auto_exit_manager.setup_strategy,
+                            position.ccid, fill_price, fill_qty,
+                            position.symbol, position.strike,
+                            position.expiration, position.option_type
+                        )
+                    except Exception as e:
+                        logger.error(f"Backup auto-exit setup failed: {e}")
 
             # Send fill notification
             fill_embed = {
@@ -1277,7 +1643,10 @@ V Vega:  {vega:.4f}
                         opt_type = instrument_data.get('type', 'call')
                         expiration = instrument_data.get('expiration_date', '')
                         quantity = int(float(p.get('quantity', 0)))
-                        entry_price = float(p.get('average_price', 0))
+                        # Robinhood position API returns average_price as per-contract
+                        # cost (premium × 100), not per-share. Divide by 100.
+                        raw_avg_price = float(p.get('average_price', 0))
+                        entry_price = raw_avg_price / 100.0 if raw_avg_price > 0 else 0
 
                         # Get current market price
                         market_data = self.live_trader.get_option_market_data(symbol, expiration, strike, opt_type)
@@ -1720,9 +2089,32 @@ V Vega:  {vega:.4f}
             await self.alert_manager.add_alert(COMMANDS_WEBHOOK, {"embeds": [embed]}, "command_response")
 
     async def _send_startup_notification(self):
-        """Send enhanced startup notification to heartbeat channel"""
+        """Send enhanced startup notification to heartbeat channel and live feed"""
+        # Gather account info for live feed embed
+        buying_power = 0.0
+        portfolio_value = 0.0
+        account_status = "🔴 Not Connected"
+        open_positions_count = 0
+
+        if self.live_trader and self.live_trader.logged_in:
+            try:
+                loop = asyncio.get_event_loop()
+                buying_power = await loop.run_in_executor(None, self.live_trader.get_buying_power)
+                portfolio_value = await loop.run_in_executor(None, self.live_trader.get_portfolio_value)
+                positions = await loop.run_in_executor(None, self.live_trader.get_open_option_positions)
+                open_positions_count = len(positions) if positions else 0
+                account_status = "🟢 Logged In"
+            except Exception as e:
+                logger.error(f"Error fetching account info for startup: {e}")
+                account_status = "🟡 Partial"
+
+        # Get monitored channels list
+        channel_names = list(self.channel_manager.handlers.keys())
+        channel_list = "\n".join([f"• **{name}**" for name in channel_names]) if channel_names else "None configured"
+
+        # Heartbeat channel embed (detailed/technical)
         startup_embed = {
-            "title": "🚀 RHTB v4 Enhanced - System Online",
+            "title": "🚀 RHTB v5 Enhanced - System Online",
             "color": 0x00ff00,
             "fields": [
                 {
@@ -1759,13 +2151,109 @@ V Vega:  {vega:.4f}
             ],
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
-        
+
+        # Live feed embed (user-facing, compact)
+        live_feed_embed = {
+            "title": "🚀 Trading Bot Online",
+            "description": "RHTB v5 has started successfully.",
+            "color": 0x00ff00,
+            "fields": [
+                {
+                    "name": "🤖 Mode",
+                    "value": f"{'🧪 SIMULATION' if SIM_MODE else '💸 LIVE TRADING'}",
+                    "inline": True
+                },
+                {
+                    "name": "🏦 Account",
+                    "value": account_status,
+                    "inline": True
+                },
+                {
+                    "name": "💰 Buying Power",
+                    "value": f"${buying_power:,.2f}",
+                    "inline": True
+                },
+                {
+                    "name": "📊 Portfolio Value",
+                    "value": f"${portfolio_value:,.2f}",
+                    "inline": True
+                },
+                {
+                    "name": "📈 Open Positions",
+                    "value": str(open_positions_count),
+                    "inline": True
+                },
+                {
+                    "name": "📡 Monitored Channels",
+                    "value": channel_list,
+                    "inline": False
+                }
+            ],
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "footer": {"text": "Bot is now monitoring for trading alerts"}
+        }
+
+        # Send to both channels
         await self.alert_manager.add_alert(HEARTBEAT_WEBHOOK, {"embeds": [startup_embed]}, "startup", priority=3)
+        await self.alert_manager.add_alert(LIVE_FEED_WEBHOOK, {"embeds": [live_feed_embed]}, "startup_live", priority=3)
 
     async def close(self):
-        """Clean shutdown"""
+        """Clean shutdown with live feed notification"""
         logger.info("Shutting down Discord client...")
-        
+
+        # Send shutdown notification to live feed before stopping
+        try:
+            uptime = datetime.now(timezone.utc) - self.start_time
+            uptime_str = str(uptime).split('.')[0]  # Remove microseconds
+
+            # Get session stats
+            session_trades = 0
+            session_pnl = 0.0
+            try:
+                summary = self.performance_tracker.get_performance_summary(days=1)
+                session_trades = summary.get('total_trades', 0)
+                session_pnl = summary.get('total_pnl', 0.0)
+            except Exception as e:
+                logger.error(f"Error getting session stats for shutdown: {e}")
+
+            shutdown_embed = {
+                "title": "🛑 Trading Bot Shutting Down",
+                "description": "RHTB v5 is shutting down gracefully.",
+                "color": 0xFF8800,  # Orange
+                "fields": [
+                    {
+                        "name": "⏱️ Session Uptime",
+                        "value": uptime_str,
+                        "inline": True
+                    },
+                    {
+                        "name": "📊 Session Trades",
+                        "value": str(session_trades),
+                        "inline": True
+                    },
+                    {
+                        "name": "💰 Session P&L",
+                        "value": f"${session_pnl:,.2f}",
+                        "inline": True
+                    },
+                    {
+                        "name": "📝 Reason",
+                        "value": "Graceful shutdown / Signal received",
+                        "inline": False
+                    }
+                ],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "footer": {"text": "Bot will restart automatically if configured"}
+            }
+
+            # Send directly via aiohttp since alert manager may be stopping
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                await session.post(LIVE_FEED_WEBHOOK, json={"embeds": [shutdown_embed]}, timeout=aiohttp.ClientTimeout(total=5))
+                logger.info("Shutdown notification sent to live feed")
+        except Exception as e:
+            logger.error(f"Failed to send shutdown notification: {e}")
+
         # Cancel heartbeat task
         if self.heartbeat_task and not self.heartbeat_task.done():
             self.heartbeat_task.cancel()
@@ -1792,7 +2280,7 @@ V Vega:  {vega:.4f}
 
         # Stop alert manager
         await self.alert_manager.stop()
-        
+
         # Call parent close
         await super().close()
 

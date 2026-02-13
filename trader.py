@@ -2,6 +2,7 @@
 import os
 import uuid
 import robin_stocks.robinhood as r
+import robin_stocks.robinhood.globals as r_globals
 from dotenv import load_dotenv
 from config import (
     DEFAULT_SELL_PRICE_PADDING,
@@ -34,7 +35,7 @@ ROBINHOOD_PASS = os.getenv("ROBINHOOD_PASS")
 class EnhancedRobinhoodTrader:
     """Enhanced Robinhood trader with symbol mapping and better reliability"""
 
-    def __init__(self):
+    def __init__(self, mfa_callback=None):
         self.logged_in = False
         self.session_start_time = None
         self.last_heartbeat = None
@@ -45,6 +46,8 @@ class EnhancedRobinhoodTrader:
         self.symbol_cache = {}  # Cache for symbol conversions
         self.tick_size_cache = {}  # Cache for tick sizes with TTL
         self.tick_cache_ttl = 300  # 5 minutes in seconds
+        self.mfa_callback = mfa_callback  # Callback for 2FA alerts
+        self.mfa_required = False  # Track if MFA was detected
         self.login()
 
     def login(self):
@@ -66,11 +69,14 @@ class EnhancedRobinhoodTrader:
             except:
                 pass
 
+            # Simple pickle name - robin_stocks handles the directory (~/.tokens/robinhood/)
+            # and appends .pickle automatically
             login_result = r.login(
                 username=ROBINHOOD_USER,
                 password=ROBINHOOD_PASS,
                 expiresIn=31536000,  # 1 year
-                store_session=True
+                store_session=True,
+                pickle_name='rhtbv5'  # Stored as ~/.tokens/robinhood/rhtbv5.pickle
             )
 
             if login_result:
@@ -80,6 +86,24 @@ class EnhancedRobinhoodTrader:
                 self._login_attempts = 0  # Reset on success
                 print("✅ Robinhood login successful.")
                 logger.info("Login successful")
+
+                # Monkey-patch robin_stocks to force 20s timeout on all requests
+                # This prevents API calls from hanging indefinitely
+                if not getattr(r_globals.SESSION, '_patched_timeout', False):
+                    try:
+                        original_request = r_globals.SESSION.request
+
+                        def request_with_timeout(method, url, *args, **kwargs):
+                            kwargs.setdefault('timeout', 20)  # 20 second default
+                            return original_request(method, url, *args, **kwargs)
+
+                        r_globals.SESSION.request = request_with_timeout
+                        r_globals.SESSION._patched_timeout = True
+                        print("🔧 Successfully patched robin_stocks with 20s timeout")
+                        logger.info("Patched robin_stocks global session with 20s timeout")
+                    except Exception as e:
+                        print(f"⚠️ Could not patch robin_stocks timeout: {e}")
+                        logger.warning(f"Could not patch robin_stocks timeout: {e}")
 
                 # Enhanced verification
                 try:
@@ -118,10 +142,19 @@ class EnhancedRobinhoodTrader:
 
         except Exception as e:
             error_msg = str(e).lower()
-            if any(keyword in error_msg for keyword in ["challenge", "mfa", "two", "verification"]):
-                print("❌ 2FA/Challenge required but not supported in this version")
-                print("💡 Please disable 2FA on your Robinhood account or use app-specific password")
-                logger.error("2FA required but not supported")
+            if any(keyword in error_msg for keyword in ["challenge", "mfa", "two", "verification", "sms", "code"]):
+                self.mfa_required = True
+                print("❌ 2FA/Challenge required - manual verification needed")
+                print("💡 Check the terminal for 2FA prompt or disable 2FA on Robinhood")
+                logger.error("2FA required - triggering alert callback")
+
+                # Trigger MFA alert callback if provided
+                if self.mfa_callback:
+                    try:
+                        self.mfa_callback()
+                        print("📢 2FA alert sent to Discord")
+                    except Exception as cb_error:
+                        logger.error(f"MFA callback error: {cb_error}")
             else:
                 print(f"❌ Robinhood login failed with error: {e}")
                 logger.error(f"Login exception: {e}")
@@ -676,8 +709,13 @@ class EnhancedRobinhoodTrader:
             logger.error(f"Order validation exception: {e}")
             return False
 
-    def place_option_buy_order(self, symbol, strike, expiration, opt_type, quantity, limit_price):
-        """Enhanced buy order with symbol mapping and pre-rounded pricing"""
+    def place_option_buy_order(self, symbol, strike, expiration, opt_type, quantity, limit_price, exact_price=False):
+        """Enhanced buy order with symbol mapping and pre-rounded pricing.
+
+        Args:
+            exact_price: If True, use limit_price directly (bypass _get_optimal_buy_price).
+                         Used by buy cascade which handles its own price discovery.
+        """
         try:
             if not self.ensure_connection():
                 return {"error": "Connection to Robinhood failed"}
@@ -685,15 +723,18 @@ class EnhancedRobinhoodTrader:
             # Normalize symbol for broker
             broker_symbol = self.normalize_symbol_for_broker(symbol)
 
-            # NEW: Try to get pre-rounded price from market data first
-            optimal_price = self._get_optimal_buy_price(broker_symbol, strike, expiration, opt_type, limit_price)
-            if optimal_price:
-                # Validate market data price with our tick rounding rules (handles SPX 0DTE, etc.)
-                rounded_price = self.round_to_tick(optimal_price, symbol, round_up_for_buy=True, expiration=expiration)
-                print(f"✅ Market price ${optimal_price:.2f} validated → ${rounded_price:.2f}")
+            if not exact_price:
+                # Original behavior: try to get optimal price from market data
+                optimal_price = self._get_optimal_buy_price(broker_symbol, strike, expiration, opt_type, limit_price)
+                if optimal_price:
+                    rounded_price = self.round_to_tick(optimal_price, symbol, round_up_for_buy=True, expiration=expiration)
+                    print(f"✅ Market price ${optimal_price:.2f} validated → ${rounded_price:.2f}")
+                else:
+                    rounded_price = self.round_to_tick(limit_price, symbol, round_up_for_buy=True, expiration=expiration)
             else:
-                # Fallback to trade executor's pre-calculated price
+                # Cascade mode: use exact price provided (already capped and validated)
                 rounded_price = self.round_to_tick(limit_price, symbol, round_up_for_buy=True, expiration=expiration)
+                print(f"📌 Exact price mode: ${limit_price:.2f} → ${rounded_price:.2f}")
 
             print(f"🔍 Preparing buy order: {symbol} (broker: {broker_symbol}) ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
             logger.info(f"Buy order preparation: {symbol}/{broker_symbol} ${strike}{opt_type[0].upper()} x{quantity} @ ${rounded_price:.2f}")
@@ -739,14 +780,47 @@ class EnhancedRobinhoodTrader:
             self.connection_errors += 1
             return {"error": str(e)}
 
-    def place_option_sell_order(self, symbol, strike, expiration, opt_type, quantity, limit_price=None, sell_padding=None):
-        """Enhanced sell order with symbol mapping and pre-rounded pricing"""
+    def place_option_sell_order(self, symbol, strike, expiration, opt_type, quantity, limit_price=None, sell_padding=None, exact_price=False):
+        """Enhanced sell order with symbol mapping and pre-rounded pricing.
+
+        When exact_price=True, skip market data fetch and price optimization.
+        Use the provided limit_price directly (caller handles tick rounding).
+        Used by auto-exit manager for profit target limit orders.
+        """
         try:
             if not self.ensure_connection():
                 return {"error": "Connection to Robinhood failed"}
 
             # Normalize symbol for broker
             broker_symbol = self.normalize_symbol_for_broker(symbol)
+
+            # Exact price mode: bypass all price optimization
+            if exact_price and limit_price and limit_price > 0:
+                sell_price = self.round_to_tick(limit_price, broker_symbol, round_up_for_buy=False, expiration=expiration)
+                print(f"📌 Exact sell price mode: ${limit_price:.2f} → ${sell_price:.2f}")
+
+                start_time = time.time()
+                result = r.order_sell_option_limit(
+                    positionEffect='close',
+                    creditOrDebit='credit',
+                    price=sell_price,
+                    symbol=broker_symbol,
+                    quantity=quantity,
+                    expirationDate=expiration,
+                    strike=strike,
+                    optionType=opt_type,
+                    timeInForce='gtc'
+                )
+                execution_time = time.time() - start_time
+
+                if result and result.get('id') and not result.get('error'):
+                    print(f"✅ Exact sell order placed: {result['id']} @ ${sell_price:.2f} ({execution_time:.2f}s)")
+                    logger.info(f"Exact sell order: {result['id']} for {symbol}/{broker_symbol} @ ${sell_price:.2f}")
+                else:
+                    error_info = result.get('error', result) if result else 'No response'
+                    print(f"❌ Exact sell order failed: {error_info}")
+                    logger.error(f"Exact sell order failed: {error_info}")
+                return result
 
             # Use provided padding or default
             if sell_padding is None:
