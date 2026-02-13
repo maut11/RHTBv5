@@ -9,13 +9,13 @@ import json
 class IanParser(BaseParser):
     IAN_ALERT_ROLE_ID = "1457740469353058469"
 
-    # Size normalization mapping - Ian uses "X size" format
+    # Size normalization mapping - Ian uses "X size" format (full/half/small only)
     SIZE_MAP = {
-        "lotto": "lotto", "1/8": "lotto", "1/8th": "lotto", "tiny": "lotto",
-        "1/5": "lotto", "1/5th": "lotto",  # Ian's lotto indicator
+        "lotto": "small", "1/8": "small", "1/8th": "small", "tiny": "small",
+        "1/5": "small", "1/5th": "small", "1/10": "small", "lite": "small",
         "half": "half", "1/2": "half", "1/4": "half", "1/4th": "half",
-        "1/3": "half", "1/3rd": "half", "some": "half", "small": "half",
-        "full": "full",
+        "1/3": "half", "1/3rd": "half", "some": "half", "starter": "half",
+        "full": "full", "full size": "full",
     }
 
     # Stop-out phrases that always mean exit
@@ -77,6 +77,8 @@ class IanParser(BaseParser):
         today = datetime.now(timezone.utc)
         current_year = today.year
         today_str = today.strftime('%Y-%m-%d')
+        weekly_exp = self.get_weekly_expiry_date()
+        next_week_exp = self.get_next_week_expiry_date()
 
         # --- Determine message type and extract content ---
         primary_message = ""
@@ -114,9 +116,10 @@ Before classifying ANY message, check if it matches these patterns. If it does �
 3. MARKET COMMENTARY:
    "Morning family!", market gap descriptions, sector observations, charts without trades → "null".
 
-4. STOP MANAGEMENT (keep as stop_update if specific):
-   Generic stop mentions without specific changes → "null".
-   But "Moving stop to b/e", "Setting a hard stop @ X", "Moving stops to b/e on:" WITH ticker → "stop_update".
+4. STOP MANAGEMENT (ALWAYS null - BE set automatically after trim):
+   ALL stop-related messages → "null".
+   "Moving stop to b/e", "Setting a hard stop @ X", "Moving stops to b/e on:", "stop at LOD", "stops at BE" → "null".
+   Stop management is handled automatically by the system after trims.
 
 5. BARE TICKER MENTIONS:
    Just "$ASTS looks great", "$CIFR is cooking" without trade action → "null".
@@ -139,7 +142,7 @@ REPLYING TO: Context for missing details (ticker, strike, expiration).
 **"buy"**: EXECUTED new entry.
    - Ian's format: "Adding $TICKER STRIKEc/p EXPIRY @PRICE"
    - Size on separate line: "half size", "1/2 size", "1/5th size (LOTTO TRADE)"
-   - Stop on separate line: "Stop: LOD", "Stop: Opening Print"
+   - Stop on separate line: "Stop: LOD", "Stop: Opening Print" (stop mentions are informational, ignore)
    - Example: "Adding $ASTS 120c Feb 20 @3.80\\n\\nhalf size (9 day + 90/OP reclaim)\\n\\nStop: LOD"
 
 **"trim"**: Partial take-profit.
@@ -154,33 +157,26 @@ REPLYING TO: Context for missing details (ticker, strike, expiration).
    - Also: "out", "all out", "done", "stopped out"
    - "Flat" = closed position at breakeven or specified price.
 
-**"stop_update"**: Stop loss level change (NEW - Ian emphasizes stop management).
-   - "Moving stop to b/e" (b/e = breakeven)
-   - "Moving stops to b/e on:" + list of positions
-   - "Setting a hard stop @ X"
-   - "stop remains LOD" (LOD = Low of Day)
-   - Extract: ticker (if specified), new_stop (price or "b/e" or "LOD")
-
-**"null"**: Everything else. Commentary, watchlists, analysis, position updates.
+**"null"**: Everything else. Commentary, watchlists, analysis, position updates, stop management.
 
 --- DATE RULES ---
 Today: {today_str}. Year: {current_year}.
 1. All expirations MUST be YYYY-MM-DD.
 2. "0dte"/"today" → "{today_str}".
-3. "weekly"/"weeklies" (current week) → current week Friday.
-4. "Feb 20", "Jan 16" format → YYYY-MM-DD using current or next year.
-5. Buy with NO expiration → default "{today_str}".
+3. "weekly"/"weeklies" → NEXT FRIDAY "{weekly_exp}" (NOT today).
+4. "next week"/"next weeks" → Friday after next "{next_week_exp}".
+5. "Feb 20", "Jan 16" format → YYYY-MM-DD using current or next year.
+6. Buy with NO expiration → default "{today_str}".
 
 --- OUTPUT FORMAT ---
 Return a JSON array. Even single trades: [{{...}}]. Keys: lowercase snake_case.
-- `action`: "buy", "trim", "exit", "stop_update", "null"
+- `action`: "buy", "trim", "exit", "null"
 - `ticker`: Uppercase, no "$"
 - `strike`: Number
 - `type`: "call" or "put"
-- `price`: Number, "b/e", or "market"
+- `price`: Number, "BE", or "market"
 - `expiration`: YYYY-MM-DD
-- `size`: "full" (default), "half" (1/2, 1/4), "lotto" (1/5th, 1/8th)
-- `new_stop`: For stop_update only - price or "b/e" or "LOD"
+- `size`: "full" (default), "half" (1/2, 1/4, 1/3), "small" (lotto, 1/5th, 1/8th)
 
 --- FEW-SHOT EXAMPLES ---
 
@@ -194,7 +190,7 @@ Stop: LOD
 <@&1457740469353058469>"
 → [{{"action": "buy", "ticker": "ASTS", "strike": 120, "type": "call", "expiration": "{current_year}-02-20", "price": 3.80, "size": "half"}}]
 
-**BUY (lotto):**
+**BUY (small/lotto):**
 "Adding $ASTS 100c 16 Jan @.99
 
 1/5th size (LOTTO TRADE)
@@ -202,7 +198,7 @@ Stop: LOD
 Stop: Opening Print.
 
 <@&1457740469353058469>"
-→ [{{"action": "buy", "ticker": "ASTS", "strike": 100, "type": "call", "expiration": "{current_year}-01-16", "price": 0.99, "size": "lotto"}}]
+→ [{{"action": "buy", "ticker": "ASTS", "strike": 100, "type": "call", "expiration": "{current_year}-01-16", "price": 0.99, "size": "small"}}]
 
 **BUY (1/2 size):**
 "Adding $CIFR 20c 20 Feb @1.42
@@ -214,10 +210,10 @@ Stop: LOD
 <@&1457740469353058469>"
 → [{{"action": "buy", "ticker": "CIFR", "strike": 20, "type": "call", "expiration": "{current_year}-02-20", "price": 1.42, "size": "half"}}]
 
-**TRIM (with percentage):**
+**TRIM (with percentage - stop mention ignored):**
 "Trimming 1/4th on weeklies here @1.25 +25% and moving stop to b/e.
 Paying for risk on the whole position."
-→ [{{"action": "trim", "ticker": "ASTS", "price": 1.25}}, {{"action": "stop_update", "ticker": "ASTS", "new_stop": "b/e"}}]
+→ [{{"action": "trim", "ticker": "ASTS", "price": 1.25}}]
 
 **TRIM (simple):**
 "TRIMMING $UMAC here @ 2.30 +35%
@@ -249,22 +245,22 @@ Derisking at PHOD!
 <@&1457740469353058469>"
 → [{{"action": "exit", "ticker": "JOBY", "price": 0.93}}]
 
-**STOP_UPDATE (moving to b/e):**
+**NULL (stop management - all stop updates ignored):**
 "Moving stop on these to OP, I do not want to see these come back."
-→ [{{"action": "stop_update", "ticker": "ASTS", "new_stop": "OP"}}]
+→ [{{"action": "null"}}]
 
-**STOP_UPDATE (hard stop):**
+**NULL (hard stop setting):**
 "Setting a hard stop on these @ .85 as we can reclaim yesterday's close."
-→ [{{"action": "stop_update", "new_stop": 0.85}}]
+→ [{{"action": "null"}}]
 
-**STOP_UPDATE (multiple positions):**
+**NULL (stop update multiple positions):**
 "Moving stops to b/e on:
 
 $ASTS 100c 16 Jan (lotto) 2/5th left
 $ASTS 120c 20 Feb (core position) 4/5th left
 
 <@&1457740469353058469>"
-→ [{{"action": "stop_update", "ticker": "ASTS", "strike": 100, "type": "call", "expiration": "{current_year}-01-16", "new_stop": "b/e"}}, {{"action": "stop_update", "ticker": "ASTS", "strike": 120, "type": "call", "expiration": "{current_year}-02-20", "new_stop": "b/e"}}]
+→ [{{"action": "null"}}]
 
 **NULL (watchlist):**
 "Watching $LMND for a PB buy entry."
@@ -312,6 +308,12 @@ NOTE: Parse ONLY the PRIMARY message. History is context only.
         """Ian-specific post-processing after base class date normalization."""
         entry = super()._normalize_entry(entry)
 
+        # --- Stop updates ignored: return null action ---
+        # BE stop is set automatically after first trim by the system
+        if entry.get('action') == 'stop_update':
+            entry['action'] = 'null'
+            return entry
+
         # --- Extract raw message for pattern matching ---
         raw_msg = str(self._current_message_meta).lower() if self._current_message_meta else ""
         if isinstance(self._current_message_meta, tuple):
@@ -319,18 +321,20 @@ NOTE: Parse ONLY the PRIMARY message. History is context only.
 
         # --- Stop-out phrase detection (force exit) ---
         for phrase in self.STOP_PHRASES:
-            if phrase in raw_msg and entry.get('action') not in ('exit', 'null', 'stop_update'):
+            if phrase in raw_msg and entry.get('action') not in ('exit', 'null'):
                 entry['action'] = 'exit'
                 if not entry.get('price'):
                     entry['price'] = 'market'
                 break
 
-        # --- Size normalization from "X size" format ---
+        # --- Size normalization from "X size" format (full/half/small only) ---
         size = str(entry.get('size', '')).lower().strip()
         # Direct lookup
         if size in self.SIZE_MAP:
             entry['size'] = self.SIZE_MAP[size]
-        elif size and size not in ('full', 'half', 'lotto'):
+        elif size == 'lotto':
+            entry['size'] = 'small'  # Normalize legacy 'lotto' to 'small'
+        elif size and size not in ('full', 'half', 'small'):
             # Substring match for compound formats like "1/5th size"
             for key, val in self.SIZE_MAP.items():
                 if key in size:
@@ -350,11 +354,5 @@ NOTE: Parse ONLY the PRIMARY message. History is context only.
         price = entry.get('price', '')
         if isinstance(price, str) and price.lower().strip() in ('b/e', 'be', 'breakeven'):
             entry['price'] = 'BE'
-
-        # --- Normalize stop values ---
-        # Ian references STOCK prices for stops (e.g., "38", "LOD", "OP"), not option prices.
-        # Since we can only act on option prices, normalize ALL stop_updates to breakeven.
-        if entry.get('action') == 'stop_update':
-            entry['new_stop'] = 'b/e'
 
         return entry

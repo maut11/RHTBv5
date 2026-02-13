@@ -15,12 +15,13 @@ class FiFiParser(BaseParser):
     # Stop-out phrases that always mean exit
     STOP_PHRASES = ["stopped out", "got stopped", "stop hit", "stopped on", "stops hit"]
 
-    # Size normalization mapping
+    # Size normalization mapping (full/half/small only)
     SIZE_MAP = {
-        "lotto": "lotto", "tiny": "lotto", "1/8": "lotto", "super small": "lotto",
-        "half": "half", "some": "half", "small": "half", "starter": "half",
-        "1/4": "half", "couple cons": "half", "1/2": "half",
-        "full": "full",
+        "lotto": "small", "tiny": "small", "1/8": "small", "super small": "small",
+        "lite": "small", "1/10": "small", "lottery": "small", "yolo": "small",
+        "half": "half", "some": "half", "starter": "half",
+        "1/4": "half", "couple cons": "half", "1/2": "half", "small size": "half",
+        "full": "full", "full size": "full",
     }
 
     def __init__(self, openai_client, channel_id, config, **kwargs):
@@ -82,6 +83,8 @@ class FiFiParser(BaseParser):
         today = datetime.now(timezone.utc)
         current_year = today.year
         today_str = today.strftime('%Y-%m-%d')
+        weekly_exp = self.get_weekly_expiry_date()
+        next_week_exp = self.get_next_week_expiry_date()
 
         # --- Determine message type and extract content ---
         primary_message = ""
@@ -168,11 +171,12 @@ EXAMPLES:
 --- DATE RULES ---
 Today: {today_str}. Year: {current_year}.
 1. All expirations MUST be YYYY-MM-DD.
-2. "0dte"/"today"/"weekly" (current week) → "{today_str}".
-3. "next week"/"next weeks" → next Friday from today.
-4. Dates without year (e.g., "2/6", "Jan 17"): use {current_year} if future, {current_year + 1} if passed.
-5. Monthly (e.g., "JAN 2026") → third Friday of that month.
-6. Buy with NO expiration → default "{today_str}".
+2. "0dte"/"today" → "{today_str}".
+3. "weekly"/"weeklies" → NEXT FRIDAY "{weekly_exp}" (NOT today's date).
+4. "next week"/"next weeks" → Friday after next "{next_week_exp}".
+5. Dates without year (e.g., "2/6", "Jan 17"): use {current_year} if future, {current_year + 1} if passed.
+6. Monthly (e.g., "JAN 2026") → third Friday of that month.
+7. Buy with NO expiration → default "{today_str}".
 
 --- OUTPUT FORMAT ---
 Return a JSON array. Even single trades: [{{...}}]. Keys: lowercase snake_case.
@@ -182,7 +186,7 @@ Return a JSON array. Even single trades: [{{...}}]. Keys: lowercase snake_case.
 - `type`: "call" or "put"
 - `price`: Number, "BE", or "market"
 - `expiration`: YYYY-MM-DD
-- `size`: "full" (default), "half" (1/4, small, starter, couple cons), "lotto" (1/8, tiny, super small, lite)
+- `size`: "full" (default), "half" (1/4, starter, couple cons, small size), "small" (lotto, 1/8, tiny, super small, lite)
 
 --- PRICE PARSING ---
 - "from $X" = entry price context. Extract the CURRENT price, ignore "from".
@@ -198,13 +202,13 @@ Return a JSON array. Even single trades: [{{...}}]. Keys: lowercase snake_case.
 "TSLA 480p 0dte 1.40"
 → [{{"action": "buy", "ticker": "TSLA", "strike": 480, "type": "put", "expiration": "{today_str}", "price": 1.40, "size": "full"}}]
 
-**BUY (lotto):**
+**BUY (small/lotto):**
 "in MO 0dte $61c .08 LOTTO SIZE"
-→ [{{"action": "buy", "ticker": "MO", "strike": 61, "type": "call", "expiration": "{today_str}", "price": 0.08, "size": "lotto"}}]
+→ [{{"action": "buy", "ticker": "MO", "strike": 61, "type": "call", "expiration": "{today_str}", "price": 0.08, "size": "small"}}]
 
-**MULTI-BUY (same ticker, different expirations):**
+**MULTI-BUY (same ticker, different expirations - weekly vs next week):**
 "in MU weekly $250p 1/8 size $2.80\\nin next weeks 250p 1/2 size $6"
-→ [{{"action": "buy", "ticker": "MU", "strike": 250, "type": "put", "expiration": "{today_str}", "price": 2.80, "size": "lotto"}}, {{"action": "buy", "ticker": "MU", "strike": 250, "type": "put", "expiration": "{current_year}-02-11", "price": 6.0, "size": "half"}}]
+→ [{{"action": "buy", "ticker": "MU", "strike": 250, "type": "put", "expiration": "{weekly_exp}", "price": 2.80, "size": "small"}}, {{"action": "buy", "ticker": "MU", "strike": 250, "type": "put", "expiration": "{next_week_exp}", "price": 6.0, "size": "half"}}]
 
 **MULTI-BUY (different tickers):**
 "Added to April puts\\nSPY $670 @ $9.50\\nQQQ $600p @ 11.60"
@@ -290,8 +294,8 @@ NOTE: Parse ONLY the PRIMARY message. History is context only.
         if entry.get('action') == 'buy':
             if any(kw in raw_msg for kw in self.AVERAGING_KEYWORDS):
                 current_size = (entry.get('size') or '').lower()
-                # Only override if not already explicitly smaller
-                if current_size not in ['lotto', 'tiny', '1/8']:
+                # Only override if not already explicitly smaller (small is smallest)
+                if current_size not in ['small', 'lotto', 'tiny', '1/8']:
                     entry['size'] = 'half'
 
         # --- Stop-out phrase detection (force exit) ---
@@ -312,11 +316,13 @@ NOTE: Parse ONLY the PRIMARY message. History is context only.
                 t = m.group(3).lower()
                 entry['type'] = 'call' if t in ('c', 'call') else 'put'
 
-        # --- Size normalization ---
+        # --- Size normalization (full/half/small only) ---
         size = str(entry.get('size', '')).lower().strip()
         if size in self.SIZE_MAP:
             entry['size'] = self.SIZE_MAP[size]
-        elif size and size not in ('full', 'half', 'lotto'):
+        elif size == 'lotto':
+            entry['size'] = 'small'  # Normalize legacy 'lotto' to 'small'
+        elif size and size not in ('full', 'half', 'small'):
             # Check for substring matches
             for key, val in self.SIZE_MAP.items():
                 if key in size:

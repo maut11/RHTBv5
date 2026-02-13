@@ -11,6 +11,8 @@ class SeanParser(BaseParser):
         today = datetime.now(timezone.utc)
         current_year = today.year
         today_str = today.strftime('%Y-%m-%d')
+        weekly_exp = self.get_weekly_expiry_date()
+        next_week_exp = self.get_next_week_expiry_date()
 
         # --- Handle standard messages and replies ---
         primary_message = ""
@@ -44,12 +46,16 @@ You will be given a PRIMARY message. If it is a reply to another message, you wi
 1.  Today's date is {today_str}. The current year is {current_year}.
 2.  You MUST convert ALL expiration dates to YYYY-MM-DD format.
 3.  For "0dte" or "0DTE" or "today": Return today's date "{today_str}".
-4.  For dates without year (e.g., "1/16", "Jan 17", "Sep 19"):
+4.  For "weekly" or "weeklies": Return NEXT FRIDAY "{weekly_exp}" (NOT today).
+5.  For "next week" or "next weekly": Return Friday after next "{next_week_exp}".
+6.  For dates without year (e.g., "1/16", "Jan 17", "Sep 19"):
     - If the date has NOT passed yet this year, use {current_year}.
     - If the date has ALREADY passed this year, use {current_year + 1} (assume LEAPS).
-5.  For monthly expirations (e.g., "JAN 2026", "January 2026"): Calculate the third Friday of that month.
-6.  CONVERSION EXAMPLES (assuming today is {today_str}):
+7.  For monthly expirations (e.g., "JAN 2026", "January 2026"): Calculate the third Friday of that month.
+8.  CONVERSION EXAMPLES (assuming today is {today_str}):
     - "0dte" → "{today_str}"
+    - "weekly" → "{weekly_exp}" (next Friday, NOT 0DTE)
+    - "next week" → "{next_week_exp}"
     - "1/17" (if Jan 17 is future) → "{current_year}-01-17"
     - "1/17" (if Jan 17 has passed) → "{current_year + 1}-01-17"
     - "Sep 19" → "{current_year}-09-19" (or {current_year + 1} if passed)
@@ -62,12 +68,12 @@ You will be given a PRIMARY message. If it is a reply to another message, you wi
 4.  `type`: The option type ("call" or "put"). 'C' is "call", 'P' is "put".
 5.  `price`: The execution price (number). If "BE", return the string "BE".
 6.  `expiration`: MUST be in YYYY-MM-DD format (e.g., "2026-01-17").
-7.  `size`: The position size ("full", "half", or "lotto"). Default to "full" if not mentioned.
+7.  `size`: The position size ("full", "half", or "small"). Default to "full" if not mentioned.
 
 --- SIZE RULES ---
-- If the message contains "half size", or there is sentiment that it is moderately risky -> size = "half"
-- If the message contains "lotto", "very small size", or "very risky" -> size = "lotto"
-- If size is not mentioned -> size = "full"
+- "full": Default size, no size keyword mentioned
+- "half": "half size", "1/2", "starter", "small size", moderately risky
+- "small": "lotto", "1/8", "1/4", "1/10", "tiny", "lite", "super small", very risky
 
 Messages without an explicit trade directive (e.g. "all cash", "still holding", "watching", "flow on", "considering") must be labeled as: "action": "null"
 
@@ -110,9 +116,9 @@ Output: {{"action": "buy", "ticker": "SPY", "strike": 580, "type": "call", "expi
 Message: "Opening SPX 6050P Jan 31 at 8.20 - half size"
 Output: {{"action": "buy", "ticker": "SPX", "strike": 6050, "type": "put", "expiration": "{current_year}-01-31", "price": 8.20, "size": "half"}}
 
-**BUY Example 3 (Lotto):**
+**BUY Example 3 (Small/Lotto):**
 Message: "Lotto play: TSLA 260c 1/17 @ 0.85"
-Output: {{"action": "buy", "ticker": "TSLA", "strike": 260, "type": "call", "expiration": "{current_year}-01-17", "price": 0.85, "size": "lotto"}}
+Output: {{"action": "buy", "ticker": "TSLA", "strike": 260, "type": "call", "expiration": "{current_year}-01-17", "price": 0.85, "size": "small"}}
 
 **TRIM Example 1:**
 Message: "Taking some off SPY at 2.30"

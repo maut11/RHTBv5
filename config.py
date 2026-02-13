@@ -9,7 +9,6 @@ DEFAULT_BUY_PRICE_PADDING = 0.020
 DEFAULT_SELL_PRICE_PADDING = 0.01
 
 POSITION_SIZE_MULTIPLIERS = {
-    "lotto": 0.10,
     "small": 0.25,
     "half": 0.50,
     "full": 1.00
@@ -19,7 +18,9 @@ POSITION_SIZE_MULTIPLIERS = {
 STOP_LOSS_DELAY_SECONDS = 300  # 5 minutes (changed from 15 minutes)
 DEFAULT_INITIAL_STOP_LOSS = 0.30  # 30% loss protection (changed from 50%)
 DEFAULT_TRAILING_STOP_PCT = 0.20  # 20% trailing stop
-TRIM_PERCENTAGE = 0.25  # Trim 25% of position (not 50%)
+TRIM_PERCENTAGE = 0.25  # Legacy: Trim 25% of position (deprecated, use below)
+INITIAL_TRIM_PCT = 0.50       # First trim = 50% of position
+SUBSEQUENT_TRIM_PCT = 0.25    # Subsequent trims = 25% of remaining
 
 # Fill monitoring settings
 FILL_MONITORING_INTERVAL = 10  # Seconds between fill checks
@@ -155,7 +156,7 @@ CHANNELS_CONFIG = {
         # "live_id": 1072559822366576780,  # ryan-alerts (original)
         "test_id": 1468487671893721233,  # ryan simulation channel
         "parser": "RyanParser",
-        "multiplier": 1.0,              # 10% portfolio (0.10 * 1.0) — testing
+        "multiplier": 0.5,              # 5% portfolio (0.10 * 0.5)
         "min_trade_contracts": 2,        # Minimum 2 contracts (testing)
         "initial_stop_loss": 0.30,
         "trailing_stop_loss_pct": 0.20,

@@ -333,7 +333,26 @@ class EnhancedPerformanceTracker:
             except Exception as e:
                 self.logger.error(f"Error finding trade by ticker: {e}")
                 return None
-    
+
+    def get_trim_count(self, trade_id: str) -> int:
+        """
+        Count the number of trim events for a trade.
+        Used to determine trim percentage (50% first, 25% subsequent).
+        """
+        with self.lock:
+            try:
+                with self._get_connection() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT COUNT(*) as count FROM trade_events
+                        WHERE trade_id = ? AND event_type = 'trim'
+                    """, (trade_id,))
+                    result = cursor.fetchone()
+                    return result['count'] if result else 0
+            except Exception as e:
+                self.logger.error(f"Error getting trim count for {trade_id}: {e}")
+                return 0
+
     def record_trim(self, trade_id: str, trim_data: Dict) -> Optional[TradeRecord]:
         """Record a trim action with enhanced tracking"""
         with self.lock:

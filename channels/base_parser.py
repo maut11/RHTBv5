@@ -3,7 +3,7 @@ import json
 import hashlib
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 from typing import Dict, List, Optional, Tuple, Union, Literal
 from openai import OpenAI
 import re
@@ -105,7 +105,7 @@ class BuyAlert(BaseModel):
     type: Literal["call", "put"]
     expiration: str  # YYYY-MM-DD format
     price: float
-    size: Literal["full", "half", "lotto"] = "full"
+    size: Literal["full", "half", "small"] = "full"
 
     @field_validator('ticker')
     @classmethod
@@ -123,6 +123,26 @@ class BuyAlert(BaseModel):
                 return 'put'
         return v
 
+    @field_validator('size', mode='before')
+    @classmethod
+    def normalize_size(cls, v):
+        """Normalize sizing keywords to full/half/small"""
+        if not v or not isinstance(v, str):
+            return 'full'
+        v_lower = v.lower().strip()
+        # Full size keywords
+        if v_lower in ['full', 'full size', 'full_size', 'normal', '']:
+            return 'full'
+        # Half size keywords
+        elif v_lower in ['half', '1/2', 'half size', 'half_size', 'starter', 'small size']:
+            return 'half'
+        # Small size keywords
+        elif v_lower in ['small', 'lotto', '1/8', '1/4', '1/10', 'tiny', 'lite', 'super small',
+                         'super_small', 'lottery', 'yolo', 'quarter', 'eighth']:
+            return 'small'
+        # Default to full if unrecognized
+        return 'full'
+
 
 class TrimAlert(BaseModel):
     """Schema for TRIM alerts - partial exits"""
@@ -131,7 +151,7 @@ class TrimAlert(BaseModel):
     strike: Optional[float] = None
     type: Optional[Literal["call", "put"]] = None
     expiration: Optional[str] = None
-    price: Union[float, Literal["BE"]]
+    price: Union[float, Literal["BE", "market"]]
 
     @field_validator('ticker')
     @classmethod
@@ -159,7 +179,7 @@ class ExitAlert(BaseModel):
     strike: Optional[float] = None
     type: Optional[Literal["call", "put"]] = None
     expiration: Optional[str] = None
-    price: Union[float, Literal["BE"]]
+    price: Union[float, Literal["BE", "market"]]
 
     @field_validator('ticker')
     @classmethod
@@ -518,6 +538,37 @@ class BaseParser(ABC):
         cache.set(message_meta, result, message_history)
 
         return result
+
+    def get_weekly_expiry_date(self) -> str:
+        """
+        Returns next Friday's date for 'weekly' keyword.
+        - Mon-Thu: This Friday
+        - Fri/Sat/Sun: Next Friday
+        """
+        now = datetime.now(timezone.utc)
+        weekday = now.weekday()  # 0=Mon, 4=Fri
+        if weekday >= 4:  # Fri/Sat/Sun → Next Friday
+            days_ahead = 7 - weekday + 4
+        else:  # Mon-Thu → This Friday
+            days_ahead = 4 - weekday
+        target_date = now + timedelta(days=days_ahead)
+        return target_date.strftime('%Y-%m-%d')
+
+    def get_next_week_expiry_date(self) -> str:
+        """
+        Returns Friday after next for 'next week' keyword.
+        """
+        now = datetime.now(timezone.utc)
+        weekday = now.weekday()
+        # First get to this Friday
+        if weekday >= 4:
+            days_to_this_friday = 7 - weekday + 4
+        else:
+            days_to_this_friday = 4 - weekday
+        # Then add 7 more days for next Friday
+        days_ahead = days_to_this_friday + 7
+        target_date = now + timedelta(days=days_ahead)
+        return target_date.strftime('%Y-%m-%d')
 
     def _smart_year_detection(self, date_str: str, logger) -> str:
         """

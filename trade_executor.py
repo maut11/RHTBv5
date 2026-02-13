@@ -13,6 +13,7 @@ from config import (
     CHANNELS_CONFIG, POSITION_SIZE_MULTIPLIERS, MAX_PCT_PORTFOLIO,
     MAX_DOLLAR_AMOUNT, MIN_CONTRACTS, MAX_CONTRACTS, DEFAULT_BUY_PRICE_PADDING,
     DEFAULT_SELL_PRICE_PADDING, STOP_LOSS_DELAY_SECONDS, TRIM_PERCENTAGE,
+    INITIAL_TRIM_PCT, SUBSEQUENT_TRIM_PCT,
     TRIM_CASCADE_STEPS, EXIT_CASCADE_STEPS,
     ALL_NOTIFICATION_WEBHOOK, PLAYS_WEBHOOK, LIVE_FEED_WEBHOOK,
     get_broker_symbol, get_trader_symbol, get_all_symbol_variants,
@@ -1099,13 +1100,16 @@ class TradeExecutor:
                         # ========== TRADE-FIRST WORKFLOW ==========
                         print(f"⚡ EXECUTING TRADE FIRST: {action.upper()} {symbol}")
 
-                        # Get trade ID for tracking
+                        # Get trade ID for tracking and trim count logic
                         trade_id = active_position.get('trade_id') if active_position else None
                         if not trade_id and trade_obj.get('ticker'):
                             trade_id = self.performance_tracker.find_open_trade_by_ticker(
                                 trade_obj['ticker'], handler.name
                             )
-                        
+                        # Pass trade_id to sell order for trim count calculation
+                        if trade_id:
+                            trade_obj['trade_id'] = trade_id
+
                         # EXECUTE THE TRADE IMMEDIATELY (highest priority)
                         execution_success, result_summary = self._execute_sell_order(
                             trader, trade_obj, config, log_func, active_position
@@ -1556,9 +1560,25 @@ class TradeExecutor:
                     return False, "No position found"
                 total_quantity = int(float(position.get('quantity', 0)))
 
-            # Determine quantity - use TRIM_PERCENTAGE for trims (25% by default)
+            # Determine quantity - use dynamic trim percentage based on trim count
             if action == "trim":
-                sell_quantity = max(1, int(total_quantity * TRIM_PERCENTAGE))
+                # Get trade_id for trim count lookup
+                trade_id = trade_obj.get('trade_id') or (active_position.get('trade_id') if active_position else None)
+
+                if trade_id and self.performance_tracker:
+                    trim_count = self.performance_tracker.get_trim_count(trade_id)
+                    if trim_count == 0:
+                        trim_pct = INITIAL_TRIM_PCT  # 50% for first trim
+                        print(f"📊 First trim: using {trim_pct*100:.0f}% ({trade_id})")
+                    else:
+                        trim_pct = SUBSEQUENT_TRIM_PCT  # 25% for subsequent trims
+                        print(f"📊 Trim #{trim_count + 1}: using {trim_pct*100:.0f}% ({trade_id})")
+                else:
+                    # Fallback to legacy TRIM_PERCENTAGE if no trade_id
+                    trim_pct = TRIM_PERCENTAGE
+                    print(f"⚠️ No trade_id for trim count, using fallback {trim_pct*100:.0f}%")
+
+                sell_quantity = max(1, int(total_quantity * trim_pct))
             else:
                 sell_quantity = total_quantity
             trade_obj['quantity'] = sell_quantity

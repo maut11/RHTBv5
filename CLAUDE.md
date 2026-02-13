@@ -62,11 +62,44 @@ When multiple positions exist for the same ticker, the system uses weighted scor
 
 ### Configuration Values
 
-From `config.py` (lines 167-170):
+From `config.py` (lines 200-204):
 - `POSITION_LEDGER_DB = "logs/position_ledger.db"` - Database file path
 - `LEDGER_SYNC_INTERVAL = 60` - Robinhood reconciliation interval (seconds)
 - `LEDGER_HEURISTIC_STRATEGY = "fifo"` - Default resolution heuristic
 - `LEDGER_LOCK_TIMEOUT = 60` - Lock timeout for pending exits (seconds)
+
+---
+
+## Trim Percentage System
+
+The system uses dynamic trim percentages based on trim count per position.
+
+### Configuration Values
+
+From `config.py` (lines 22-23):
+- `INITIAL_TRIM_PCT = 0.50` - First trim takes 50% of position
+- `SUBSEQUENT_TRIM_PCT = 0.25` - Subsequent trims take 25% of remaining position
+
+### Trim Count Tracking
+
+**PerformanceTracker.get_trim_count()** (`performance_tracker.py` lines 337-354):
+- Queries `trade_events` table for count of `event_type = 'trim'` per `trade_id`
+- Returns integer count of previous trims for the position
+
+### Execution Logic
+
+**trade_executor.py** (lines 1569-1575):
+- On trim action, calls `performance_tracker.get_trim_count(trade_id)`
+- If `trim_count == 0`: Uses `INITIAL_TRIM_PCT` (50%)
+- If `trim_count > 0`: Uses `SUBSEQUENT_TRIM_PCT` (25%)
+- Quantity: `max(1, int(total_quantity * trim_pct))`
+
+### Size Normalization
+
+Position sizes normalized to three values (see `config.py` lines 11-15):
+- `"full"`: Multiplier 1.00 (default)
+- `"half"`: Multiplier 0.50
+- `"small"`: Multiplier 0.25 (replaces legacy "lotto")
 
 ---
 
@@ -76,12 +109,20 @@ The trading bot uses OpenAI's API to parse Discord trading alerts into structure
 
 ### Alert Types and Schemas
 
-Four Pydantic schemas define valid alert structures (see `channels/base_parser.py` lines 100-196):
+Four Pydantic schemas define valid alert structures (see `channels/base_parser.py` lines 100-215):
 
 - **BuyAlert**: New position entries - requires ticker, strike, type, expiration, price, size
+  - `size`: Literal["full", "half", "small"] with validator normalizing keywords (e.g., "lotto" -> "small", "starter" -> "half")
 - **TrimAlert**: Partial exits - requires ticker, price; other fields optional (resolved from active positions)
+  - `price`: Union[float, Literal["BE", "market"]] - allows market-price exits
 - **ExitAlert**: Full position closes - requires ticker, price; other fields optional
+  - `price`: Union[float, Literal["BE", "market"]] - allows market-price exits
 - **CommentaryAlert**: Non-actionable messages - action="null"
+
+**Field validators** (all schemas):
+- `ticker`: Uppercase, strips `$` prefix
+- `type`: Normalizes c/call/calls -> "call", p/put/puts -> "put"
+- `size`: Normalizes sizing keywords to "full", "half", or "small"
 
 ### Model Strategy and Reliability
 
@@ -115,10 +156,16 @@ When parsing a message, the system provides context to improve accuracy:
 
 ### Date Parsing
 
-The LLM directly converts dates to YYYY-MM-DD format. Prompt instructions in `channels/sean.py` and `channels/fifi.py` specify:
-- 0DTE becomes today's date
+The LLM directly converts dates to YYYY-MM-DD format. Prompt instructions specify:
+- "0dte" or "today" becomes today's date
+- "weekly" or "weeklies" resolves to **next Friday** (not 0DTE) via `get_weekly_expiry_date()`
+- "next week" resolves to Friday after next via `get_next_week_expiry_date()`
 - Dates without year use smart year detection (future = current year, passed = next year)
 - Monthly expirations (e.g., "JAN 2026") resolve to third Friday
+
+**BaseParser helper methods** (`channels/base_parser.py` lines 542-571):
+- `get_weekly_expiry_date()` - Returns next Friday (Mon-Thu: this Friday, Fri-Sun: next Friday)
+- `get_next_week_expiry_date()` - Returns Friday after next
 
 Fallback Python parsing exists in `base_parser.py` for edge cases.
 
@@ -135,15 +182,19 @@ Implementation: `main.py` lines 575-630
 
 ## Channel Parsers
 
-The bot supports multiple channel parsers, each tailored to a specific trader's messaging style. All parsers extend `BaseParser` (`channels/base_parser.py`). LLM-based parsers override `build_prompt()` while regex-based parsers override `parse_message()` directly. Three active parsers exist: `SeanParser`, `FiFiParser`, and `RyanParser`.
+The bot supports multiple channel parsers, each tailored to a specific trader's messaging style. All parsers extend `BaseParser` (`channels/base_parser.py`). LLM-based parsers override `build_prompt()` while regex-based parsers override `parse_message()` directly. Four parsers exist: `SeanParser`, `FiFiParser`, `RyanParser`, and `IanParser`.
 
 ### SeanParser (`channels/sean.py`)
 
 The original parser for Sean's technical analysis alerts. Overrides only `build_prompt()` and uses the base `_normalize_entry()` for date fallback. Constructor accepts `**kwargs` for forward compatibility with the position ledger parameter.
 
+**Sizing**: Uses standardized "full", "half", "small" values. Prompt maps "lotto", "1/8", "tiny" to "small" and "starter", "1/2" to "half".
+
+**Weekly expiration**: Uses `get_weekly_expiry_date()` to resolve "weekly" to next Friday (not 0DTE).
+
 ### FiFiParser (`channels/fifi.py`)
 
-Parses FiFi's (sauced2002) conversational, non-standardized Discord trading alerts. Live trading with `min_trade_contracts=1`.
+Parses FiFi's (sauced2002) conversational, non-standardized Discord trading alerts. Currently in tracking-only mode (`min_trade_contracts=0`).
 
 **Enhancements over base parsing** (five total):
 
@@ -157,16 +208,19 @@ Parses FiFi's (sauced2002) conversational, non-standardized Discord trading aler
 
 5. **Role ping signal** -- Detects FiFi's alert role ping (`<@&1369304547356311564>`) in the message and passes `has_alert_ping: true/false` to the prompt as a signal of actionability.
 
-**Custom `_normalize_entry()` post-processing** (lines 260-305):
+**Custom `_normalize_entry()` post-processing** (lines 284-341):
+- Averaging detection (force "half" size for "added to", "scaling into", "back in")
 - Stop-out phrase detection (forces action to "exit" with "market" price)
 - Embedded contract notation regex (e.g., "BMNR50p" to ticker/strike/type)
-- Size normalization mapping (e.g., "1/4" to "half", "tiny" to "lotto")
+- Size normalization mapping to "full", "half", "small" (e.g., "1/4" to "half", "lotto" to "small")
 - Default 0DTE for buys without expiration
 - Ticker cleanup (uppercase, strip `$`)
 
+**Weekly expiration**: Uses `get_weekly_expiry_date()` to resolve "weekly" to next Friday (not 0DTE).
+
 **Prompt features**:
 - Multi-trade detection instructions for messages containing multiple distinct trades
-- 10+ few-shot examples covering buy (explicit/implicit/lotto/multi), trim (reply-based/typo), exit (standard/stopped), and null (conditional/watchlist/intent/fragment/bare ticker)
+- 10+ few-shot examples covering buy (explicit/implicit/small/multi), trim (reply-based/typo), exit (standard/stopped), and null (conditional/watchlist/intent/fragment/bare ticker)
 - Price parsing rule: "from $X" is entry price context, not current price
 
 ### RyanParser (`channels/ryan.py`)
@@ -197,17 +251,41 @@ Parses Ryan's 0DTE SPX options alerts from Discord embeds sent by "Sir Goldman A
 - Rejects non-embed (plain string) `message_meta` with an empty result (lines 50-52)
 - `build_prompt()` returns empty string (required by base class but never called)
 
+### IanParser (`channels/ian.py`)
+
+Parses Ian's (ohiain) structured swing trade alerts. LLM-based parser with position ledger injection and time delta message history, similar to FiFiParser.
+
+**Key features**:
+- Position ledger injection via `_get_open_positions_json()` for trim/exit resolution
+- Time delta message history via `_format_history_with_deltas()` (same as FiFi)
+- Alert role ping detection (`<@&1457740469353058469>`)
+- Stop management messages return "null" (BE stop set automatically after trim)
+- Structured entry format: "Adding $TICKER STRIKEc/p EXPIRY @PRICE" with size on separate line
+
+**Stop update handling** (lines 311-315):
+- All stop-related messages ("Moving stop to b/e", "Setting a hard stop @ X") return "null"
+- BE stop is set automatically by the system after first trim
+- `_normalize_entry()` converts any `stop_update` action to "null"
+
+**Sizing**: Uses standardized "full", "half", "small" values via `SIZE_MAP` (lines 13-19):
+- "full": Default size
+- "half": "1/2", "1/4", "1/3", "starter", "some"
+- "small": "lotto", "1/5th", "1/8th", "tiny", "lite"
+
 ### CHANNELS_CONFIG
 
-Channel configuration in `config.py` (lines 106-160). Each entry maps a channel name to parser class, channel IDs, risk parameters, and model settings.
+Channel configuration in `config.py` (lines 117-194). Each entry maps a channel name to parser class, channel IDs, risk parameters, and model settings.
 
-| Channel | Parser | Live Trading | Message History | Key Differences |
-|---------|--------|-------------|-----------------|-----------------|
-| Sean | `SeanParser` | Yes (`min_trade_contracts=2`) | 5 (default) | Standard prompt, no position injection |
-| FiFi | `FiFiParser` | Yes (`min_trade_contracts=1`) | 10 | Position injection, time deltas, negative constraints, role ping |
-| Ryan | `RyanParser` | Yes (`min_trade_contracts=1`) | 0 | Regex-based (no LLM), embed dispatch, SPX 0DTE only |
+| Channel | Parser | Live Trading | Message History | Multiplier | Key Differences |
+|---------|--------|-------------|-----------------|------------|-----------------|
+| Sean | `SeanParser` | Yes (`min_trade_contracts=2`) | 5 (default) | 1.0 (10%) | Standard prompt, no position injection |
+| FiFi | `FiFiParser` | Disabled | 10 | 0.5 (5%) | Position injection, time deltas, negative constraints, role ping |
+| Ryan | `RyanParser` | Disabled | 0 | 0.5 (5%) | Regex-based (no LLM), embed dispatch, SPX 0DTE only |
+| Ian | `IanParser` | Disabled | 10 | 0.5 (5%) | Position injection, stop updates ignored, structured entries |
 
 The `message_history_limit` config key controls how many recent messages are fetched for context per channel (see `main.py` line 555). Channels without this key default to 5.
+
+**Multiplier**: Applied to `MAX_PCT_PORTFOLIO` (0.10) to calculate position size. Sean uses 10% portfolio, others use 5%.
 
 ---
 
