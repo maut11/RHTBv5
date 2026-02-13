@@ -389,8 +389,21 @@ class TradeExecutor:
                     continue
 
                 # Determine price based on price_type
+                # CBOE tick sizes: SPX <$3.00 = $0.05, SPX >=$3.00 = $0.10
+                # Standard equity options: $0.01
+                if symbol.upper() in ('SPX', 'SPXW'):
+                    tick_size = 0.05 if bid < 3.0 else 0.10
+                else:
+                    tick_size = 0.01
+
                 if price_type == 'ask':
                     base_price = float(data.get('ask_price', 0) or 0)
+                elif price_type == 'ask_minus_tick':
+                    # Ask - 1 tick: patient selling, inside spread
+                    base_price = float(data.get('ask_price', 0) or 0) - tick_size
+                elif price_type == 'bid_plus_tick':
+                    # Bid + 1 tick: queue priority, inside spread
+                    base_price = float(data.get('bid_price', 0) or 0) + tick_size
                 elif price_type == 'mark':
                     base_price = float(data.get('mark_price', 0) or 0)
                 elif price_type == 'midpoint':
@@ -589,8 +602,18 @@ class TradeExecutor:
                     continue
 
                 # --- Calculate target price based on price_type ---
+                # CBOE tick sizes: SPX <$3.00 = $0.05, SPX >=$3.00 = $0.10
+                # Standard equity options: $0.01
+                if symbol.upper() in ('SPX', 'SPXW'):
+                    tick_size = 0.05 if bid < 3.0 else 0.10
+                else:
+                    tick_size = 0.01
+
                 if price_type == 'cap':
                     target_price = max_price_cap
+                elif price_type == 'bid_plus_tick':
+                    # Bid + 1 tick: be the highest bidder (queue priority)
+                    target_price = (float(data.get('bid_price', 0) or 0) + tick_size) * multiplier
                 elif price_type == 'midpoint':
                     target_price = ((bid + ask) / 2 if bid > 0 and ask > 0 else ask) * multiplier
                 elif price_type == 'ask':

@@ -26,6 +26,7 @@ from channels.sean import SeanParser
 from channels.fifi import FiFiParser
 from channels.ryan import RyanParser
 from channels.ian import IanParser
+from channels.eva import EvaParser
 from channels.price_parser import PriceParser
 
 # Import AI logging system

@@ -15,9 +15,9 @@ POSITION_SIZE_MULTIPLIERS = {
 }
 
 # Enhanced risk management settings
-STOP_LOSS_DELAY_SECONDS = 300  # 5 minutes (changed from 15 minutes)
-DEFAULT_INITIAL_STOP_LOSS = 0.30  # 30% loss protection (changed from 50%)
-DEFAULT_TRAILING_STOP_PCT = 0.20  # 20% trailing stop
+STOP_LOSS_DELAY_SECONDS = 300  # 5 minutes grace period (Ryan tests EMAs, expects drawdown)
+DEFAULT_INITIAL_STOP_LOSS = 0.20  # 20% loss protection (entry × 0.80)
+# NO trailing stop - after trim, stop moves to break-even (entry + 1 tick)
 TRIM_PERCENTAGE = 0.25  # Legacy: Trim 25% of position (deprecated, use below)
 INITIAL_TRIM_PCT = 0.50       # First trim = 50% of position
 SUBSEQUENT_TRIM_PCT = 0.25    # Subsequent trims = 25% of remaining
@@ -26,29 +26,32 @@ SUBSEQUENT_TRIM_PCT = 0.25    # Subsequent trims = 25% of remaining
 FILL_MONITORING_INTERVAL = 10  # Seconds between fill checks
 FILL_TIMEOUT_SECONDS = 600     # 10 minute timeout for unfilled orders
 
-# Cascade sell configurations (optimized for 0DTE SPX — short waits, more steps)
+# Cascade sell configurations (optimized for 0DTE SPX — fast execution)
+# TRIM: Patient, stay on Ask side longer to force market makers to pay spread
 TRIM_CASCADE_STEPS = [
-    {'price_type': 'ask', 'multiplier': 1.0, 'wait_seconds': 5},        # Fish for spread capture
-    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 10},  # Fair value
-    {'price_type': 'mark', 'multiplier': 1.0, 'wait_seconds': 10},      # Market consensus
-    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 10},       # Liquidity
-    {'price_type': 'bid', 'multiplier': 0.99, 'wait_seconds': 0},       # Gentle force fill
+    {'price_type': 'ask', 'multiplier': 1.0, 'wait_seconds': 10},         # Force them to pay spread
+    {'price_type': 'ask_minus_tick', 'multiplier': 1.0, 'wait_seconds': 10},  # Ask - 1 tick
+    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 10},    # Center of spread
+    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 10},         # Hit the bid
+    {'price_type': 'bid', 'multiplier': 0.99, 'wait_seconds': 0},         # Gentle force fill
 ]
 
+# EXIT: Urgent, cross spread quickly
 EXIT_CASCADE_STEPS = [
-    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 10},  # Quick fair value
-    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 10},       # Hit the bid
-    {'price_type': 'bid', 'multiplier': 0.98, 'wait_seconds': 5},       # Slight drop
-    {'price_type': 'bid', 'multiplier': 0.95, 'wait_seconds': 0},       # Emergency exit
+    {'price_type': 'bid_plus_tick', 'multiplier': 1.0, 'wait_seconds': 5},  # Queue priority (Bid + 1 tick)
+    {'price_type': 'bid', 'multiplier': 1.0, 'wait_seconds': 5},            # Hit the bid
+    {'price_type': 'bid', 'multiplier': 0.98, 'wait_seconds': 5},           # Slight drop
+    {'price_type': 'bid', 'multiplier': 0.95, 'wait_seconds': 0},           # Emergency exit
 ]
 
 # Cascade buy configurations — stepped price discovery with hard cap
 # Cap = parsed_price × (1 + buy_padding). NEVER exceed cap.
+# Optimized for 0DTE: 10s waits instead of 30s
 BUY_CASCADE_STEPS = [
-    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 30},   # Fish inside spread
-    {'price_type': 'ask',      'multiplier': 0.99, 'wait_seconds': 30},  # Slight discount off ask
-    {'price_type': 'ask',      'multiplier': 1.0, 'wait_seconds': 30},   # Full ask price
-    {'price_type': 'cap',      'multiplier': 1.0, 'wait_seconds': 0},    # Resting order at cap
+    {'price_type': 'bid_plus_tick', 'multiplier': 1.0, 'wait_seconds': 10},  # Be highest bidder
+    {'price_type': 'midpoint', 'multiplier': 1.0, 'wait_seconds': 10},       # Center of spread
+    {'price_type': 'ask', 'multiplier': 1.0, 'wait_seconds': 10},            # Take the offer
+    {'price_type': 'cap', 'multiplier': 1.0, 'wait_seconds': 0},             # Resting order at cap
 ]
 
 # ========================================
@@ -121,8 +124,8 @@ CHANNELS_CONFIG = {
         "parser": "SeanParser",
         "multiplier": 1.0,
         "min_trade_contracts": 2,  # Minimum contracts to trade (0 = no trading)
-        "initial_stop_loss": 0.30,  # 30% stop loss for Sean
-        "trailing_stop_loss_pct": 0.20,
+        "initial_stop_loss": 0.20,  # 20% stop loss (entry × 0.80)
+        # NO trailing stop - after trim, stop moves to break-even
         "buy_padding": 0.025,  # 2.5% padding
         "sell_padding": 0.01,  # 2.5% padding
         "model": "gpt-4o-2024-08-06",
@@ -134,13 +137,13 @@ CHANNELS_CONFIG = {
         "resting_order_timeout": 300  # 5 minutes for resting buy order
     },
     "FiFi": {
-        "live_id": 0,                    # DISABLED - no alerts, no trading
+        "live_id": 1368713891072315483,  # fifi-plays (sauced2002)
         "test_id": 1468477705270988833,  # fifi simulation channel
         "parser": "FiFiParser",
         "multiplier": 0.5,             # 5% portfolio (0.10 * 0.5)
-        "min_trade_contracts": 0,      # DISABLED - tracking only (sundown)
-        "initial_stop_loss": 0.50,
-        "trailing_stop_loss_pct": 0.20,
+        "min_trade_contracts": 2,      # ENABLED - live trading
+        "initial_stop_loss": 0.20,  # 20% stop loss (entry × 0.80)
+        # NO trailing stop - after trim, stop moves to break-even
         "buy_padding": 0.025,
         "sell_padding": 0.01,
         "model": "gpt-4o-2024-08-06",
@@ -152,14 +155,13 @@ CHANNELS_CONFIG = {
         "message_history_limit": 10
     },
     "Ryan": {
-        "live_id": 0,  # DISABLED - 0DTE SPX latency issues
-        # "live_id": 1072559822366576780,  # ryan-alerts (original)
+        "live_id": 1072559822366576780,  # ryan-alerts (ENABLED)
         "test_id": 1468487671893721233,  # ryan simulation channel
         "parser": "RyanParser",
         "multiplier": 0.5,              # 5% portfolio (0.10 * 0.5)
-        "min_trade_contracts": 2,        # Minimum 2 contracts (testing)
-        "initial_stop_loss": 0.30,
-        "trailing_stop_loss_pct": 0.20,
+        "min_trade_contracts": 2,        # ENABLED - live trading
+        "initial_stop_loss": 0.20,       # 20% stop loss (entry × 0.80)
+        # NO trailing stop - after trim, stop moves to break-even
         "buy_padding": 0.025,
         "sell_padding": 0.01,
         "model": "gpt-4o-mini",          # Required by BaseParser init, not used in hot path
@@ -172,14 +174,13 @@ CHANNELS_CONFIG = {
         "resting_order_timeout": 60      # 1 minute for resting buy order (0DTE speed)
     },
     "Ian": {
-        "live_id": 0,                    # TRACKING ONLY - initial onboarding
-        # "live_id": 1457490555016839289,  # ian-alerts (to enable later)
+        "live_id": 1457490555016839289,  # ian-alerts (ENABLED)
         "test_id": 1457490555016839289,  # ian channel for testing/tracking
         "parser": "IanParser",
-        "multiplier": 0.5,               # 5% portfolio (0.10 * 0.5) when enabled
-        "min_trade_contracts": 0,        # DISABLED - tracking only (onboarding)
-        "initial_stop_loss": 0.30,
-        "trailing_stop_loss_pct": 0.20,
+        "multiplier": 0.5,               # 5% portfolio (0.10 * 0.5)
+        "min_trade_contracts": 2,        # ENABLED - live trading
+        "initial_stop_loss": 0.20,       # 20% stop loss (entry × 0.80)
+        # NO trailing stop - after trim, stop moves to break-even
         "buy_padding": 0.025,
         "sell_padding": 0.01,
         "model": "gpt-4o-2024-08-06",
@@ -189,6 +190,25 @@ CHANNELS_CONFIG = {
         "typical_hold_time": "1-5 days",
         "trade_first_mode": True,
         "message_history_limit": 10,     # Ian uses replies frequently
+        "resting_order_timeout": 300     # 5 minutes for resting buy order
+    },
+    "Eva": {
+        "live_id": 1072556084662902846,  # evas-plays (ENABLED)
+        "test_id": 1471756473242488885,  # eva simulation channel
+        "parser": "EvaParser",
+        "multiplier": 0.5,               # 5% portfolio (0.10 * 0.5)
+        "min_trade_contracts": 2,        # ENABLED - live trading
+        "initial_stop_loss": 0.20,       # 20% stop loss (entry × 0.80)
+        # NO trailing stop - after trim, stop moves to break-even
+        "buy_padding": 0.025,
+        "sell_padding": 0.01,
+        "model": "gpt-4o-mini",          # Not used for regex parser
+        "color": 65280,                  # Green (0x00FF00) - Eva's embed color
+        "description": "Eva's structured swing and day trades",
+        "risk_level": "medium",
+        "typical_hold_time": "1 hour - 2 days",
+        "trade_first_mode": True,
+        "message_history_limit": 0,      # Embeds are self-contained
         "resting_order_timeout": 300     # 5 minutes for resting buy order
     }
 }
@@ -296,11 +316,22 @@ ORDER_MANAGEMENT_CONFIG = {
 AUTO_EXIT_CONFIG = {
     "tier1_profit_pct": 0.25,             # +25% profit target (Tier 1)
     "tier2_profit_pct": 0.50,             # +50% profit target (Tier 2)
-    "stop_loss_pct": 0.25,               # -25% triggers stop exit
-    "stop_loss_delay_seconds": 300,       # 5 min grace period before stop activates
+    "stop_loss_pct": 0.20,                # -20% triggers stop exit (entry × 0.80)
+    "stop_loss_delay_seconds": 300,       # 5 min grace period (Ryan tests EMAs, expects drawdown)
     "poll_interval_seconds": 3,           # Price monitoring frequency
     "single_contract_target_pct": 0.25,   # Single contract uses +25% only
-    "aggressive_exit_discount": 0.10,     # Stop exit at bid x 0.90
+    # Stop cascade: Midpoint (15s) → Bid (15s) → Bid×0.95 (resting)
+    "stop_cascade_steps": [
+        {'price_type': 'midpoint', 'wait_seconds': 15},
+        {'price_type': 'bid', 'wait_seconds': 15},
+        {'price_type': 'bid', 'multiplier': 0.95, 'wait_seconds': 0},
+    ],
+    # Flash crash bypass: If price drops >20% in <10s, skip cascade
+    "flash_crash_threshold_pct": 0.20,    # 20% drop triggers bypass
+    "flash_crash_window_seconds": 10,     # Within 10 seconds
+    "flash_crash_exit_discount": 0.10,    # Emergency exit at bid × 0.90
+    # Break-even stop after trim: entry + 1 tick
+    "breakeven_buffer_ticks": 1,          # Add 1 tick to cover fees
 }
 
 # Symbol normalization configuration

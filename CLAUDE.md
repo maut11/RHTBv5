@@ -62,11 +62,94 @@ When multiple positions exist for the same ticker, the system uses weighted scor
 
 ### Configuration Values
 
-From `config.py` (lines 200-204):
+From `config.py` (lines 221-224):
 - `POSITION_LEDGER_DB = "logs/position_ledger.db"` - Database file path
 - `LEDGER_SYNC_INTERVAL = 60` - Robinhood reconciliation interval (seconds)
 - `LEDGER_HEURISTIC_STRATEGY = "fifo"` - Default resolution heuristic
 - `LEDGER_LOCK_TIMEOUT = 60` - Lock timeout for pending exits (seconds)
+
+---
+
+## Cascade Execution System
+
+The bot uses stepped price cascades for order execution, optimized for 0DTE speed.
+
+### Price Types
+
+From `trade_executor.py` (lines 391-414, 604-626):
+
+| Price Type | Description | Use Case |
+|------------|-------------|----------|
+| `bid` | Current bid price | Aggressive sells, stop exits |
+| `ask` | Current ask price | Patient sells at top of spread |
+| `midpoint` | (bid + ask) / 2 | Center of spread |
+| `mark` | Mark price (broker's fair value) | Reference only |
+| `bid_plus_tick` | Bid + 1 tick | Buy queue priority (be highest bidder) |
+| `ask_minus_tick` | Ask - 1 tick | Sell queue priority (inside spread) |
+| `cap` | Max price cap (for buys) | Final resting order at limit |
+
+### CBOE Tick Snapping
+
+SPX/SPXW options use CBOE tick sizes (lines 392-397, 605-610):
+- Price < $3.00: $0.05 tick increments
+- Price >= $3.00: $0.10 tick increments
+- Standard equity options: $0.01 tick increments
+
+### Cascade Configurations
+
+From `config.py` (lines 29-55):
+
+**BUY_CASCADE_STEPS** (10s waits, 0DTE optimized):
+1. `bid_plus_tick` - Be highest bidder (queue priority)
+2. `midpoint` - Center of spread
+3. `ask` - Take the offer
+4. `cap` - Resting order at max price cap
+
+**TRIM_CASCADE_STEPS** (10s waits, patient):
+1. `ask` - Force market makers to pay spread
+2. `ask_minus_tick` - Inside spread
+3. `midpoint` - Center of spread
+4. `bid` - Hit the bid
+5. `bid x 0.99` - Gentle force fill
+
+**EXIT_CASCADE_STEPS** (5s waits, urgent):
+1. `bid_plus_tick` - Queue priority
+2. `bid` - Hit the bid
+3. `bid x 0.98` - Slight drop
+4. `bid x 0.95` - Emergency exit
+
+---
+
+## Auto-Exit Manager
+
+The `auto_exit_manager.py` module provides automated tiered profit-taking and stop-loss for 0DTE positions.
+
+### Tiered Profit Targets
+
+From `config.py` AUTO_EXIT_CONFIG (lines 316-335):
+- **Tier 1**: +25% profit target (half position)
+- **Tier 2**: +50% profit target (remaining half)
+- **Single contract**: +25% target only
+
+### Stop-Loss System
+
+- **Initial stop**: 20% loss (entry x 0.80)
+- **Grace period**: 5 minutes (traders test EMAs, expect initial drawdown)
+- **Break-even stop**: After Tier 1 fills, stop moves to entry + 1 tick (covers fees)
+
+### Flash Crash Detection
+
+From `auto_exit_manager.py` (lines 486-532):
+- Triggers if price drops >20% within 10 seconds
+- Bypasses normal cascade - immediate dump at bid x 0.90
+- Maintains rolling price history per position
+- Sends emergency alert to live feed
+
+### Integration Points
+
+- `setup_strategy()` - Called after buy fill, places Tier 1/2 limit sells
+- `check_strategies()` - Polled every 3s from main.py async loop
+- `cancel_strategy()` - Called on manual EXIT override to cancel pending limits
 
 ---
 
@@ -182,7 +265,7 @@ Implementation: `main.py` lines 575-630
 
 ## Channel Parsers
 
-The bot supports multiple channel parsers, each tailored to a specific trader's messaging style. All parsers extend `BaseParser` (`channels/base_parser.py`). LLM-based parsers override `build_prompt()` while regex-based parsers override `parse_message()` directly. Four parsers exist: `SeanParser`, `FiFiParser`, `RyanParser`, and `IanParser`.
+The bot supports multiple channel parsers, each tailored to a specific trader's messaging style. All parsers extend `BaseParser` (`channels/base_parser.py`). LLM-based parsers override `build_prompt()` while regex-based parsers override `parse_message()` directly. Five parsers exist: `SeanParser`, `FiFiParser`, `RyanParser`, `IanParser`, and `EvaParser`.
 
 ### SeanParser (`channels/sean.py`)
 
@@ -194,7 +277,7 @@ The original parser for Sean's technical analysis alerts. Overrides only `build_
 
 ### FiFiParser (`channels/fifi.py`)
 
-Parses FiFi's (sauced2002) conversational, non-standardized Discord trading alerts. Currently in tracking-only mode (`min_trade_contracts=0`).
+Parses FiFi's (sauced2002) conversational, non-standardized Discord trading alerts.
 
 **Enhancements over base parsing** (five total):
 
@@ -272,16 +355,43 @@ Parses Ian's (ohiain) structured swing trade alerts. LLM-based parser with posit
 - "half": "1/2", "1/4", "1/3", "starter", "some"
 - "small": "lotto", "1/5th", "1/8th", "tiny", "lite"
 
+### EvaParser (`channels/eva.py`)
+
+Parses Eva's structured embed alerts. Hybrid parser: regex for Open embeds (fast), LLM for Close embeds (context-aware trim vs exit determination).
+
+**Embed structure**: Eva's alerts arrive as Discord embeds with titles `Open`, `Close`, or `Update`. The existing `_extract_message_content()` in `main.py` delivers these as `message_meta = (embed_title, embed_description)` tuples.
+
+**Title-based dispatch** (`_dispatch()`, lines 204-218):
+- OPEN -- Routes to regex parser `_parse_open()` (~0ms latency)
+- CLOSE -- Routes to LLM parser `_parse_close_llm()` for trim/exit determination
+- UPDATE -- Checks for hidden STC alerts via `_STC_DETECT` regex; otherwise non-actionable
+
+**Trade regex** (line 20-23): `(?:BTO|STC)\s+(?:\d+\s+)?(\w+)\s+(\d{1,2}/\d{1,2}/\d{2,4})\s+(\d+(?:\.\d+)?)(c|p)\s*@\s*\$?([\d.]+)` -- captures ticker, date, strike, option type, and price from Eva's `BTO SPY 01/09/26 694c @ 0.53` format.
+
+**Trim vs Exit determination** (LLM with keyword analysis):
+- EXIT keywords: "all out", "out on remaining", "stop loss hit", "running stop loss"
+- TRIM keywords: "leaving a runner", "scale out", "profit", "exit some", "holding"
+- Default: TRIM (safer when ambiguous)
+
+**Position ledger injection**: Like FiFi and Ian, injects open positions JSON into prompt for context via `_get_open_positions_json()` (lines 31-49).
+
+**Key architectural notes**:
+- Hybrid approach: bypasses LLM for Open (regex), uses LLM only for Close
+- Regex fallback exists for Close when LLM fails (`_parse_close_regex_fallback()`)
+- Date parsing: converts `MM/DD/YY` to `YYYY-MM-DD` format via `_parse_date()`
+- Handles decimal strikes (e.g., `157.5`)
+
 ### CHANNELS_CONFIG
 
-Channel configuration in `config.py` (lines 117-194). Each entry maps a channel name to parser class, channel IDs, risk parameters, and model settings.
+Channel configuration in `config.py` (lines 120-214). Each entry maps a channel name to parser class, channel IDs, risk parameters, and model settings.
 
 | Channel | Parser | Live Trading | Message History | Multiplier | Key Differences |
 |---------|--------|-------------|-----------------|------------|-----------------|
 | Sean | `SeanParser` | Yes (`min_trade_contracts=2`) | 5 (default) | 1.0 (10%) | Standard prompt, no position injection |
-| FiFi | `FiFiParser` | Disabled | 10 | 0.5 (5%) | Position injection, time deltas, negative constraints, role ping |
-| Ryan | `RyanParser` | Disabled | 0 | 0.5 (5%) | Regex-based (no LLM), embed dispatch, SPX 0DTE only |
-| Ian | `IanParser` | Disabled | 10 | 0.5 (5%) | Position injection, stop updates ignored, structured entries |
+| FiFi | `FiFiParser` | Yes (`min_trade_contracts=2`) | 10 | 0.5 (5%) | Position injection, time deltas, negative constraints, role ping |
+| Ryan | `RyanParser` | Yes (`min_trade_contracts=2`) | 0 | 0.5 (5%) | Regex-based (no LLM), embed dispatch, SPX 0DTE only |
+| Ian | `IanParser` | Yes (`min_trade_contracts=2`) | 10 | 0.5 (5%) | Position injection, stop updates ignored, structured entries |
+| Eva | `EvaParser` | Yes (`min_trade_contracts=2`) | 0 | 0.5 (5%) | Hybrid regex+LLM, embed dispatch, BTO/STC format |
 
 The `message_history_limit` config key controls how many recent messages are fetched for context per channel (see `main.py` line 555). Channels without this key default to 5.
 

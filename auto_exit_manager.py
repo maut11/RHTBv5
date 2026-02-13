@@ -159,7 +159,7 @@ class AutoExitManager:
             logger.error(f"check_strategies error: {e}")
 
     def _check_single_strategy(self, strat):
-        """Check one strategy: stop condition, tier fills."""
+        """Check one strategy: flash crash, stop condition, tier fills."""
         ccid = strat['ccid']
         symbol = strat['ticker']
         expiration = strat['expiration']
@@ -173,7 +173,15 @@ class AutoExitManager:
         if bid_price <= 0:
             return  # No valid data, skip this cycle
 
-        # 2. Stop-loss check (highest priority, subject to grace period)
+        # 2. FLASH CRASH DETECTION (highest priority — bypasses grace period)
+        # If price drops >20% in <10 seconds, skip cascade and dump immediately
+        if self._detect_flash_crash(ccid, bid_price, strat['entry_price']):
+            logger.warning(f"⚡ FLASH CRASH DETECTED {ccid}: bid=${bid_price:.2f}")
+            print(f"⚡ FLASH CRASH DETECTED: {symbol} — bypassing cascade, emergency exit!")
+            self.execute_flash_crash_exit(strat, bid_price)
+            return
+
+        # 3. Stop-loss check (subject to grace period)
         if bid_price < strat['stop_price']:
             # Grace period: don't trigger stop until delay has elapsed
             stop_delay = AUTO_EXIT_CONFIG.get('stop_loss_delay_seconds', 300)
@@ -199,11 +207,14 @@ class AutoExitManager:
         if strat['status'] == 'active' and strat.get('tier1_order_id'):
             t1_info = self.trader.get_option_order_info(strat['tier1_order_id'])
             if t1_info and t1_info.get('state', '').lower() == 'filled':
-                logger.info(f"✅ Tier 1 FILLED for {ccid} — moving stop to break-even")
-                print(f"✅ Tier 1 HIT for {symbol}! Stop → break-even (${strat['entry_price']:.2f})")
+                logger.info(f"✅ Tier 1 FILLED for {ccid} — moving stop to break-even + buffer")
 
-                # Move stop to entry price (break-even)
-                new_stop = strat['entry_price']
+                # Move stop to entry + 1 tick (covers fees, ensures scratch is truly free)
+                buffer_ticks = AUTO_EXIT_CONFIG.get('breakeven_buffer_ticks', 1)
+                tick_size = self._get_tick_size(strat['entry_price'], symbol)
+                new_stop = strat['entry_price'] + (buffer_ticks * tick_size)
+
+                print(f"✅ Tier 1 HIT for {symbol}! Stop → break-even + {buffer_ticks} tick (${new_stop:.2f})")
                 self.ledger.update_auto_exit_status(ccid, 'tier1_filled', stop_price=new_stop)
 
                 # Record the tier 1 sell in ledger
@@ -467,3 +478,180 @@ class AutoExitManager:
             return 0.0
         except (IndexError, TypeError, ValueError):
             return 0.0
+
+    # ------------------------------------------------------------------
+    # FLASH CRASH DETECTION
+    # ------------------------------------------------------------------
+
+    def _detect_flash_crash(self, ccid, current_bid, entry_price):
+        """
+        Detect flash crash: price drops >20% in <10 seconds.
+        Returns True if flash crash detected, False otherwise.
+        """
+        if not hasattr(self, '_price_history'):
+            self._price_history = {}
+
+        threshold_pct = AUTO_EXIT_CONFIG.get('flash_crash_threshold_pct', 0.20)
+        window_seconds = AUTO_EXIT_CONFIG.get('flash_crash_window_seconds', 10)
+
+        now = time.time()
+
+        # Initialize history for this position
+        if ccid not in self._price_history:
+            self._price_history[ccid] = []
+
+        # Add current price to history
+        self._price_history[ccid].append((now, current_bid))
+
+        # Clean old entries (keep only within window)
+        self._price_history[ccid] = [
+            (ts, price) for ts, price in self._price_history[ccid]
+            if now - ts <= window_seconds
+        ]
+
+        # Need at least 2 data points
+        if len(self._price_history[ccid]) < 2:
+            return False
+
+        # Get oldest price in window
+        oldest_ts, oldest_price = self._price_history[ccid][0]
+
+        if oldest_price <= 0:
+            return False
+
+        # Calculate drop percentage
+        drop_pct = (oldest_price - current_bid) / oldest_price
+
+        if drop_pct >= threshold_pct:
+            logger.warning(
+                f"⚡ Flash crash detected: {ccid} dropped {drop_pct*100:.1f}% "
+                f"(${oldest_price:.2f} → ${current_bid:.2f}) in {now - oldest_ts:.1f}s"
+            )
+            return True
+
+        return False
+
+    def execute_flash_crash_exit(self, strat, current_bid):
+        """Emergency exit without cascade - immediate dump at bid × 0.90."""
+        ccid = strat['ccid']
+        symbol = strat['ticker']
+        strike = strat['strike']
+        expiration = strat['expiration']
+        opt_type = strat['option_type']
+
+        logger.warning(f"⚡ Executing FLASH CRASH exit for {ccid}")
+
+        # 1. Cancel outstanding limit orders immediately
+        for order_key in ('tier1_order_id', 'tier2_order_id'):
+            order_id = strat.get(order_key)
+            if order_id:
+                try:
+                    self.trader.cancel_option_order(order_id)
+                    print(f"🗑️ Flash crash: cancelled {order_key}")
+                except Exception as e:
+                    logger.error(f"Flash crash cancel failed: {e}")
+
+        # 2. Get remaining quantity
+        remaining_qty = 0
+        try:
+            all_pos = self.trader.get_open_option_positions()
+            rh_pos = self.trader.find_open_option_position(
+                all_pos, symbol, strike, expiration, opt_type
+            )
+            if rh_pos:
+                remaining_qty = int(float(rh_pos.get('quantity', 0)))
+        except Exception as e:
+            logger.error(f"Flash crash qty lookup failed: {e}")
+            remaining_qty = strat['tier1_qty'] + strat['tier2_qty']
+
+        if remaining_qty <= 0:
+            self.ledger.update_auto_exit_status(ccid, 'flash_crash_exit')
+            return
+
+        # 3. Immediate dump at bid × 0.90 (no cascade)
+        discount = AUTO_EXIT_CONFIG.get('flash_crash_exit_discount', 0.10)
+        exit_price = self.trader.round_to_tick(
+            current_bid * (1 - discount), symbol,
+            round_up_for_buy=False, expiration=expiration
+        )
+        if exit_price <= 0:
+            exit_price = 0.05
+
+        print(f"⚡ FLASH CRASH EXIT: {symbol} x{remaining_qty} @ ${exit_price:.2f}")
+
+        res = self.trader.place_option_sell_order(
+            symbol, strike, expiration, opt_type,
+            remaining_qty, exit_price, exact_price=True
+        )
+
+        if res and res.get('id') and not res.get('error'):
+            print(f"✅ Flash crash exit placed: {res['id']}")
+            self._send_flash_crash_alert(strat, current_bid, exit_price, remaining_qty)
+        else:
+            error = res.get('error', res) if res else 'No response'
+            print(f"❌ Flash crash exit FAILED: {error}")
+
+        self.ledger.update_auto_exit_status(ccid, 'flash_crash_exit')
+
+        # Record sell
+        try:
+            self.ledger.record_sell(ccid, remaining_qty, exit_price)
+        except Exception as e:
+            logger.error(f"Ledger record_sell for flash crash failed: {e}")
+
+        # Clean up price history
+        if ccid in self._price_history:
+            del self._price_history[ccid]
+
+    def _send_flash_crash_alert(self, strat, current_bid, exit_price, quantity):
+        """Send flash crash alert to live feed."""
+        try:
+            if not self.alert_manager or not self.event_loop:
+                return
+
+            symbol = strat['ticker']
+            entry_price = strat['entry_price']
+            loss_pct = ((exit_price - entry_price) / entry_price) * 100 if entry_price > 0 else 0
+
+            flash_embed = {
+                "title": "⚡ FLASH CRASH EXIT",
+                "description": f"Emergency exit triggered by rapid price drop.",
+                "color": 0xFF4500,  # OrangeRed
+                "fields": [
+                    {"name": "Symbol", "value": symbol, "inline": True},
+                    {"name": "Quantity", "value": f"{quantity}", "inline": True},
+                    {"name": "Entry", "value": f"${entry_price:.2f}", "inline": True},
+                    {"name": "Current Bid", "value": f"${current_bid:.2f}", "inline": True},
+                    {"name": "Exit Price", "value": f"${exit_price:.2f}", "inline": True},
+                    {"name": "Loss", "value": f"{loss_pct:.1f}%", "inline": True},
+                ],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "footer": {"text": "Flash Crash Protection"}
+            }
+
+            asyncio.run_coroutine_threadsafe(
+                self.alert_manager.add_alert(
+                    LIVE_FEED_WEBHOOK,
+                    {"embeds": [flash_embed]},
+                    "flash_crash_alert",
+                    priority=1  # Highest priority
+                ),
+                self.event_loop
+            )
+        except Exception as e:
+            logger.error(f"Flash crash alert failed: {e}")
+
+    # ------------------------------------------------------------------
+    # CBOE TICK SIZE HELPER
+    # ------------------------------------------------------------------
+
+    def _get_tick_size(self, price, symbol='SPX'):
+        """
+        Get CBOE-compliant tick size for SPX options.
+        SPX < $3.00: $0.05 increments
+        SPX >= $3.00: $0.10 increments
+        """
+        if symbol.upper() in ('SPX', 'SPXW'):
+            return 0.05 if price < 3.00 else 0.10
+        # Default for other symbols
+        return 0.01
